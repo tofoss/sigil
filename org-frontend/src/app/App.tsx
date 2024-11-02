@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { RouterProvider } from "react-router-dom"
+import { RouterProvider, createBrowserRouter } from "react-router-dom"
 
 import { Center, Spinner } from "@chakra-ui/react"
 import "@fontsource/inter/400.css"

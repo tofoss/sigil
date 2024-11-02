@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { createBrowserRouter, ScrollRestoration } from "react-router-dom"
+import { Layout } from "shared/Layout"
 
 
 export const router = createBrowserRouter([
@@ -7,7 +8,7 @@ export const router = createBrowserRouter([
 		element: (
 			<>
 				<ScrollRestoration getKey={(location) => location.pathname} />
-				{/*<Layout />*/}
+				<Layout />
 			</>
 		),
 		children: [

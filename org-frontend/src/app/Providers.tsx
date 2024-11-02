@@ -4,11 +4,11 @@ import { ChakraProvider } from "@chakra-ui/react"
 import { theme } from "theme"
 
 
-interface IProps {
+interface Props {
 	children: ReactNode
 }
 
-const Providers = ({ children }: IProps) => {
+const Providers = ({ children }: Props) => {
 	return (
 		<ChakraProvider theme={theme}>
 			{children}
