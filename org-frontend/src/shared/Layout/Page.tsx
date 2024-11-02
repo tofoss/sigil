@@ -1,14 +1,9 @@
-import {
-  VStack,
-  StackProps,
-  Container,
-  ContainerProps,
-} from "@chakra-ui/react";
+import { VStack, StackProps, Container, ContainerProps } from "@chakra-ui/react"
 
 interface IProps {
-  children: StackProps["children"];
-  spacing?: StackProps["spacing"];
-  maxW?: ContainerProps["maxW"];
+  children: StackProps["children"]
+  spacing?: StackProps["spacing"]
+  maxW?: ContainerProps["maxW"]
 }
 
 const Page = ({ children, maxW = "container.lg", ...props }: IProps) => {
@@ -24,7 +19,7 @@ const Page = ({ children, maxW = "container.lg", ...props }: IProps) => {
     >
       {children}
     </VStack>
-  );
-};
+  )
+}
 
-export { Page };
+export { Page }

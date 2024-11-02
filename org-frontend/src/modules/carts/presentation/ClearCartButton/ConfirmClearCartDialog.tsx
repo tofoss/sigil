@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { useRef } from "react";
+import { useRef } from "react"
 
 import {
   Button,
@@ -12,30 +12,30 @@ import {
   AlertDialogCloseButton,
   VStack,
   Text,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { createModalStore } from "shared/Modal";
+import { createModalStore } from "shared/Modal"
 
-import { useClearCart } from "modules/carts/infrastructure";
+import { useClearCart } from "modules/carts/infrastructure"
 
-import { useClearCartNotifications } from "./useClearCartNotifications";
+import { useClearCartNotifications } from "./useClearCartNotifications"
 
-export const useConfirmClearCartDialogStore = createModalStore<number>();
+export const useConfirmClearCartDialogStore = createModalStore<number>()
 
 const ConfirmClearCartDialog = () => {
-  const cancelRef = useRef();
-  const secondaryColor = useSecondaryTextColor();
-  const [clear, isLoading] = useClearCart();
+  const cancelRef = useRef()
+  const secondaryColor = useSecondaryTextColor()
+  const [clear, isLoading] = useClearCart()
 
   const { isOpen, onClose } = useConfirmClearCartDialogStore((state) => ({
     isOpen: state.isOpen,
     onClose: state.onClose,
-  }));
+  }))
 
-  const [notifySuccess, notifyFailure] = useClearCartNotifications();
+  const [notifySuccess, notifyFailure] = useClearCartNotifications()
 
   return (
     <AlertDialog
@@ -69,12 +69,12 @@ const ConfirmClearCartDialog = () => {
               colorScheme="red"
               onClick={async () => {
                 try {
-                  await clear();
-                  notifySuccess();
+                  await clear()
+                  notifySuccess()
                 } catch {
-                  notifyFailure();
+                  notifyFailure()
                 } finally {
-                  onClose();
+                  onClose()
                 }
               }}
               isLoading={isLoading}
@@ -86,7 +86,7 @@ const ConfirmClearCartDialog = () => {
         </AlertDialogContent>
       </AlertDialogOverlay>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export { ConfirmClearCartDialog };
+export { ConfirmClearCartDialog }

@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react"
 
-import { Demo } from "./Demo";
+import { Demo } from "./Demo"
 
 const meta = {
   title: "modules/Demo",
@@ -8,9 +8,9 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof Demo>;
+} satisfies Meta<typeof Demo>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
-export const Default: Story = {};
+export const Default: Story = {}

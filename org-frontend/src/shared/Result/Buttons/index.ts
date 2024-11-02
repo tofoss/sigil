@@ -1,2 +1,2 @@
-export { ContactUsButton } from "./ContactUsButton";
-export { RestFiltersButton } from "./ResetFiltersButton";
+export { ContactUsButton } from "./ContactUsButton"
+export { RestFiltersButton } from "./ResetFiltersButton"

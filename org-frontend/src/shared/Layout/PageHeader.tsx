@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
 import {
   Stack,
@@ -7,14 +7,14 @@ import {
   Text,
   ButtonGroup,
   HeadingProps,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
 interface IProps {
-  title: string | ReactNode;
-  description?: string | ReactNode;
-  size?: HeadingProps["size"];
-  children?: ReactNode;
+  title: string | ReactNode
+  description?: string | ReactNode
+  size?: HeadingProps["size"]
+  children?: ReactNode
 }
 
 const PageHeader = ({
@@ -23,7 +23,7 @@ const PageHeader = ({
   size = { base: "md", md: "lg" },
   children,
 }: IProps) => {
-  const descriptionColor = useSecondaryTextColor();
+  const descriptionColor = useSecondaryTextColor()
 
   return (
     <Stack
@@ -39,7 +39,7 @@ const PageHeader = ({
       </VStack>
       <ButtonGroup>{children}</ButtonGroup>
     </Stack>
-  );
-};
+  )
+}
 
-export { PageHeader };
+export { PageHeader }

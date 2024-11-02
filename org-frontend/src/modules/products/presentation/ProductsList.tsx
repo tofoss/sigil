@@ -1,19 +1,19 @@
-import { SimpleGrid, GridItem } from "@chakra-ui/react";
+import { SimpleGrid, GridItem } from "@chakra-ui/react"
 
-import { EmptyStateResult } from "shared/Result";
+import { EmptyStateResult } from "shared/Result"
 
-import { ProductAddedDialog } from "modules/carts/presentation";
+import { ProductAddedDialog } from "modules/carts/presentation"
 
-import { IProduct } from "../types";
-import { ProductCard } from "./ProductCard";
+import { IProduct } from "../types"
+import { ProductCard } from "./ProductCard"
 
 interface IProps {
-  products: IProduct[];
+  products: IProduct[]
 }
 
 const ProductsList = ({ products }: IProps) => {
   if (products.length === 0) {
-    return <EmptyStateResult />;
+    return <EmptyStateResult />
   }
 
   return (
@@ -31,7 +31,7 @@ const ProductsList = ({ products }: IProps) => {
         </GridItem>
       ))}
     </SimpleGrid>
-  );
-};
+  )
+}
 
-export { ProductsList };
+export { ProductsList }

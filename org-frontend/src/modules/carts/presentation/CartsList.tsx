@@ -1,29 +1,29 @@
-import { ComponentProps, Fragment } from "react";
+import { ComponentProps, Fragment } from "react"
 
-import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { VStack, HStack, Button, Text, Divider } from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+import { ArrowForwardIcon } from "@chakra-ui/icons"
+import { VStack, HStack, Button, Text, Divider } from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { moneyVO, t } from "utils";
+import { moneyVO, t } from "utils"
 
-import { useNavigate } from "shared/Router";
+import { useNavigate } from "shared/Router"
 
-import { CartItem } from "./CartItem";
-import { CheckoutButton } from "./CheckoutButton";
+import { CartItem } from "./CartItem"
+import { CheckoutButton } from "./CheckoutButton"
 
 interface IProps {
-  cartProducts: ComponentProps<typeof CartItem>[];
+  cartProducts: ComponentProps<typeof CartItem>[]
 }
 
 const CartsList = ({ cartProducts }: IProps) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const secondaryColor = useSecondaryTextColor();
+  const secondaryColor = useSecondaryTextColor()
 
   // todo: moneyVo.sum()
   const subtotal = cartProducts
     .map((cart) => cart.price)
-    .reduce((a, b) => a + b, 0);
+    .reduce((a, b) => a + b, 0)
 
   return (
     <VStack w="100%" spacing={8}>
@@ -64,7 +64,7 @@ const CartsList = ({ cartProducts }: IProps) => {
         </HStack>
       </VStack>
     </VStack>
-  );
-};
+  )
+}
 
-export { CartsList };
+export { CartsList }

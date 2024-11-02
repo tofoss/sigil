@@ -1,17 +1,17 @@
 import IntlMessageFormat, {
   PrimitiveType,
   FormatXMLElementFn,
-} from "intl-messageformat";
+} from "intl-messageformat"
 
-import { locale } from "./locale";
+import { locale } from "./locale"
 
 type Format<T> =
   | Record<
       string,
       PrimitiveType | T | FormatXMLElementFn<T, string | T | (string | T)[]>
     >
-  | undefined;
+  | undefined
 
 export function t<T = void>(message: string, values?: Format<T>) {
-  return new IntlMessageFormat(message, locale).format(values) as string;
+  return new IntlMessageFormat(message, locale).format(values) as string
 }

@@ -14,27 +14,27 @@ export enum LogEnvironment {
 }
 
 export type LogParams = {
-  route?: string;
-  stacktrace?: string;
-  user?: object;
-  tags?: string[];
-  request?: string;
-  response?: string;
-  additionalInfo?: string;
+  route?: string
+  stacktrace?: string
+  user?: object
+  tags?: string[]
+  request?: string
+  response?: string
+  additionalInfo?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [index: string]: any;
-};
+  [index: string]: any
+}
 
 export type Log = {
-  name: string;
-  level: LogLevel;
-  message: string;
-} & LogParams;
+  name: string
+  level: LogLevel
+  message: string
+} & LogParams
 
 export interface ILogger {
-  log(level: LogLevel, message: string, params?: LogParams): void;
-  debug(message: string, params?: LogParams): void;
-  info(message: string, params?: LogParams): void;
-  warn(message: string, params?: LogParams): void;
-  error(message: string, params?: LogParams): void;
+  log(level: LogLevel, message: string, params?: LogParams): void
+  debug(message: string, params?: LogParams): void
+  info(message: string, params?: LogParams): void
+  warn(message: string, params?: LogParams): void
+  error(message: string, params?: LogParams): void
 }

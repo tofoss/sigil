@@ -1,9 +1,9 @@
-import { ArrowRightIcon } from "@chakra-ui/icons";
-import { HStack, Text } from "@chakra-ui/react";
-import { useBrandColor } from "theme";
+import { ArrowRightIcon } from "@chakra-ui/icons"
+import { HStack, Text } from "@chakra-ui/react"
+import { useBrandColor } from "theme"
 
 export const Logo = () => {
-  const color = useBrandColor();
+  const color = useBrandColor()
 
   return (
     <HStack>
@@ -12,5 +12,5 @@ export const Logo = () => {
         Logoipsum
       </Text>
     </HStack>
-  );
-};
+  )
+}

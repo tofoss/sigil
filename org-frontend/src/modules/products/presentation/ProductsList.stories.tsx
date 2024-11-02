@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "storybook-addon-remix-react-router";
+import type { Meta, StoryObj } from "@storybook/react"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { ProductFixture } from "utils/fixtures";
+import { ProductFixture } from "utils/fixtures"
 
-import { ProductsList } from "./ProductsList";
+import { ProductsList } from "./ProductsList"
 
 const meta = {
   title: "modules/Products/ProductsList",
@@ -12,10 +12,10 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof ProductsList>;
+} satisfies Meta<typeof ProductsList>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
@@ -43,10 +43,10 @@ export const Default: Story = {
       },
     ]),
   },
-};
+}
 
 export const WithoutProducts: Story = {
   args: {
     products: [],
   },
-};
+}

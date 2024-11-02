@@ -1,2 +1,2 @@
-export { TextInput } from "./TextInput";
-export { Select } from "./Select";
+export { TextInput } from "./TextInput"
+export { Select } from "./Select"

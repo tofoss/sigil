@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
-import { createBrowserRouter, ScrollRestoration } from "react-router-dom";
+import { createBrowserRouter, ScrollRestoration } from "react-router-dom"
 
-import { Layout } from "shared/Layout";
+import { Layout } from "shared/Layout"
 
-import { cartPageLoader } from "./Cart/loader";
-import { homePageLoader } from "./Home/loader";
-import { productPageLoader } from "./Product/loader";
-import { productsPageLoader } from "./Products/loader";
+import { cartPageLoader } from "./Cart/loader"
+import { homePageLoader } from "./Home/loader"
+import { productPageLoader } from "./Product/loader"
+import { productsPageLoader } from "./Products/loader"
 
 export const router = createBrowserRouter([
   {
@@ -43,4 +43,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+])

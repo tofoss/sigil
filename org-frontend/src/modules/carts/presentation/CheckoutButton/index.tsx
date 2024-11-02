@@ -1,11 +1,11 @@
-import { Button } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { CheckoutDialog, usePurchaseDialogStore } from "./CheckoutDialog";
+import { CheckoutDialog, usePurchaseDialogStore } from "./CheckoutDialog"
 
 const CheckoutButton = () => {
-  const onOpen = usePurchaseDialogStore((state) => state.onOpen);
+  const onOpen = usePurchaseDialogStore((state) => state.onOpen)
 
   return (
     <>
@@ -14,7 +14,7 @@ const CheckoutButton = () => {
       </Button>
       <CheckoutDialog />
     </>
-  );
-};
+  )
+}
 
-export { CheckoutButton };
+export { CheckoutButton }

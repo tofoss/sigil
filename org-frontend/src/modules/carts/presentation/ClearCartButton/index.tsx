@@ -1,15 +1,15 @@
-import { DeleteIcon } from "@chakra-ui/icons";
-import { Button } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons"
+import { Button } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
 import {
   ConfirmClearCartDialog,
   useConfirmClearCartDialogStore,
-} from "./ConfirmClearCartDialog";
+} from "./ConfirmClearCartDialog"
 
 const ClearCartButton = () => {
-  const onOpen = useConfirmClearCartDialogStore((state) => state.onOpen);
+  const onOpen = useConfirmClearCartDialogStore((state) => state.onOpen)
 
   return (
     <>
@@ -18,7 +18,7 @@ const ClearCartButton = () => {
       </Button>
       <ConfirmClearCartDialog />
     </>
-  );
-};
+  )
+}
 
-export { ClearCartButton };
+export { ClearCartButton }

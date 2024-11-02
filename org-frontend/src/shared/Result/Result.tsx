@@ -1,17 +1,17 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-import { Center, VStack, Heading, Text } from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+import { Center, VStack, Heading, Text } from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
 interface IProps {
-  image: ReactNode;
-  heading: string;
-  subheading: string;
-  children: ReactNode;
+  image: ReactNode
+  heading: string
+  subheading: string
+  children: ReactNode
 }
 
 const Result = ({ children, heading, image, subheading }: IProps) => {
-  const secondaryColor = useSecondaryTextColor();
+  const secondaryColor = useSecondaryTextColor()
 
   return (
     <Center minH="75vh" as={VStack} textAlign="center" spacing={6}>
@@ -26,7 +26,7 @@ const Result = ({ children, heading, image, subheading }: IProps) => {
       </VStack>
       {children}
     </Center>
-  );
-};
+  )
+}
 
-export { Result };
+export { Result }

@@ -1,15 +1,15 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-import { ButtonGroup } from "@chakra-ui/react";
+import { ButtonGroup } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { RestFiltersButton } from "./Buttons";
-import { WarningIcon } from "./Icons";
-import { Result } from "./Result";
+import { RestFiltersButton } from "./Buttons"
+import { WarningIcon } from "./Icons"
+import { Result } from "./Result"
 
 interface IProps {
-  children?: ReactNode;
+  children?: ReactNode
 }
 
 const EmptyStateResult = ({ children }: IProps) => {
@@ -24,7 +24,7 @@ const EmptyStateResult = ({ children }: IProps) => {
         {children}
       </ButtonGroup>
     </Result>
-  );
-};
+  )
+}
 
-export { EmptyStateResult };
+export { EmptyStateResult }

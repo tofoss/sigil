@@ -1,4 +1,4 @@
-export const locale = navigator.language;
+export const locale = navigator.language
 
 const Locale = {
   en: {
@@ -11,15 +11,15 @@ const Locale = {
     dateFormat: "d MMMM YYYY",
     dateTimeFormat: "d MMMM YYYY h:mm",
   },
-};
+}
 
 export const getLocale = (value = locale) => {
   switch (value) {
     case "en":
-      return Locale["en"];
+      return Locale["en"]
     case "pl":
-      return Locale["pl"];
+      return Locale["pl"]
     default:
-      return Locale["en"];
+      return Locale["en"]
   }
-};
+}

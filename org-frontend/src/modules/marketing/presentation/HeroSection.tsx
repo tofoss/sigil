@@ -9,16 +9,16 @@ import {
   VStack,
   useColorModeValue,
   createIcon,
-} from "@chakra-ui/react";
-import { useBrandColor, useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useBrandColor, useSecondaryTextColor } from "theme"
 
 interface IProps {
-  productNumber: number;
+  productNumber: number
 }
 
 const HeroSection = ({ productNumber }: IProps) => {
-  const brandColor = useBrandColor();
-  const textColor = useSecondaryTextColor();
+  const brandColor = useBrandColor()
+  const textColor = useSecondaryTextColor()
 
   return (
     <Container maxW="3xl">
@@ -77,8 +77,8 @@ const HeroSection = ({ productNumber }: IProps) => {
         </VStack>
       </Stack>
     </Container>
-  );
-};
+  )
+}
 
 const Arrow = createIcon({
   displayName: "Arrow",
@@ -91,6 +91,6 @@ const Arrow = createIcon({
       fill="currentColor"
     />
   ),
-});
+})
 
-export { HeroSection };
+export { HeroSection }

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
 import {
   Box,
@@ -8,13 +8,13 @@ import {
   Stack,
   Text,
   useColorModeValue,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
-import { Logo } from "./Logo";
+import { Logo } from "./Logo"
 
 export const Footer = () => {
-  const bg = useColorModeValue("gray.50", "gray.900");
-  const color = useColorModeValue("gray.700", "gray.200");
+  const bg = useColorModeValue("gray.50", "gray.900")
+  const color = useColorModeValue("gray.700", "gray.200")
   return (
     <Box bg={bg} color={color}>
       <Container as={Stack} maxW="1340px" py={10}>
@@ -65,13 +65,13 @@ export const Footer = () => {
         </SimpleGrid>
       </Container>
     </Box>
-  );
-};
+  )
+}
 
 const ListHeader = ({ children }: { children: ReactNode }) => {
   return (
     <Text fontWeight="500" fontSize="lg" mb={2}>
       {children}
     </Text>
-  );
-};
+  )
+}

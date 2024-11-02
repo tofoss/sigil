@@ -1,6 +1,6 @@
-import { HTTPError } from "ky";
+import { HTTPError } from "ky"
 
-import { AjaxError } from "../AjaxError";
+import { AjaxError } from "../AjaxError"
 
 export class ResourceNotFoundException extends AjaxError {
   constructor(
@@ -17,7 +17,7 @@ export class ResourceNotFoundException extends AjaxError {
       resourceId
         ? `Resource with ${resourceId} id not found`
         : "Resource not found"
-    );
-    this.name = "ResourceNotFoundException";
+    )
+    this.name = "ResourceNotFoundException"
   }
 }

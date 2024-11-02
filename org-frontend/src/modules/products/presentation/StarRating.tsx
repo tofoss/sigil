@@ -1,21 +1,21 @@
-import React from "react";
+import React from "react"
 
-import { StarIcon } from "@chakra-ui/icons";
-import { HStack, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import { StarIcon } from "@chakra-ui/icons"
+import { HStack, Tooltip, useColorModeValue } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
 interface IProps {
-  rating: number;
+  rating: number
 }
 
 const StarRating = ({ rating }: IProps) => {
-  const idleStar = useColorModeValue("gray.400", "gray.600");
-  const activeStar = useColorModeValue("gray.700", "gray.300");
+  const idleStar = useColorModeValue("gray.400", "gray.600")
+  const activeStar = useColorModeValue("gray.700", "gray.300")
 
   const countColor = (index: number) => {
-    return Math.round(rating) >= index ? activeStar : idleStar;
-  };
+    return Math.round(rating) >= index ? activeStar : idleStar
+  }
 
   return (
     <Tooltip label={t("Average customer rating: {rating}", { rating })}>
@@ -25,7 +25,7 @@ const StarRating = ({ rating }: IProps) => {
         ))}
       </HStack>
     </Tooltip>
-  );
-};
+  )
+}
 
-export { StarRating };
+export { StarRating }

@@ -2,10 +2,10 @@ export {
   getProductsQueryKey,
   useProductsQuery,
   productsLoader,
-} from "./productsQuery";
+} from "./productsQuery"
 export {
   getProductQueryKey,
   useProductQuery,
   productLoader,
   getProductQuery,
-} from "./productQuery";
+} from "./productQuery"

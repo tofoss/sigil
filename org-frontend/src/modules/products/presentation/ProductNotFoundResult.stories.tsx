@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "storybook-addon-remix-react-router";
+import type { Meta, StoryObj } from "@storybook/react"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { ProductNotFoundResult } from "./ProductNotFoundResult";
+import { ProductNotFoundResult } from "./ProductNotFoundResult"
 
 const meta = {
   title: "modules/products/Results/ProductNotFoundResult",
@@ -10,9 +10,9 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof ProductNotFoundResult>;
+} satisfies Meta<typeof ProductNotFoundResult>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
-export const Default: Story = {};
+export const Default: Story = {}

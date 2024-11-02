@@ -3,14 +3,14 @@
 import {
   initializeAuthStore,
   Provider,
-} from "modules/auth/application/authStore";
+} from "modules/auth/application/authStore"
 
 export const withoutAuth = (story: any) => {
   const store = initializeAuthStore({
     isAuthenticated: false,
     isError: false,
     state: "finished",
-  });
+  })
 
-  return <Provider value={store}>{story()}</Provider>;
-};
+  return <Provider value={store}>{story()}</Provider>
+}

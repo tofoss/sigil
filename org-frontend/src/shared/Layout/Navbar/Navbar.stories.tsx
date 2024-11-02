@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "storybook-addon-remix-react-router";
+import type { Meta, StoryObj } from "@storybook/react"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { withoutAuth } from "utils";
+import { withoutAuth } from "utils"
 
-import { Navbar } from "./index";
+import { Navbar } from "./index"
 
 const meta = {
   component: Navbar,
@@ -11,13 +11,13 @@ const meta = {
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof Navbar>;
+} satisfies Meta<typeof Navbar>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [withoutAuth],
-};
+}
 
-export const WithAuthentication: Story = {};
+export const WithAuthentication: Story = {}

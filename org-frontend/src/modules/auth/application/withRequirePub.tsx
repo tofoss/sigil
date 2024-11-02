@@ -1,6 +1,6 @@
-import { Component, ComponentType } from "react";
+import { Component, ComponentType } from "react"
 
-import { IRequirePubProps, RequirePub } from "./RequirePub";
+import { IRequirePubProps, RequirePub } from "./RequirePub"
 
 export function withRequirePub<Props>(
   Wrapper: ComponentType<Props>,
@@ -12,7 +12,7 @@ export function withRequirePub<Props>(
         <RequirePub to={props?.to}>
           <Wrapper {...this.props} />
         </RequirePub>
-      );
+      )
     }
-  };
+  }
 }

@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "storybook-addon-remix-react-router";
+import type { Meta, StoryObj } from "@storybook/react"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { getProductsHandler } from "utils";
+import { getProductsHandler } from "utils"
 
-import { Component } from "./index";
-import { homePageLoader } from "./loader";
+import { Component } from "./index"
+import { homePageLoader } from "./loader"
 
 const meta = {
   title: "pages/Home",
@@ -16,10 +16,10 @@ const meta = {
     },
   },
   decorators: [withRouter],
-} satisfies Meta<typeof Component>;
+} satisfies Meta<typeof Component>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   parameters: {
@@ -27,4 +27,4 @@ export const Default: Story = {
       handlers: [getProductsHandler()],
     },
   },
-};
+}

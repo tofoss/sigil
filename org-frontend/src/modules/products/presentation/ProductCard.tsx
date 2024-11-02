@@ -1,27 +1,27 @@
-import { Box, Text, VStack, HStack } from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+import { Box, Text, VStack, HStack } from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { moneyVO } from "utils";
+import { moneyVO } from "utils"
 
-import { useNavigate } from "shared/Router";
+import { useNavigate } from "shared/Router"
 
-import { AddToCartButton } from "modules/carts/presentation";
+import { AddToCartButton } from "modules/carts/presentation"
 
-import { Category } from "../types";
-import { useCategoryLabel } from "./useCategoryLabel";
+import { Category } from "../types"
+import { useCategoryLabel } from "./useCategoryLabel"
 
 interface IProps {
-  id: number;
-  title: string;
-  category: Category;
-  price: number;
-  imageUrl: string;
+  id: number
+  title: string
+  category: Category
+  price: number
+  imageUrl: string
 }
 
 const ProductCard = ({ title, category, price, imageUrl, id }: IProps) => {
-  const navigate = useNavigate();
-  const categoryLabel = useCategoryLabel(category);
-  const categoryColor = useSecondaryTextColor();
+  const navigate = useNavigate()
+  const categoryLabel = useCategoryLabel(category)
+  const categoryColor = useSecondaryTextColor()
 
   return (
     <VStack spacing={3} overflow="hidden" rounded="lg">
@@ -63,7 +63,7 @@ const ProductCard = ({ title, category, price, imageUrl, id }: IProps) => {
       </VStack>
       <AddToCartButton productId={id} />
     </VStack>
-  );
-};
+  )
+}
 
-export { ProductCard };
+export { ProductCard }

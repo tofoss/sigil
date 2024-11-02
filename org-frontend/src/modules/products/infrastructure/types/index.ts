@@ -1,1 +1,1 @@
-export type { IProductDto } from "./IProductDto";
+export type { IProductDto } from "./IProductDto"

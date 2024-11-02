@@ -1,3 +1,3 @@
-import { ICart } from "../../types";
+import { ICart } from "../../types"
 
 export interface ICartDto extends ICart {}

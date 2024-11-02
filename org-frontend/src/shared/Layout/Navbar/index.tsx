@@ -1,4 +1,4 @@
-import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons"
 import {
   Box,
   Flex,
@@ -10,21 +10,21 @@ import {
   useColorModeValue,
   useBreakpointValue,
   useDisclosure,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
-import { Link, useNavigate } from "shared/Router";
-import { useNotImplementedYetToast } from "shared/Toast";
+import { Link, useNavigate } from "shared/Router"
+import { useNotImplementedYetToast } from "shared/Toast"
 
-import { useAuthStore } from "modules/auth/application";
+import { useAuthStore } from "modules/auth/application"
 
-import { ToggleModeButton } from "../ToggleModeButton";
-import { DesktopNav } from "./DesktopNav";
-import { LoaderBar } from "./LoaderBar";
-import { MobileNav } from "./MobileNav";
+import { ToggleModeButton } from "../ToggleModeButton"
+import { DesktopNav } from "./DesktopNav"
+import { LoaderBar } from "./LoaderBar"
+import { MobileNav } from "./MobileNav"
 
 export const Navbar = () => {
-  const { isOpen, onToggle } = useDisclosure();
-  const bg = useColorModeValue("white", "gray.800");
+  const { isOpen, onToggle } = useDisclosure()
+  const bg = useColorModeValue("white", "gray.800")
 
   return (
     <Box w="100%" position="fixed" zIndex="10">
@@ -77,29 +77,29 @@ export const Navbar = () => {
         <MobileNav />
       </Collapse>
     </Box>
-  );
-};
+  )
+}
 
 const SignInButton = () => {
-  const isAuthenticated = useAuthStore((store) => store.isAuthenticated);
+  const isAuthenticated = useAuthStore((store) => store.isAuthenticated)
 
   if (isAuthenticated) {
-    return null;
+    return null
   }
 
   return (
     <Button fontWeight={400} variant="link" as={Link} to="/sign-in">
       Sign In
     </Button>
-  );
-};
+  )
+}
 
 const SignUpButton = () => {
-  const notImplemented = useNotImplementedYetToast();
-  const isAuthenticated = useAuthStore((store) => store.isAuthenticated);
+  const notImplemented = useNotImplementedYetToast()
+  const isAuthenticated = useAuthStore((store) => store.isAuthenticated)
 
   if (isAuthenticated) {
-    return null;
+    return null
   }
 
   return (
@@ -110,17 +110,17 @@ const SignUpButton = () => {
     >
       Sign Up
     </Button>
-  );
-};
+  )
+}
 
 const LogoutButton = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const isAuthenticated = useAuthStore((store) => store.isAuthenticated);
-  const logout = useAuthStore((store) => store.logout);
+  const isAuthenticated = useAuthStore((store) => store.isAuthenticated)
+  const logout = useAuthStore((store) => store.logout)
 
   if (!isAuthenticated) {
-    return null;
+    return null
   }
 
   return (
@@ -131,5 +131,5 @@ const LogoutButton = () => {
     >
       Logout
     </Button>
-  );
-};
+  )
+}

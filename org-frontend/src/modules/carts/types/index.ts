@@ -1,2 +1,2 @@
-export type { ICart } from "./ICart";
-export type { ICartProduct } from "./ICartProduct";
+export type { ICart } from "./ICart"
+export type { ICartProduct } from "./ICartProduct"

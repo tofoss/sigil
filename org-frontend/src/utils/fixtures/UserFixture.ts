@@ -1,6 +1,6 @@
-import { IUser } from "modules/auth/types";
+import { IUser } from "modules/auth/types"
 
-import { createFixture } from "./createFixture";
+import { createFixture } from "./createFixture"
 
 export const UserFixture = createFixture<IUser>({
   id: 1,
@@ -22,4 +22,4 @@ export const UserFixture = createFixture<IUser>({
     },
   },
   phone: "1-570-236-7033",
-});
+})

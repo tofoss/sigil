@@ -1,10 +1,10 @@
-import { Center } from "@chakra-ui/react";
+import { Center } from "@chakra-ui/react"
 
-import { Page } from "shared/Layout";
-import { ErrorPageStrategy } from "shared/Result";
+import { Page } from "shared/Layout"
+import { ErrorPageStrategy } from "shared/Result"
 
-import { withRequirePub } from "modules/auth/application";
-import { SignInForm } from "modules/auth/presentation";
+import { withRequirePub } from "modules/auth/application"
+import { SignInForm } from "modules/auth/presentation"
 
 export const SignInPage = () => {
   return (
@@ -13,9 +13,9 @@ export const SignInPage = () => {
         <SignInForm initialUsername="mor_2314" initialPassword="83r5^_" />
       </Center>
     </Page>
-  );
-};
+  )
+}
 
-export const Component = withRequirePub(SignInPage, { to: "/products" });
+export const Component = withRequirePub(SignInPage, { to: "/products" })
 
-export const ErrorBoundary = ErrorPageStrategy;
+export const ErrorBoundary = ErrorPageStrategy

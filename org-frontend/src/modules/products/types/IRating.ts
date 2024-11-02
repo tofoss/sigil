@@ -1,4 +1,4 @@
 export interface IRating {
-  rate: number;
-  count: number;
+  rate: number
+  count: number
 }

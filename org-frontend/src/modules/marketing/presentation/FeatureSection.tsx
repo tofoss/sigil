@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-import { CheckIcon } from "@chakra-ui/icons";
+import { CheckIcon } from "@chakra-ui/icons"
 import {
   Box,
   Text,
@@ -12,12 +12,12 @@ import {
   chakra,
   CardBody,
   Card,
-} from "@chakra-ui/react";
-import { useBrandColor, useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useBrandColor, useSecondaryTextColor } from "theme"
 
 const FeatureSection = () => {
-  const brandColor = useBrandColor();
-  const textColor = useSecondaryTextColor();
+  const brandColor = useBrandColor()
+  const textColor = useSecondaryTextColor()
 
   return (
     <Card>
@@ -121,16 +121,16 @@ const FeatureSection = () => {
         </SimpleGrid>
       </CardBody>
     </Card>
-  );
-};
+  )
+}
 
 interface IFeatureProps {
-  title: string;
-  children: ReactNode;
+  title: string
+  children: ReactNode
 }
 
 const Feature = (props: IFeatureProps) => {
-  const textColor = useSecondaryTextColor();
+  const textColor = useSecondaryTextColor()
 
   return (
     <Flex>
@@ -146,7 +146,7 @@ const Feature = (props: IFeatureProps) => {
         </chakra.dd>
       </Box>
     </Flex>
-  );
-};
+  )
+}
 
-export { FeatureSection };
+export { FeatureSection }

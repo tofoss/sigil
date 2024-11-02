@@ -1,16 +1,16 @@
-import { t } from "utils";
+import { t } from "utils"
 
-import { useToast } from "shared/Toast";
+import { useToast } from "shared/Toast"
 
 export const usePurchaseNotifications = () => {
-  const toast = useToast();
+  const toast = useToast()
 
   const success = () =>
     toast({
       status: "success",
       title: t("Checkout"),
       description: t("You have successfully purchased all selected products."),
-    });
+    })
 
   const failure = () =>
     toast({
@@ -19,7 +19,7 @@ export const usePurchaseNotifications = () => {
       description: t(
         "Something went wrong with finalizing a transaction. Pleas try again or contact us."
       ),
-    });
+    })
 
-  return [success, failure] as const;
-};
+  return [success, failure] as const
+}

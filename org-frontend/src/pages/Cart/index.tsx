@@ -1,16 +1,16 @@
-import { dateVO, t } from "utils";
+import { dateVO, t } from "utils"
 
-import { Page, PageHeader } from "shared/Layout";
-import { ErrorPageStrategy } from "shared/Result";
-import { useParams } from "shared/Router";
+import { Page, PageHeader } from "shared/Layout"
+import { ErrorPageStrategy } from "shared/Result"
+import { useParams } from "shared/Router"
 
-import { withRequireAuth } from "modules/auth/application";
-import { useCartProductsQuery } from "modules/carts/infrastructure";
-import { CartsList, ClearCartButton } from "modules/carts/presentation";
+import { withRequireAuth } from "modules/auth/application"
+import { useCartProductsQuery } from "modules/carts/infrastructure"
+import { CartsList, ClearCartButton } from "modules/carts/presentation"
 
 const CartPage = () => {
-  const params = useParams<{ cartId: string }>();
-  const { data } = useCartProductsQuery(params.cartId as string);
+  const params = useParams<{ cartId: string }>()
+  const { data } = useCartProductsQuery(params.cartId as string)
 
   return (
     <Page>
@@ -36,9 +36,9 @@ const CartPage = () => {
         }))}
       />
     </Page>
-  );
-};
+  )
+}
 
-export const Component = withRequireAuth(CartPage, { to: "/sign-in" });
+export const Component = withRequireAuth(CartPage, { to: "/sign-in" })
 
-export const ErrorBoundary = ErrorPageStrategy;
+export const ErrorBoundary = ErrorPageStrategy

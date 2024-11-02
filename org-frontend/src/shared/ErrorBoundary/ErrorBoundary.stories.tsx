@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom"
 
-import { Button, VStack, useBoolean } from "@chakra-ui/react";
-import type { Meta, StoryObj } from "@storybook/react";
+import { Button, VStack, useBoolean } from "@chakra-ui/react"
+import type { Meta, StoryObj } from "@storybook/react"
 
-import { AjaxError } from "utils";
+import { AjaxError } from "utils"
 
-import { ErrorPageStrategy } from "shared/Result";
-import { InternalServerErrorResult } from "shared/Result";
+import { ErrorPageStrategy } from "shared/Result"
+import { InternalServerErrorResult } from "shared/Result"
 
-import { ErrorBoundary } from "./ErrorBoundary";
+import { ErrorBoundary } from "./ErrorBoundary"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withRouter = (story: any) => {
@@ -25,23 +25,23 @@ const withRouter = (story: any) => {
       initialEntries: ["/"],
       initialIndex: 1,
     }
-  );
+  )
 
-  return <RouterProvider router={router} />;
-};
+  return <RouterProvider router={router} />
+}
 
 const Throw500Error = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  throw new AjaxError<any, any>(500, {}, {}, {} as any);
-};
+  throw new AjaxError<any, any>(500, {}, {}, {} as any)
+}
 
 const TestableErrorBoundary = ({
   withRecovery,
 }: {
-  withRecovery?: boolean;
+  withRecovery?: boolean
 }) => {
-  const [throwError, setError] = useBoolean(false);
-  const [resetKey, setResetKey] = useState(false);
+  const [throwError, setError] = useBoolean(false)
+  const [resetKey, setResetKey] = useState(false)
 
   return (
     <ErrorBoundary<AjaxError>
@@ -54,10 +54,10 @@ const TestableErrorBoundary = ({
                 Try again
               </Button>
             </InternalServerErrorResult>
-          );
+          )
         }
 
-        return <ErrorPageStrategy error={error} />;
+        return <ErrorPageStrategy error={error} />
       }}
     >
       <VStack>
@@ -71,8 +71,8 @@ const TestableErrorBoundary = ({
         )}
       </VStack>
     </ErrorBoundary>
-  );
-};
+  )
+}
 
 const meta = {
   title: "shared/ErrorBoundary",
@@ -81,13 +81,13 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof TestableErrorBoundary>;
+} satisfies Meta<typeof TestableErrorBoundary>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
-export const Default: Story = {};
+export const Default: Story = {}
 
 export const WithRecovery: Story = {
   args: { withRecovery: true },
-};
+}

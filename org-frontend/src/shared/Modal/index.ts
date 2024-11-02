@@ -1,1 +1,1 @@
-export { createModalStore } from "./createModalStore";
+export { createModalStore } from "./createModalStore"

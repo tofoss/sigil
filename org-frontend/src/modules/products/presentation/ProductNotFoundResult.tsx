@@ -1,12 +1,12 @@
-import { Button, ButtonGroup } from "@chakra-ui/react";
+import { Button, ButtonGroup } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { ContactUsButton, Result, WarningIcon } from "shared/Result";
-import { useNavigate } from "shared/Router";
+import { ContactUsButton, Result, WarningIcon } from "shared/Result"
+import { useNavigate } from "shared/Router"
 
 const ProductNotFoundResult = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <Result
@@ -23,7 +23,7 @@ const ProductNotFoundResult = () => {
         </Button>
       </ButtonGroup>
     </Result>
-  );
-};
+  )
+}
 
-export { ProductNotFoundResult };
+export { ProductNotFoundResult }

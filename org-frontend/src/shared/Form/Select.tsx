@@ -1,16 +1,16 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
 import {
   VStack,
   SelectProps,
   Select as ChakraSelect,
   Text,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
 interface IProps extends SelectProps {
-  id: string;
-  children: ReactNode;
-  options: Array<{ label: string; value: string }>;
+  id: string
+  children: ReactNode
+  options: Array<{ label: string; value: string }>
 }
 
 const Select = ({ children, options, id, ...props }: IProps) => {
@@ -25,7 +25,7 @@ const Select = ({ children, options, id, ...props }: IProps) => {
         ))}
       </ChakraSelect>
     </VStack>
-  );
-};
+  )
+}
 
-export { Select };
+export { Select }

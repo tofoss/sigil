@@ -1,11 +1,11 @@
-import { VStack, Text, Heading, Center, Button } from "@chakra-ui/react";
+import { VStack, Text, Heading, Center, Button } from "@chakra-ui/react"
 
-import { numberVO, moneyVO, t, dateVO } from "utils";
+import { numberVO, moneyVO, t, dateVO } from "utils"
 
-import { useCounter } from "../application";
+import { useCounter } from "../application"
 
 const Demo = () => {
-  const { count, increment } = useCounter();
+  const { count, increment } = useCounter()
 
   return (
     <Center>
@@ -43,6 +43,6 @@ const Demo = () => {
         </Text>
       </VStack>
     </Center>
-  );
-};
-export { Demo };
+  )
+}
+export { Demo }

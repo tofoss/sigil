@@ -1,20 +1,20 @@
-import { Page } from "shared/Layout";
-import { InternalErrorResult } from "shared/Result";
-import { useRouteError } from "shared/Router";
+import { Page } from "shared/Layout"
+import { InternalErrorResult } from "shared/Result"
+import { useRouteError } from "shared/Router"
 
 import {
   HeroSection,
   FeatureSection,
   PricingSection,
-} from "modules/marketing/presentation";
-import { useProductsQuery } from "modules/products/infrastructure";
+} from "modules/marketing/presentation"
+import { useProductsQuery } from "modules/products/infrastructure"
 
 interface IProps {
-  fallbackProductsNumber?: number;
+  fallbackProductsNumber?: number
 }
 
 const HomePage = ({ fallbackProductsNumber }: IProps) => {
-  const { data } = useProductsQuery();
+  const { data } = useProductsQuery()
 
   return (
     <Page maxW="container.xl" spacing={{ base: 8, lg: 20 }}>
@@ -24,17 +24,17 @@ const HomePage = ({ fallbackProductsNumber }: IProps) => {
       <FeatureSection />
       <PricingSection />
     </Page>
-  );
-};
+  )
+}
 
-export const Component = HomePage;
+export const Component = HomePage
 
 export const ErrorBoundary = () => {
-  const error = useRouteError();
+  const error = useRouteError()
 
   if (error.status === 404) {
-    return <HomePage fallbackProductsNumber={20} />;
+    return <HomePage fallbackProductsNumber={20} />
   }
 
-  return <InternalErrorResult />;
-};
+  return <InternalErrorResult />
+}

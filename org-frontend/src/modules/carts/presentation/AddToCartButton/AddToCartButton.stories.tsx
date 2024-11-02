@@ -1,18 +1,18 @@
-import { expect } from "@storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
+import { expect } from "@storybook/test"
+import type { Meta, StoryObj } from "@storybook/react"
 import {
   userEvent,
   within,
   screen,
   waitForElementToBeRemoved,
-} from "@storybook/test";
-import { withRouter } from "storybook-addon-remix-react-router";
+} from "@storybook/test"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { sleep } from "utils";
-import { getAddToCartHandler } from "utils/handlers";
+import { sleep } from "utils"
+import { getAddToCartHandler } from "utils/handlers"
 
-import { AddToCartButton } from "./AddToCartButton";
-import { ProductAddedDialog } from "./ProductAddedDialog";
+import { AddToCartButton } from "./AddToCartButton"
+import { ProductAddedDialog } from "./ProductAddedDialog"
 
 const meta = {
   title: "modules/Carts/AddToCartButton",
@@ -24,7 +24,7 @@ const meta = {
           {story()}
           <ProductAddedDialog />
         </>
-      );
+      )
     },
     withRouter,
   ],
@@ -34,51 +34,49 @@ const meta = {
       handlers: [getAddToCartHandler()],
     },
   },
-} satisfies Meta<typeof AddToCartButton>;
+} satisfies Meta<typeof AddToCartButton>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
     productId: 1,
   },
-};
+}
 
 export const AddingProductToCart: Story = {
   ...Default,
   play: async ({ canvasElement, step }) => {
-    within(canvasElement);
+    within(canvasElement)
 
     await step("Add a new product", async () => {
-      await userEvent.click(
-        screen.getByRole("button", { name: /Add to cart/ })
-      );
+      await userEvent.click(screen.getByRole("button", { name: /Add to cart/ }))
 
       expect(
         await screen.findByText(
           "A product has been successfully added to your cart."
         )
-      ).toBeInTheDocument();
+      ).toBeInTheDocument()
       expect(
         await screen.findByText(
           /Wonderful! You have already added a new product to your cart/
         )
-      ).toBeInTheDocument();
-    });
+      ).toBeInTheDocument()
+    })
 
     await step("Acknowledge and continue shopping", async () => {
-      await sleep(500);
+      await sleep(500)
 
       await userEvent.click(
         screen.getByRole("button", { name: /Continue shopping/ })
-      );
+      )
 
       await waitForElementToBeRemoved(() =>
         screen.queryByText(
           /Wonderful! You have already added a new product to your cart/
         )
-      );
-    });
+      )
+    })
   },
-};
+}

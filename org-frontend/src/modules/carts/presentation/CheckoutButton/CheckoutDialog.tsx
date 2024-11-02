@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef } from "react"
 
 import {
   AlertDialog,
@@ -7,23 +7,23 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   AlertDialogCloseButton,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { createModalStore } from "shared/Modal";
+import { createModalStore } from "shared/Modal"
 
-import { CheckoutForm } from "../CheckoutForm";
+import { CheckoutForm } from "../CheckoutForm"
 
-export const usePurchaseDialogStore = createModalStore();
+export const usePurchaseDialogStore = createModalStore()
 
 const CheckoutDialog = () => {
-  const cancelRef = useRef();
+  const cancelRef = useRef()
 
   const { isOpen, onClose } = usePurchaseDialogStore((state) => ({
     isOpen: state.isOpen,
     onClose: state.onClose,
-  }));
+  }))
 
   return (
     <AlertDialog
@@ -44,7 +44,7 @@ const CheckoutDialog = () => {
         </AlertDialogContent>
       </AlertDialogOverlay>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export { CheckoutDialog };
+export { CheckoutDialog }

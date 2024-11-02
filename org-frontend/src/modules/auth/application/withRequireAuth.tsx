@@ -1,6 +1,6 @@
-import { Component, ComponentType } from "react";
+import { Component, ComponentType } from "react"
 
-import { IRequireAuthProps, RequireAuth } from "./RequireAuth";
+import { IRequireAuthProps, RequireAuth } from "./RequireAuth"
 
 export function withRequireAuth<Props>(
   Wrapper: ComponentType<Props>,
@@ -12,7 +12,7 @@ export function withRequireAuth<Props>(
         <RequireAuth to={props?.to}>
           <Wrapper {...this.props} />
         </RequireAuth>
-      );
+      )
     }
-  };
+  }
 }

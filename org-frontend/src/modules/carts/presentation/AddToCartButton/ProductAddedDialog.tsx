@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { useRef } from "react";
+import { useRef } from "react"
 
 import {
   Button,
@@ -12,27 +12,27 @@ import {
   VStack,
   Text,
   AlertDialogCloseButton,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { createModalStore } from "shared/Modal";
-import { useNavigate } from "shared/Router";
+import { createModalStore } from "shared/Modal"
+import { useNavigate } from "shared/Router"
 
-export const useProductAddedDialogStore = createModalStore<number>();
+export const useProductAddedDialogStore = createModalStore<number>()
 
 const ProductAddedDialog = () => {
-  const secondaryColor = useSecondaryTextColor();
-  const navigate = useNavigate();
+  const secondaryColor = useSecondaryTextColor()
+  const navigate = useNavigate()
 
-  const cancelRef = useRef();
+  const cancelRef = useRef()
 
   const { isOpen, onClose, cartId } = useProductAddedDialogStore((state) => ({
     isOpen: state.isOpen,
     onClose: state.onClose,
     cartId: state.selectedItem,
-  }));
+  }))
 
   return (
     <AlertDialog
@@ -67,8 +67,8 @@ const ProductAddedDialog = () => {
             <Button
               colorScheme="orange"
               onClick={() => {
-                onClose();
-                navigate(`/cart/${cartId}`);
+                onClose()
+                navigate(`/cart/${cartId}`)
               }}
               ml={3}
             >
@@ -78,7 +78,7 @@ const ProductAddedDialog = () => {
         </AlertDialogContent>
       </AlertDialogOverlay>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export { ProductAddedDialog };
+export { ProductAddedDialog }

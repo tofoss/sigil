@@ -1,9 +1,9 @@
-import { expect } from "@storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
-import { userEvent, within, screen } from "@storybook/test";
+import { expect } from "@storybook/test"
+import type { Meta, StoryObj } from "@storybook/react"
+import { userEvent, within, screen } from "@storybook/test"
 
-import { Purchasing as CheckoutFormPurchasing } from "../CheckoutForm.stories";
-import { CheckoutButton } from "./index";
+import { Purchasing as CheckoutFormPurchasing } from "../CheckoutForm.stories"
+import { CheckoutButton } from "./index"
 
 const meta = {
   title: "modules/Carts/CheckoutButton",
@@ -11,29 +11,29 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof CheckoutButton>;
+} satisfies Meta<typeof CheckoutButton>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
-export const Default: Story = {};
+export const Default: Story = {}
 
 export const Purchasing: Story = {
   play: async (context) => {
-    const { canvasElement, step } = context;
-    within(canvasElement);
+    const { canvasElement, step } = context
+    within(canvasElement)
 
     await step("Clear the cart", async () => {
-      await userEvent.click(screen.getByRole("button", { name: /Checkout/ }));
+      await userEvent.click(screen.getByRole("button", { name: /Checkout/ }))
 
       expect(
         await screen.getByRole("button", { name: "Purchase" })
-      ).toBeInTheDocument();
-    });
+      ).toBeInTheDocument()
+    })
 
     await step("Submit the form", async () => {
       // eslint-disable-next-line storybook/context-in-play-function
-      await CheckoutFormPurchasing.play!(context);
-    });
+      await CheckoutFormPurchasing.play!(context)
+    })
   },
-};
+}

@@ -1,8 +1,8 @@
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme } from "@chakra-ui/react"
 
 const config = {
   useSystemColorMode: true,
-};
+}
 
 export const theme = extendTheme({
   config,
@@ -10,7 +10,7 @@ export const theme = extendTheme({
     heading: `'Inter', sans-serif`,
     body: `'Inter', sans-serif`,
   },
-});
+})
 
 export const lightTheme = extendTheme({
   config: {
@@ -21,7 +21,7 @@ export const lightTheme = extendTheme({
     heading: `'Inter', sans-serif`,
     body: `'Inter', sans-serif`,
   },
-});
+})
 
 export const darkTheme = extendTheme({
   config: {
@@ -32,4 +32,4 @@ export const darkTheme = extendTheme({
     heading: `'Inter', sans-serif`,
     body: `'Inter', sans-serif`,
   },
-});
+})

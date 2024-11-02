@@ -1,22 +1,22 @@
-import { CheckIcon } from "@chakra-ui/icons";
-import { Box, Text, VStack, HStack, Button, Stack } from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+import { CheckIcon } from "@chakra-ui/icons"
+import { Box, Text, VStack, HStack, Button, Stack } from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { moneyVO, t } from "utils";
+import { moneyVO, t } from "utils"
 
-import { useNavigate } from "shared/Router";
-import { useNotImplementedYetToast } from "shared/Toast";
+import { useNavigate } from "shared/Router"
+import { useNotImplementedYetToast } from "shared/Toast"
 
-import { useCategoryLabel } from "modules/products/presentation";
-import { Category } from "modules/products/types";
+import { useCategoryLabel } from "modules/products/presentation"
+import { Category } from "modules/products/types"
 
 interface IProps {
-  id: number;
-  title: string;
-  category: Category;
-  price: number;
-  imageUrl: string;
-  quantity: number;
+  id: number
+  title: string
+  category: Category
+  price: number
+  imageUrl: string
+  quantity: number
 }
 
 const CartItem = ({
@@ -27,10 +27,10 @@ const CartItem = ({
   id,
   quantity,
 }: IProps) => {
-  const navigate = useNavigate();
-  const categoryLabel = useCategoryLabel(category);
-  const categoryColor = useSecondaryTextColor();
-  const notImplemented = useNotImplementedYetToast();
+  const navigate = useNavigate()
+  const categoryLabel = useCategoryLabel(category)
+  const categoryColor = useSecondaryTextColor()
+  const notImplemented = useNotImplementedYetToast()
 
   return (
     <Stack
@@ -112,7 +112,7 @@ const CartItem = ({
         </Button>
       </Stack>
     </Stack>
-  );
-};
+  )
+}
 
-export { CartItem };
+export { CartItem }

@@ -1,8 +1,8 @@
-import { EmailIcon, ExternalLinkIcon } from "@chakra-ui/icons";
-import { Button } from "@chakra-ui/react";
-import type { Meta, StoryObj } from "@storybook/react";
+import { EmailIcon, ExternalLinkIcon } from "@chakra-ui/icons"
+import { Button } from "@chakra-ui/react"
+import type { Meta, StoryObj } from "@storybook/react"
 
-import { PageHeader } from "./PageHeader";
+import { PageHeader } from "./PageHeader"
 
 const meta = {
   component: PageHeader,
@@ -10,10 +10,10 @@ const meta = {
   parameters: {
     layout: "padded",
   },
-} satisfies Meta<typeof PageHeader>;
+} satisfies Meta<typeof PageHeader>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
@@ -34,32 +34,32 @@ export const Default: Story = {
       </>
     ),
   },
-};
+}
 
 export const SmSize: Story = {
   args: {
     ...Default.args,
     size: "sm",
   },
-};
+}
 
 export const MdSize: Story = {
   args: {
     ...Default.args,
     size: "md",
   },
-};
+}
 
 export const LgSize: Story = {
   args: {
     ...Default.args,
     size: "lg",
   },
-};
+}
 
 export const XlSize: Story = {
   args: {
     ...Default.args,
     size: "xl",
   },
-};
+}

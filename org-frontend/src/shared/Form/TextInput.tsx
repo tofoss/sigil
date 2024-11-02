@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
 import {
   FormControl,
@@ -6,18 +6,18 @@ import {
   Input,
   FormErrorMessage,
   InputProps,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
 interface IProps extends InputProps {
-  id: string;
-  children: string | ReactNode;
-  isRequired?: boolean;
+  id: string
+  children: string | ReactNode
+  isRequired?: boolean
 }
 
 const TextInput = ({ id, children, isRequired = true, ...props }: IProps) => {
-  const isInvalid = props.value === "";
+  const isInvalid = props.value === ""
 
   return (
     <FormControl id={id} isRequired={isRequired} isInvalid={isInvalid}>
@@ -27,7 +27,7 @@ const TextInput = ({ id, children, isRequired = true, ...props }: IProps) => {
         <FormErrorMessage>{t("Field is required.")}</FormErrorMessage>
       )}
     </FormControl>
-  );
-};
+  )
+}
 
-export { TextInput };
+export { TextInput }

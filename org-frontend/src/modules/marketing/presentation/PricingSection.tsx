@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-import { CheckIcon as ChakraCheckIcon } from "@chakra-ui/icons";
+import { CheckIcon as ChakraCheckIcon } from "@chakra-ui/icons"
 import {
   Box,
   Button,
@@ -12,12 +12,12 @@ import {
   Text,
   useColorModeValue,
   VStack,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
 const PricingSection = () => {
-  const sectionBg = useColorModeValue("gray.50", "gray.700");
-  const textColor = useSecondaryTextColor();
+  const sectionBg = useColorModeValue("gray.50", "gray.700")
+  const textColor = useSecondaryTextColor()
 
   return (
     <Box py={12}>
@@ -168,11 +168,11 @@ const PricingSection = () => {
         </PriceWrapper>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
 const PriceWrapper = ({ children }: { children: ReactNode }) => {
-  const borderColor = useColorModeValue("gray.200", "gray.500");
+  const borderColor = useColorModeValue("gray.200", "gray.500")
 
   return (
     <Box
@@ -185,12 +185,12 @@ const PriceWrapper = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </Box>
-  );
-};
+  )
+}
 
 const MostPopularBadge = () => {
-  const bg = useColorModeValue("orange.200", "orange.600");
-  const color = useColorModeValue("gray.900", "gray.300");
+  const bg = useColorModeValue("orange.200", "orange.600")
+  const color = useColorModeValue("gray.900", "gray.300")
 
   return (
     <Box
@@ -212,13 +212,13 @@ const MostPopularBadge = () => {
         Most Popular
       </Text>
     </Box>
-  );
-};
+  )
+}
 
 const CheckIcon = () => {
-  const color = useColorModeValue("green.500", "green.200");
+  const color = useColorModeValue("green.500", "green.200")
 
-  return <ChakraCheckIcon fontSize="sm" color={color} mr={2} />;
-};
+  return <ChakraCheckIcon fontSize="sm" color={color} mr={2} />
+}
 
-export { PricingSection };
+export { PricingSection }

@@ -1,15 +1,15 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-import { ButtonGroup } from "@chakra-ui/react";
+import { ButtonGroup } from "@chakra-ui/react"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { ContactUsButton } from "./Buttons";
-import { ErrorIcon } from "./Icons";
-import { Result } from "./Result";
+import { ContactUsButton } from "./Buttons"
+import { ErrorIcon } from "./Icons"
+import { Result } from "./Result"
 
 interface IProps {
-  children?: ReactNode;
+  children?: ReactNode
 }
 
 const InternalServerErrorResult = ({ children }: IProps) => {
@@ -26,7 +26,7 @@ const InternalServerErrorResult = ({ children }: IProps) => {
         {children}
       </ButtonGroup>
     </Result>
-  );
-};
+  )
+}
 
-export { InternalServerErrorResult };
+export { InternalServerErrorResult }

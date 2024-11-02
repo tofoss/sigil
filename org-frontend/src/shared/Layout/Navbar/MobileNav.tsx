@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon } from "@chakra-ui/icons"
 import {
   Collapse,
   Flex,
@@ -8,16 +8,16 @@ import {
   Text,
   useColorModeValue,
   useDisclosure,
-} from "@chakra-ui/react";
+} from "@chakra-ui/react"
 
-import { Link } from "shared/Router";
+import { Link } from "shared/Router"
 
-import { INavItem } from "./INavItem";
-import { useNavItems } from "./useNavItems";
+import { INavItem } from "./INavItem"
+import { useNavItems } from "./useNavItems"
 
 export const MobileNav = () => {
-  const bg = useColorModeValue("white", "gray.800");
-  const navItems = useNavItems();
+  const bg = useColorModeValue("white", "gray.800")
+  const navItems = useNavItems()
 
   return (
     <Stack
@@ -32,12 +32,12 @@ export const MobileNav = () => {
         <MobileNavItem key={navItem.label} {...navItem} />
       ))}
     </Stack>
-  );
-};
+  )
+}
 
 // todo: navigation: Link
 const MobileNavItem = ({ label, children, href }: INavItem) => {
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle } = useDisclosure()
 
   return (
     <Stack spacing={4} onClick={children && onToggle}>
@@ -90,5 +90,5 @@ const MobileNavItem = ({ label, children, href }: INavItem) => {
         </Stack>
       </Collapse>
     </Stack>
-  );
-};
+  )
+}

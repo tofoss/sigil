@@ -1,2 +1,2 @@
-export { AddToCartButton } from "./AddToCartButton";
-export { ProductAddedDialog } from "./ProductAddedDialog";
+export { AddToCartButton } from "./AddToCartButton"
+export { ProductAddedDialog } from "./ProductAddedDialog"

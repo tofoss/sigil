@@ -1,6 +1,6 @@
-import { Category, IProduct } from "modules/products/types";
+import { Category, IProduct } from "modules/products/types"
 
-import { createFixture } from "./createFixture";
+import { createFixture } from "./createFixture"
 
 export const ProductFixture = createFixture<IProduct>({
   id: 1,
@@ -15,4 +15,4 @@ export const ProductFixture = createFixture<IProduct>({
     rate: 3.8,
     count: 329,
   },
-});
+})

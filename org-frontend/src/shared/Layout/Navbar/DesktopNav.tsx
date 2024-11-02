@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from "@chakra-ui/icons";
+import { ChevronRightIcon } from "@chakra-ui/icons"
 import {
   Box,
   Flex,
@@ -10,21 +10,21 @@ import {
   Stack,
   Text,
   useColorModeValue,
-} from "@chakra-ui/react";
-import { useBrandColor } from "theme";
+} from "@chakra-ui/react"
+import { useBrandColor } from "theme"
 
-import { Link, useLocation } from "shared/Router";
+import { Link, useLocation } from "shared/Router"
 
-import { INavItem } from "./INavItem";
-import { useNavItems } from "./useNavItems";
+import { INavItem } from "./INavItem"
+import { useNavItems } from "./useNavItems"
 
 export const DesktopNav = () => {
-  const { pathname } = useLocation();
-  const navItems = useNavItems();
+  const { pathname } = useLocation()
+  const navItems = useNavItems()
 
-  const linkColor = useColorModeValue("gray.600", "gray.200");
-  const popoverContentBgColor = useColorModeValue("white", "gray.800");
-  const brandColor = useBrandColor();
+  const linkColor = useColorModeValue("gray.600", "gray.200")
+  const popoverContentBgColor = useColorModeValue("white", "gray.800")
+  const brandColor = useBrandColor()
 
   return (
     <Stack direction="row" spacing={4}>
@@ -77,11 +77,11 @@ export const DesktopNav = () => {
         </Box>
       ))}
     </Stack>
-  );
-};
+  )
+}
 
 const DesktopSubNav = ({ label, href, subLabel }: INavItem) => {
-  const brandColor = useBrandColor();
+  const brandColor = useBrandColor()
 
   return (
     <ChLink
@@ -118,5 +118,5 @@ const DesktopSubNav = ({ label, href, subLabel }: INavItem) => {
         </Flex>
       </Stack>
     </ChLink>
-  );
-};
+  )
+}

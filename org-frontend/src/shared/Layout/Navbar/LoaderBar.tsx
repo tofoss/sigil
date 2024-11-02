@@ -1,15 +1,15 @@
-import { Progress } from "@chakra-ui/react";
+import { Progress } from "@chakra-ui/react"
 
-import { useNavigation } from "shared/Router";
+import { useNavigation } from "shared/Router"
 
 const LoaderBar = () => {
-  const { state } = useNavigation();
+  const { state } = useNavigation()
 
   if (state === "loading") {
-    return <Progress size="xs" colorScheme="orange" isIndeterminate />;
+    return <Progress size="xs" colorScheme="orange" isIndeterminate />
   }
 
-  return null;
-};
+  return null
+}
 
-export { LoaderBar };
+export { LoaderBar }

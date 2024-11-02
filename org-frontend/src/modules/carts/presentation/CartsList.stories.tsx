@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "storybook-addon-remix-react-router";
+import type { Meta, StoryObj } from "@storybook/react"
+import { withRouter } from "storybook-addon-remix-react-router"
 
-import { ProductFixture } from "utils/fixtures";
+import { ProductFixture } from "utils/fixtures"
 
-import { CartsList } from "./CartsList";
+import { CartsList } from "./CartsList"
 
 const meta = {
   title: "modules/Carts/CartsList",
@@ -12,7 +12,7 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof CartsList>;
+} satisfies Meta<typeof CartsList>
 
 const products = ProductFixture.createCollection([
   {
@@ -24,10 +24,10 @@ const products = ProductFixture.createCollection([
   {
     id: 3,
   },
-]);
+])
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
@@ -37,4 +37,4 @@ export const Default: Story = {
       imageUrl: product.image,
     })),
   },
-};
+}

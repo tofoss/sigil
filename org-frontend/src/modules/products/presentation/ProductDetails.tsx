@@ -13,30 +13,27 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { moneyVO, t } from "utils";
+import { moneyVO, t } from "utils"
 
-import { PageHeader } from "shared/Layout";
+import { PageHeader } from "shared/Layout"
 
-import {
-  AddToCartButton,
-  ProductAddedDialog,
-} from "modules/carts/presentation";
+import { AddToCartButton, ProductAddedDialog } from "modules/carts/presentation"
 
-import { IProduct } from "../types";
-import { StarRating } from "./StarRating";
-import { useCategoryLabel } from "./useCategoryLabel";
+import { IProduct } from "../types"
+import { StarRating } from "./StarRating"
+import { useCategoryLabel } from "./useCategoryLabel"
 
 interface IProps {
-  product: IProduct;
-  onBack: () => void;
+  product: IProduct
+  onBack: () => void
 }
 
 const ProductDetails = ({ product, onBack }: IProps) => {
-  const categoryLabel = useCategoryLabel(product.category);
-  const secondaryColor = useSecondaryTextColor();
+  const categoryLabel = useCategoryLabel(product.category)
+  const secondaryColor = useSecondaryTextColor()
 
   return (
     <SimpleGrid
@@ -153,7 +150,7 @@ const ProductDetails = ({ product, onBack }: IProps) => {
         </VStack>
       </GridItem>
     </SimpleGrid>
-  );
-};
+  )
+}
 
-export { ProductDetails };
+export { ProductDetails }

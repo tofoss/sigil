@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "react"
 
 import {
   Box,
@@ -10,29 +10,29 @@ import {
   Text,
   useColorModeValue,
   VStack,
-} from "@chakra-ui/react";
-import { useSecondaryTextColor } from "theme";
+} from "@chakra-ui/react"
+import { useSecondaryTextColor } from "theme"
 
-import { t } from "utils";
+import { t } from "utils"
 
-import { TextInput } from "shared/Form";
+import { TextInput } from "shared/Form"
 
-import { useAuthStore } from "../application";
-import { useSignInNotifications } from "./useSignInNotifications";
+import { useAuthStore } from "../application"
+import { useSignInNotifications } from "./useSignInNotifications"
 
 interface IProps {
-  initialUsername?: string;
-  initialPassword?: string;
+  initialUsername?: string
+  initialPassword?: string
 }
 
 export const SignInForm = ({ initialUsername, initialPassword }: IProps) => {
-  const secondaryColor = useSecondaryTextColor();
+  const secondaryColor = useSecondaryTextColor()
 
-  const [username, setUsername] = useState(initialUsername);
-  const [password, setPassword] = useState(initialPassword);
+  const [username, setUsername] = useState(initialUsername)
+  const [password, setPassword] = useState(initialPassword)
 
-  const [notifySuccess, notifyFailure] = useSignInNotifications();
-  const login = useAuthStore((store) => store.login);
+  const [notifySuccess, notifyFailure] = useSignInNotifications()
+  const login = useAuthStore((store) => store.login)
 
   return (
     <VStack align="stretch" spacing={8} w="100%" maxW="lg">
@@ -56,15 +56,15 @@ export const SignInForm = ({ initialUsername, initialPassword }: IProps) => {
           as="form"
           spacing={4}
           onSubmit={(e) => {
-            e.preventDefault();
+            e.preventDefault()
 
             if (!username || !password) {
-              return;
+              return
             }
 
             login({ username, password })
               .then(() => notifySuccess())
-              .catch(() => notifyFailure());
+              .catch(() => notifyFailure())
           }}
         >
           <TextInput
@@ -99,5 +99,5 @@ export const SignInForm = ({ initialUsername, initialPassword }: IProps) => {
         </VStack>
       </Box>
     </VStack>
-  );
-};
+  )
+}

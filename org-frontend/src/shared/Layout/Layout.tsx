@@ -1,9 +1,9 @@
-import { chakra } from "@chakra-ui/react";
+import { chakra } from "@chakra-ui/react"
 
-import { Outlet } from "shared/Router";
+import { Outlet } from "shared/Router"
 
-import { Footer } from "./Footer";
-import { Navbar } from "./Navbar";
+import { Footer } from "./Footer"
+import { Navbar } from "./Navbar"
 
 export const Layout = () => {
   return (
@@ -14,5 +14,5 @@ export const Layout = () => {
       </chakra.div>
       <Footer />
     </chakra.main>
-  );
-};
+  )
+}
