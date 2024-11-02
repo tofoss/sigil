@@ -7,12 +7,11 @@ import "@fontsource/inter/700.css"
 import "@fontsource/inter/900.css"
 import { router } from "pages/router"
 
-import { useAuthStore } from "modules/auth/application"
 
 function App() {
-  const state = useAuthStore((store) => store.state)
+  const state = true
 
-  if (state === "finished") {
+  if (state) {
     return <RouterProvider router={router} />
   }
 

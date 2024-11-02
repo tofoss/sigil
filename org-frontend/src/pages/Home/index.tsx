@@ -1,40 +1,23 @@
-import { Page } from "shared/Layout"
-import { InternalErrorResult } from "shared/Result"
+import { Box, Text } from "@chakra-ui/react"
 import { useRouteError } from "shared/Router"
 
-import {
-  HeroSection,
-  FeatureSection,
-  PricingSection,
-} from "modules/marketing/presentation"
-import { useProductsQuery } from "modules/products/infrastructure"
 
-interface IProps {
-  fallbackProductsNumber?: number
-}
-
-const HomePage = ({ fallbackProductsNumber }: IProps) => {
-  const { data } = useProductsQuery()
-
-  return (
-    <Page maxW="container.xl" spacing={{ base: 8, lg: 20 }}>
-      <HeroSection
-        productNumber={fallbackProductsNumber ?? data?.meta.total ?? 0}
-      />
-      <FeatureSection />
-      <PricingSection />
-    </Page>
-  )
+const HomePage = () => {
+	return (
+		<Box>
+			<Text>Hello, world!</Text>
+		</Box>
+	)
 }
 
 export const Component = HomePage
 
 export const ErrorBoundary = () => {
-  const error = useRouteError()
+	const error = useRouteError()
 
-  if (error.status === 404) {
-    return <HomePage fallbackProductsNumber={20} />
-  }
+	if (error.status === 404) {
+		return <p>404</p> 
+	}
 
-  return <InternalErrorResult />
+	return <p>500</p> 
 }
