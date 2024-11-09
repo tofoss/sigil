@@ -1,7 +1,7 @@
 import {
   Box,
   BoxProps,
-  Collapse,
+  Collapsible,
   Flex,
   Icon,
   Text,
@@ -69,20 +69,22 @@ export function SidebarContent(props: Props) {
           <Icon
             as={MdKeyboardArrowRight}
             ml="auto"
-            transform={integrations.isOpen ? "rotate(90deg)" : "auto"}
+            transform={integrations.open ? "rotate(90deg)" : "auto"}
           />
         </NavItem>
-        <Collapse in={integrations.isOpen}>
-          <NavItem pl="12" py="2">
-            Shopify
-          </NavItem>
-          <NavItem pl="12" py="2">
-            Slack
-          </NavItem>
-          <NavItem pl="12" py="2">
-            Zapier
-          </NavItem>
-        </Collapse>
+        <Collapsible.Root open={integrations.open}>
+          <Collapsible.Content>
+            <NavItem pl="12" py="2">
+              Shopify
+            </NavItem>
+            <NavItem pl="12" py="2">
+              Slack
+            </NavItem>
+            <NavItem pl="12" py="2">
+              Zapier
+            </NavItem>
+          </Collapsible.Content>
+        </Collapsible.Root>
         <NavItem icon={AiFillGift}>Changelog</NavItem>
         <NavItem icon={BsGearFill}>Settings</NavItem>
       </Flex>

@@ -1,5 +1,5 @@
 import { ReactNode } from "react"
-import { Flex, FlexProps, Icon, useColorModeValue } from "@chakra-ui/react"
+import { Flex, FlexProps, Icon } from "@chakra-ui/react"
 import { IconType } from "react-icons"
 
 interface Props extends FlexProps {
@@ -8,7 +8,7 @@ interface Props extends FlexProps {
 }
 
 export function NavItem(props: Props) {
-  const color = useColorModeValue("gray.600", "gray.300")
+  //const color = useColorModeValue("gray.600", "gray.300")
   const { icon, children, ...rest } = props
   return (
     <Flex
@@ -38,7 +38,7 @@ export function NavItem(props: Props) {
           mx="2"
           boxSize="4"
           _groupHover={{
-            color: color,
+            color: "gray.300",
           }}
           as={icon}
         />

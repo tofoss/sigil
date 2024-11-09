@@ -1,23 +1,23 @@
 import { Box, Text } from "@chakra-ui/react"
+import { Editor } from "modules/editor"
 import { useRouteError } from "shared/Router"
 
-
 const HomePage = () => {
-	return (
-		<Box>
-			<Text>Hello, world!</Text>
-		</Box>
-	)
+  return (
+    <Box>
+      <Editor />
+    </Box>
+  )
 }
 
 export const Component = HomePage
 
 export const ErrorBoundary = () => {
-	const error = useRouteError()
+  const error = useRouteError()
 
-	if (error.status === 404) {
-		return <p>404</p> 
-	}
+  if (error.status === 404) {
+    return <p>404</p>
+  }
 
-	return <p>500</p> 
+  return <p>500</p>
 }
