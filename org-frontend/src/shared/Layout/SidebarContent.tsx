@@ -3,7 +3,6 @@ import {
   BoxProps,
   Collapse,
   Flex,
-  HTMLChakraProps,
   Icon,
   Text,
   useDisclosure,
@@ -27,7 +26,7 @@ export function SidebarContent(props: Props) {
       pos="fixed"
       top="0"
       left="0"
-      zIndex="sticky"
+      zIndex="98"
       h="full"
       pb="10"
       overflowX="hidden"
@@ -37,7 +36,6 @@ export function SidebarContent(props: Props) {
         bg: "gray.800",
       }}
       color="inherit"
-      borderRightWidth="1px"
       w="60"
       {...rest}
     >
