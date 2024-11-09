@@ -25,6 +25,7 @@ import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
 import { Blockquote } from "components/ui/blockquote"
 import React from "react"
+import { theme } from "theme"
 
 interface Props {
   text: string
@@ -53,7 +54,6 @@ export function MarkdownViewer({ text }: Props) {
         a: ({ node, children, ...props }) => (
           <Link
             color="teal.500"
-            textDecoration="underline"
             _hover={{ color: "teal.700" }}
             target="_blank"
             rel="noopener noreferrer"
@@ -81,21 +81,27 @@ export function MarkdownViewer({ text }: Props) {
           <Code
             as="code"
             size={"md"}
-            bg="gray.900"
-            color="white"
             borderRadius="sm"
             overflow="auto"
             {...props}
           />
         ),
         table: ({ node, ...props }) => (
-          <Table.Root variant="line" my={4} {...props} />
+          <Table.Root
+            bg="bg.subtle"
+            variant="line"
+            interactive
+            my={4}
+            {...props}
+          />
         ),
         thead: ({ node, ...props }) => <Table.Header {...props} />,
         tbody: ({ node, ...props }) => <Table.Body {...props} />,
         tr: ({ node, ...props }) => <Table.Row {...props} />,
-        th: ({ node, ...props }) => <Table.ColumnHeader {...props} />,
-        td: ({ node, ...props }) => <Table.Cell {...props} />,
+        th: ({ node, ...props }) => (
+          <Table.ColumnHeader bg="bg.panel" fontWeight="bold" {...props} />
+        ),
+        td: ({ node, ...props }) => <Table.Cell bg="bg.panel" {...props} />,
       }}
     >
       {text}
@@ -119,9 +125,11 @@ function CodeViewer(props: CodeProps) {
       color="white"
       p={4}
       borderRadius="sm"
-      whiteSpace="pre-wrap"
       width="full"
       overflow="auto"
+      style={{
+        background: theme.token("colors.gray.900"),
+      }}
     >
       {updatedCodeElement}
     </Code>

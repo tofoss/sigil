@@ -1,4 +1,5 @@
-import { Box, Button, HStack, Text, Textarea } from "@chakra-ui/react"
+import { Box, Button, HStack, Textarea } from "@chakra-ui/react"
+import { ColorModeButton } from "components/ui/color-mode"
 import { MarkdownViewer } from "modules/markdown"
 import { useState } from "react"
 import { RiSave2Fill } from "react-icons/ri"
@@ -8,15 +9,16 @@ export function Editor() {
   const [togglePreview, setTogglePreview] = useState(false)
 
   return (
-    <Box height="100vh" padding="1rem">
+    <Box minHeight="100vh" padding="1rem">
       <HStack>
         <Button variant="ghost" onClick={() => setTogglePreview(false)}>
           Edit
         </Button>
+        <ColorModeButton />
         <Button variant="ghost" onClick={() => setTogglePreview(true)}>
           Preview
         </Button>
-        <Button variant="ghost" colorScheme="green" ml="auto">
+        <Button variant="ghost" color="green.fg" ml="auto">
           <RiSave2Fill /> Save
         </Button>
       </HStack>
@@ -27,7 +29,7 @@ export function Editor() {
       ) : (
         <Textarea
           value={text}
-          height="50%"
+          height="90vh"
           mt="1rem"
           mb="0.5rem"
           onChange={(e) => setText(e.target.value)}
@@ -77,9 +79,10 @@ And here is a code block:
 
 \`\`\`kotlin
 fun foo() {
-	println("foobar")
+	val foo = "foo"
+	val bar = "bar"
+	println(foo + bar)
 }
-
 \`\`\`
 
 Here is a horizontal rule:
