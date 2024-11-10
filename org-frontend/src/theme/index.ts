@@ -1,1 +1,1 @@
-export { theme } from "./theme"
+export { colorPalette, theme } from "./theme"

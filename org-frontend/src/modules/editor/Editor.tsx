@@ -1,24 +1,23 @@
 import { Box, Button, HStack, Textarea } from "@chakra-ui/react"
-import { ColorModeButton } from "components/ui/color-mode"
 import { MarkdownViewer } from "modules/markdown"
 import { useState } from "react"
 import { RiSave2Fill } from "react-icons/ri"
+import { colorPalette } from "theme"
 
 export function Editor() {
   const [text, setText] = useState(markdownContent)
   const [togglePreview, setTogglePreview] = useState(false)
 
   return (
-    <Box minHeight="100vh" padding="1rem">
+    <Box minHeight="100vh" pl="0.5rem" pr="0.5rem">
       <HStack>
         <Button variant="ghost" onClick={() => setTogglePreview(false)}>
           Edit
         </Button>
-        <ColorModeButton />
         <Button variant="ghost" onClick={() => setTogglePreview(true)}>
           Preview
         </Button>
-        <Button variant="ghost" color="green.fg" ml="auto">
+        <Button variant="ghost" colorPalette={colorPalette} ml="auto">
           <RiSave2Fill /> Save
         </Button>
       </HStack>

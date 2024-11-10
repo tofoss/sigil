@@ -11,3 +11,15 @@ export const theme = createSystem(defaultConfig, {
     },
   },
 })
+
+export const colorPalette = "teal"
+
+export const colors = {
+  contrast: `${colorPalette}.contrast`,
+  fg: `${colorPalette}.fg`,
+  subtle: `${colorPalette}.subtle`,
+  muted: `${colorPalette}.muted`,
+  emphasized: `${colorPalette}.emphasized`,
+  solid: `${colorPalette}.solid`,
+  focusRing: `${colorPalette}.focusRing`,
+}
