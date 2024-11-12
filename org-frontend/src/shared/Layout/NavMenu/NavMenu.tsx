@@ -10,10 +10,13 @@ import { ReactNode } from "react"
 import { LuBook, LuHome, LuPlus } from "react-icons/lu"
 import { colors } from "theme/theme"
 
-export function NavMenu() {
+interface NavMenuProps {
+  hideHome?: boolean
+}
+export function NavMenu({ hideHome }: NavMenuProps) {
   return (
     <VStack>
-      <NavItem icon={<LuHome />} text="Home" href="/" />
+      {!hideHome && <NavItem icon={<LuHome />} text="Home" href="/" />}
       <NavItem icon={<LuPlus />} text="New post" href="#" />
       <NavItem icon={<LuBook />} text="Browse" href="#" />
     </VStack>

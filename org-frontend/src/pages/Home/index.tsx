@@ -1,10 +1,10 @@
-import { Box, Text } from "@chakra-ui/react"
+import { Box } from "@chakra-ui/react"
 import { Editor } from "modules/editor"
 import { useRouteError } from "shared/Router"
 
 const HomePage = () => {
   return (
-    <Box>
+    <Box width="100%">
       <Editor />
     </Box>
   )

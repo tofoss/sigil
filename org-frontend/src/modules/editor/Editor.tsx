@@ -1,15 +1,28 @@
 import { Box, Button, HStack, Textarea } from "@chakra-ui/react"
 import { MarkdownViewer } from "modules/markdown"
-import { useState } from "react"
-import { RiSave2Fill } from "react-icons/ri"
+import { useEffect, useRef, useState } from "react"
+import { LuSave } from "react-icons/lu"
 import { colorPalette } from "theme"
 
 export function Editor() {
   const [text, setText] = useState(markdownContent)
   const [togglePreview, setTogglePreview] = useState(false)
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const adjustHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto"
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }
+
+  useEffect(() => {
+    adjustHeight()
+  }, [togglePreview])
+
   return (
-    <Box minHeight="100vh" pl="0.5rem" pr="0.5rem">
+    <Box minHeight="100vh" pl="0.5rem" pr="0.5rem" width="100%">
       <HStack>
         <Button variant="ghost" onClick={() => setTogglePreview(false)}>
           Edit
@@ -18,7 +31,7 @@ export function Editor() {
           Preview
         </Button>
         <Button variant="ghost" colorPalette={colorPalette} ml="auto">
-          <RiSave2Fill /> Save
+          <LuSave /> Save
         </Button>
       </HStack>
       {togglePreview ? (
@@ -27,11 +40,14 @@ export function Editor() {
         </Box>
       ) : (
         <Textarea
+          ref={textareaRef}
           value={text}
-          height="90vh"
           mt="1rem"
           mb="0.5rem"
+          resize="none"
+          onInput={adjustHeight}
           onChange={(e) => setText(e.target.value)}
+          overflow="hidden"
         />
       )}
     </Box>
@@ -39,7 +55,7 @@ export function Editor() {
 }
 
 const markdownContent: string = `
-## Table Example
+# Table Example
 
 | Feature        | Support           | Notes       |
 | -------------- | ----------------- | ----------- |

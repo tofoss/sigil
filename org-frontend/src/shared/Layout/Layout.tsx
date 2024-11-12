@@ -19,8 +19,15 @@ import { NavMenu } from "./NavMenu"
 
 export function Layout() {
   return (
-    <Flex justifyContent="center" width="full">
-      <VStack bg="bg.subtle" height="100%" maxWidth="1080px" width="100%" p="0">
+    <Flex justifyContent="center">
+      <VStack
+        bg="bg.subtle"
+        height="100%"
+        maxWidth="1080px"
+        width="100%"
+        p="0"
+        alignItems="start"
+      >
         <HStack width="inherit" p="0.25rem" pl="0.5rem" pr="0.5rem">
           <DrawerRoot placement="start">
             <DrawerBackdrop />
@@ -52,7 +59,15 @@ export function Layout() {
             <Avatar colorPalette={colorPalette} size="xs" name={undefined} />
           </HStack>
         </HStack>
-        <HStack width="inherit">
+        <HStack width="inherit" alignItems="start">
+          <Flex
+            justifyContent="start"
+            height="100vh"
+            width="250px"
+            hideBelow="lg"
+          >
+            <NavMenu hideHome={true} />
+          </Flex>
           <Box as="main" width="100%">
             <Outlet />
           </Box>
