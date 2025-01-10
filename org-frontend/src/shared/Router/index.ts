@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-imports */
-export { useRouteError } from "./useRouteError"
 export {
   useNavigate,
   useNavigation,

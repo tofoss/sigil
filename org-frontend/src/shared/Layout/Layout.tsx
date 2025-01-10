@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, IconButton, Text, VStack } from "@chakra-ui/react"
 import { Avatar } from "components/ui/avatar"
-import { Outlet } from "shared/Router"
+import { Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
 import { colorPalette } from "theme"
 import { ColorModeButton } from "components/ui/color-mode"
@@ -16,8 +16,17 @@ import {
   DrawerTrigger,
 } from "components/ui/drawer"
 import { NavMenu } from "./NavMenu"
+import { useFetch } from "utils/http"
+import { userClient } from "api/users"
 
 export function Layout() {
+  const { data: authStatus } = useFetch(async () => userClient.status())
+  const navigate = useNavigate()
+
+  if (authStatus !== null && !authStatus.loggedIn) {
+    navigate("/login")
+  }
+
   return (
     <Flex justifyContent="center">
       <VStack
@@ -56,7 +65,11 @@ export function Layout() {
           </Text>
           <HStack ml="auto">
             <ColorModeButton />
-            <Avatar colorPalette={colorPalette} size="xs" name={undefined} />
+            <Avatar
+              colorPalette={colorPalette}
+              size="xs"
+              name={authStatus?.username}
+            />
           </HStack>
         </HStack>
         <HStack width="inherit" alignItems="start">
