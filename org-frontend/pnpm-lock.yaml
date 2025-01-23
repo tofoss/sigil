@@ -25,6 +25,9 @@ importers:
       "@tanstack/react-query":
         specifier: ^4.36.1
         version: 4.36.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
       framer-motion:
         specifier: ^9.1.7
         version: 9.1.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -5019,6 +5022,12 @@ packages:
         integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==,
       }
     engines: { node: ">=0.11" }
+
+  dayjs@1.11.13:
+    resolution:
+      {
+        integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==,
+      }
 
   debug@2.6.9:
     resolution:
@@ -14733,6 +14742,8 @@ snapshots:
   date-fns@2.30.0:
     dependencies:
       "@babel/runtime": 7.24.8
+
+  dayjs@1.11.13: {}
 
   debug@2.6.9:
     dependencies:

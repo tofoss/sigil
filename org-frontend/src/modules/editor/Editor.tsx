@@ -1,16 +1,27 @@
-import { Box, HStack, Textarea, Text } from "@chakra-ui/react"
+/* eslint-disable no-console */
+import {
+  Box,
+  HStack,
+  Textarea,
+  Text,
+  Collapsible,
+  VStack,
+} from "@chakra-ui/react"
 import { Button } from "components/ui/button"
 import { articleClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
-import { LuFileEdit, LuPresentation, LuSave } from "react-icons/lu"
+import { LuFileEdit, LuInfo, LuPresentation, LuSave } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
+import { Article } from "api/model/article"
+import { DataListItem, DataListRoot } from "components/ui/data-list"
 
 export function Editor() {
-  const [text, setText] = useState(markdownContent)
+  const [article, setArticle] = useState<Article | undefined>(undefined)
+  const [text, setText] = useState(article?.articleContent ?? markdownContent)
   const [togglePreview, setTogglePreview] = useState(false)
-  const { call, loading, error } = apiRequest()
+  const { call, loading, error } = apiRequest<Article>()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -23,31 +34,79 @@ export function Editor() {
 
   useEffect(() => {
     adjustHeight()
+    adjustHeight()
   }, [togglePreview])
 
   const onSave = async () => {
-    await call(() => articleClient.upsert(text))
+    const updatedArticle = await call(() =>
+      articleClient.upsert(text, article?.articleId)
+    )
+    if (updatedArticle === undefined) {
+      console.error("Article is undefined")
+      return
+    }
+
+    setArticle(updatedArticle)
   }
 
   return (
     <Box minHeight="100vh" pl="0.5rem" pr="0.5rem" width="100%">
-      <HStack>
-        <Button variant="ghost" onClick={() => setTogglePreview(false)}>
-          <LuFileEdit /> Edit
-        </Button>
-        <Button variant="ghost" onClick={() => setTogglePreview(true)}>
-          <LuPresentation /> Preview
-        </Button>
-        <Button
-          variant="ghost"
-          colorPalette={colorPalette}
-          ml="auto"
-          onClick={onSave}
-          loading={loading}
-        >
-          <LuSave /> Save
-        </Button>
-      </HStack>
+      <Collapsible.Root>
+        <VStack width="100%">
+          <HStack width="100%">
+            <Button variant="ghost" onClick={() => setTogglePreview(false)}>
+              <LuFileEdit /> Edit
+            </Button>
+            <Button variant="ghost" onClick={() => setTogglePreview(true)}>
+              <LuPresentation /> Preview
+            </Button>
+            {article && (
+              <Collapsible.Trigger paddingY="3">
+                <Button variant="ghost">
+                  <LuInfo /> Metadata
+                </Button>
+              </Collapsible.Trigger>
+            )}
+            <Button
+              variant="ghost"
+              colorPalette={colorPalette}
+              ml="auto"
+              onClick={onSave}
+              loading={loading}
+            >
+              <LuSave /> Save
+            </Button>
+          </HStack>
+          {article && (
+            <Collapsible.Content width="100%">
+              <Box paddingLeft="4">
+                <DataListRoot orientation="horizontal" size="sm">
+                  <DataListItem label="id" value={article.articleId} />
+                  <DataListItem label="user" value={article.articleUserId} />
+                  <DataListItem
+                    label="created at"
+                    value={article.articleCreatedAt.toString()}
+                  />
+                  <DataListItem
+                    label="updated at"
+                    value={article.articleUpdatedAt.toString()}
+                  />
+                  <DataListItem
+                    label="published"
+                    value={article.articlePublished.toString()}
+                  />
+                  {article.articlePublishedAt && (
+                    <DataListItem
+                      label="published at"
+                      value={article.articlePublishedAt.toString()}
+                    />
+                  )}
+                </DataListRoot>
+              </Box>
+            </Collapsible.Content>
+          )}
+        </VStack>
+      </Collapsible.Root>
       {error && (
         <Text color="red.500" mb={4} textAlign="center">
           {error.message}
@@ -67,6 +126,7 @@ export function Editor() {
           onInput={adjustHeight}
           onChange={(e) => setText(e.target.value)}
           overflow="hidden"
+          minHeight="80vh"
         />
       )}
     </Box>
