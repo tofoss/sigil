@@ -1,12 +1,16 @@
-import { Box, Button, HStack, Textarea } from "@chakra-ui/react"
+import { Box, HStack, Textarea, Text } from "@chakra-ui/react"
+import { Button } from "components/ui/button"
+import { articleClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
-import { LuSave } from "react-icons/lu"
+import { LuFileEdit, LuPresentation, LuSave } from "react-icons/lu"
 import { colorPalette } from "theme"
+import { apiRequest } from "utils/http"
 
 export function Editor() {
   const [text, setText] = useState(markdownContent)
   const [togglePreview, setTogglePreview] = useState(false)
+  const { call, loading, error } = apiRequest()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -21,19 +25,34 @@ export function Editor() {
     adjustHeight()
   }, [togglePreview])
 
+  const onSave = async () => {
+    await call(() => articleClient.upsert(text))
+  }
+
   return (
     <Box minHeight="100vh" pl="0.5rem" pr="0.5rem" width="100%">
       <HStack>
         <Button variant="ghost" onClick={() => setTogglePreview(false)}>
-          Edit
+          <LuFileEdit /> Edit
         </Button>
         <Button variant="ghost" onClick={() => setTogglePreview(true)}>
-          Preview
+          <LuPresentation /> Preview
         </Button>
-        <Button variant="ghost" colorPalette={colorPalette} ml="auto">
+        <Button
+          variant="ghost"
+          colorPalette={colorPalette}
+          ml="auto"
+          onClick={onSave}
+          loading={loading}
+        >
           <LuSave /> Save
         </Button>
       </HStack>
+      {error && (
+        <Text color="red.500" mb={4} textAlign="center">
+          {error.message}
+        </Text>
+      )}
       {togglePreview ? (
         <Box mt="1rem" padding="1rem" borderWidth="1px" borderRadius="md">
           <MarkdownViewer text={text} />
