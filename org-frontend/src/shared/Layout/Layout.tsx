@@ -1,4 +1,13 @@
-import { Box, Flex, HStack, IconButton, Text, VStack } from "@chakra-ui/react"
+import {
+  Box,
+  Flex,
+  HStack,
+  IconButton,
+  Link,
+  LinkOverlay,
+  Text,
+  VStack,
+} from "@chakra-ui/react"
 import { Avatar } from "components/ui/avatar"
 import { Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
@@ -18,6 +27,7 @@ import {
 import { NavMenu } from "./NavMenu"
 import { useFetch } from "utils/http"
 import { userClient } from "api/users"
+import { pages } from "pages/pages"
 
 export function Layout() {
   const { data: authStatus } = useFetch(async () => userClient.status())
@@ -61,7 +71,12 @@ export function Layout() {
             </DrawerContent>
           </DrawerRoot>
           <Text fontSize="2xl" fontWeight="extrabold">
-            org
+            <Link
+              href={pages.private.home.path}
+              _hover={{ textDecoration: "none" }}
+            >
+              org
+            </Link>
           </Text>
           <HStack ml="auto">
             <ColorModeButton />

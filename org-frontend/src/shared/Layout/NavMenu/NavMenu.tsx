@@ -6,19 +6,29 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react"
+import { pages } from "pages/pages"
 import { ReactNode } from "react"
-import { LuBook, LuHome, LuPlus } from "react-icons/lu"
+import { useNavigate } from "shared/Router"
 import { colors } from "theme/theme"
 
 interface NavMenuProps {
   hideHome?: boolean
 }
 export function NavMenu({ hideHome }: NavMenuProps) {
+  const navigate = useNavigate()
+
   return (
     <VStack>
-      {!hideHome && <NavItem icon={<LuHome />} text="Home" href="/" />}
-      <NavItem icon={<LuPlus />} text="New post" href="#" />
-      <NavItem icon={<LuBook />} text="Browse" href="#" />
+      {Object.values(pages.private).map((page) => {
+        const item = (
+          <NavItem icon={<page.icon />} text={page.display} href={page.path} />
+        )
+        if (page.path === pages.private.home.path && !hideHome) {
+          return item
+        } else if (page.path !== pages.private.home.path) {
+          return item
+        }
+      })}
     </VStack>
   )
 }

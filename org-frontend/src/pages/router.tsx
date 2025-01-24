@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { createBrowserRouter, ScrollRestoration } from "react-router-dom"
 import { Layout, PublicLayout } from "shared/Layout"
+import { pages } from "./pages"
 
 export const router = createBrowserRouter([
   {
@@ -12,7 +13,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/login",
+        path: pages.public.login.path,
         lazy: () => import("./Login"),
       },
     ],
@@ -26,8 +27,12 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/",
+        path: pages.private.home.path,
         lazy: () => import("./Home"),
+      },
+      {
+        path: pages.private.browse.path,
+        lazy: () => import("./Browse"),
       },
       /*
 		{
