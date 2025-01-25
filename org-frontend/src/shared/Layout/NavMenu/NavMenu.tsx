@@ -8,17 +8,15 @@ import {
 } from "@chakra-ui/react"
 import { pages } from "pages/pages"
 import { ReactNode } from "react"
-import { useNavigate } from "shared/Router"
+import { Link } from "shared/Router"
 import { colors } from "theme/theme"
 
 interface NavMenuProps {
   hideHome?: boolean
 }
 export function NavMenu({ hideHome }: NavMenuProps) {
-  const navigate = useNavigate()
-
   return (
-    <VStack>
+    <VStack width="100%">
       {Object.values(pages.private).map((page) => {
         const item = (
           <NavItem icon={<page.icon />} text={page.display} href={page.path} />
@@ -49,13 +47,15 @@ function NavItem({ icon, text, href }: NavItemProps) {
       height="2.5rem"
       _hover={{ bg: colors.subtle }}
     >
-      <LinkOverlay href={href}>
-        <HStack>
-          <Icon fontSize="xl" color={colors.solid}>
-            {icon}
-          </Icon>
-          <Text fontSize="xl">{text}</Text>
-        </HStack>
+      <LinkOverlay asChild>
+        <Link to={href}>
+          <HStack>
+            <Icon fontSize="xl" color={colors.solid}>
+              {icon}
+            </Icon>
+            <Text fontSize="xl">{text}</Text>
+          </HStack>
+        </Link>
       </LinkOverlay>
     </LinkBox>
   )

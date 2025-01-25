@@ -1,15 +1,6 @@
-import {
-  Box,
-  Flex,
-  HStack,
-  IconButton,
-  Link,
-  LinkOverlay,
-  Text,
-  VStack,
-} from "@chakra-ui/react"
+import { Box, Flex, HStack, IconButton, Text, VStack } from "@chakra-ui/react"
 import { Avatar } from "components/ui/avatar"
-import { Outlet, useNavigate } from "shared/Router"
+import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
 import { colorPalette } from "theme"
 import { ColorModeButton } from "components/ui/color-mode"
@@ -71,12 +62,7 @@ export function Layout() {
             </DrawerContent>
           </DrawerRoot>
           <Text fontSize="2xl" fontWeight="extrabold">
-            <Link
-              href={pages.private.home.path}
-              _hover={{ textDecoration: "none" }}
-            >
-              org
-            </Link>
+            <Link to={pages.private.home.path}>org</Link>
           </Text>
           <HStack ml="auto">
             <ColorModeButton />
