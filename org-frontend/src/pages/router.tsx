@@ -28,11 +28,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: pages.private.home.path,
-        lazy: () => import("./Home"),
+        lazy: () => import("./Browse"),
       },
       {
         path: pages.private.browse.path,
         lazy: () => import("./Browse"),
+      },
+      {
+        path: pages.private.new.path,
+        lazy: () => import("./New"),
       },
       /*
 		{
