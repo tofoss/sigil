@@ -7,9 +7,9 @@ export const articleClient = {
     return client
       .post("articles", {
         json: {
-          articleId: id,
-          articleContent: content,
-          articlePublished: false,
+          id: id,
+          content: content,
+          published: false,
         },
         headers: commonHeaders(),
         credentials: "include",

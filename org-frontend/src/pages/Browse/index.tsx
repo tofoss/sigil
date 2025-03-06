@@ -24,17 +24,13 @@ const BrowsePage = () => {
     <Box width="100%">
       <Stack>
         {articles
-          .toSorted((a, b) =>
-            a.articleCreatedAt.isBefore(b.articleCreatedAt) ? 1 : -1
-          )
+          .toSorted((a, b) => (a.createdAt.isBefore(b.createdAt) ? 1 : -1))
           .map((a) => {
-            const lines = a.articleContent.trim().split("\n")
+            const lines = a.content.trim().split("\n")
             const heading =
-              lines.length > 0
-                ? lines[0].replaceAll("#", "").trim()
-                : a.articleTitle
+              lines.length > 0 ? lines[0].replaceAll("#", "").trim() : a.title
             return (
-              <Card.Root key={a.articleId} size="sm">
+              <Card.Root key={a.id} size="sm">
                 <Card.Header>
                   <Heading size="md">{heading}</Heading>
                 </Card.Header>

@@ -4,15 +4,15 @@ import { commonHeaders } from "./utils"
 
 export const userClient = {
   login: function (username: string, password: string) {
-    return client.post("users/auth/login", {
-      json: { loginUsername: username, loginPassword: password },
+    return client.post("users/login", {
+      json: { username: username, password: password },
       credentials: "include",
     })
   },
 
   status: function () {
     return client
-      .get("users/auth/status", {
+      .get("users/status", {
         headers: commonHeaders(),
         credentials: "include",
       })

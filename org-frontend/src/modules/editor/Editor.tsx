@@ -24,7 +24,7 @@ interface EditorProps {
 
 export function Editor() {
   const [article, setArticle] = useState<Article | undefined>(undefined)
-  const [text, setText] = useState(article?.articleContent ?? "")
+  const [text, setText] = useState(article?.content ?? "")
   const [togglePreview, setTogglePreview] = useState(false)
   const { call, loading, error } = apiRequest<Article>()
 
@@ -44,7 +44,7 @@ export function Editor() {
 
   const onSave = async () => {
     const updatedArticle = await call(() =>
-      articleClient.upsert(text, article?.articleId)
+      articleClient.upsert(text, article?.id)
     )
     if (updatedArticle === undefined) {
       console.error("Article is undefined")
@@ -86,24 +86,24 @@ export function Editor() {
             <Collapsible.Content width="100%">
               <Box paddingLeft="4">
                 <DataListRoot orientation="horizontal" size="sm">
-                  <DataListItem label="id" value={article.articleId} />
-                  <DataListItem label="user" value={article.articleUserId} />
+                  <DataListItem label="id" value={article.id} />
+                  <DataListItem label="user" value={article.userId} />
                   <DataListItem
                     label="created at"
-                    value={article.articleCreatedAt.toString()}
+                    value={article.createdAt.toString()}
                   />
                   <DataListItem
                     label="updated at"
-                    value={article.articleUpdatedAt.toString()}
+                    value={article.updatedAt.toString()}
                   />
                   <DataListItem
                     label="published"
-                    value={article.articlePublished.toString()}
+                    value={article.published.toString()}
                   />
-                  {article.articlePublishedAt && (
+                  {article.publishedAt && (
                     <DataListItem
                       label="published at"
-                      value={article.articlePublishedAt.toString()}
+                      value={article.publishedAt.toString()}
                     />
                   )}
                 </DataListRoot>

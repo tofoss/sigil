@@ -2,23 +2,21 @@
 import dayjs, { Dayjs } from "dayjs"
 
 export interface Article {
-  articleId: string
-  articleUserId: string
-  articleTitle: string
-  articleContent: string
-  articleCreatedAt: Dayjs
-  articleUpdatedAt: Dayjs
-  articlePublishedAt: Dayjs | undefined
-  articlePublished: boolean
+  id: string
+  userId: string
+  title: string
+  content: string
+  createdAt: Dayjs
+  updatedAt: Dayjs
+  publishedAt: Dayjs | undefined
+  published: boolean
 }
 
 export function fromJson(article: Article): Article {
   return {
     ...article,
-    articleCreatedAt: dayjs(article.articleCreatedAt),
-    articleUpdatedAt: dayjs(article.articleUpdatedAt),
-    articlePublishedAt: article.articlePublishedAt
-      ? dayjs(article.articlePublishedAt)
-      : undefined,
+    createdAt: dayjs(article.createdAt),
+    updatedAt: dayjs(article.updatedAt),
+    publishedAt: article.publishedAt ? dayjs(article.publishedAt) : undefined,
   }
 }
