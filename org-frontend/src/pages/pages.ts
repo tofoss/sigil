@@ -1,5 +1,5 @@
 import { IconType } from "react-icons"
-import { LuBook, LuHome, LuLogIn, LuPlus } from "react-icons/lu"
+import { LuAtom, LuBook, LuHome, LuLogIn, LuPlus } from "react-icons/lu"
 
 interface Page {
   path: string
@@ -15,6 +15,9 @@ interface Pages {
     home: Page
     browse: Page
     new: Page
+  }
+  sub: {
+    article: Page
   }
 }
 
@@ -41,6 +44,13 @@ export const pages: Pages = {
       path: "/articles/browse",
       display: "Browse",
       icon: LuBook,
+    },
+  },
+  sub: {
+    article: {
+      path: "/articles/:id",
+      display: "Article",
+      icon: LuAtom,
     },
   },
 }

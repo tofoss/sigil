@@ -19,13 +19,13 @@ import { DataListItem, DataListRoot } from "components/ui/data-list"
 
 interface EditorProps {
   article?: Article
-  mode: "Display" | "Edit"
+  mode?: "Display" | "Edit"
 }
 
-export function Editor() {
-  const [article, setArticle] = useState<Article | undefined>(undefined)
+export function Editor(props: EditorProps) {
+  const [article, setArticle] = useState<Article | undefined>(props.article)
   const [text, setText] = useState(article?.content ?? "")
-  const [togglePreview, setTogglePreview] = useState(false)
+  const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
   const { call, loading, error } = apiRequest<Article>()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)

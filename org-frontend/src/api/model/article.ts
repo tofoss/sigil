@@ -10,6 +10,7 @@ export interface Article {
   updatedAt: Dayjs
   publishedAt: Dayjs | undefined
   published: boolean
+  isEditable?: boolean
 }
 
 export function fromJson(article: Article): Article {

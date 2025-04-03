@@ -1,9 +1,10 @@
-import { Box, Card, Heading, Stack } from "@chakra-ui/react"
+import { Box, Card, Heading, Link as ChakraLink, Stack } from "@chakra-ui/react"
 import { articleClient } from "api"
 import { useFetch } from "utils/http"
 import { EmptyArticleList } from "./EmptyArticleList"
 import { MarkdownViewer } from "modules/markdown"
 import { Skeleton } from "components/ui/skeleton"
+import { Link } from "shared/Router"
 
 const BrowsePage = () => {
   const {
@@ -32,7 +33,11 @@ const BrowsePage = () => {
             return (
               <Card.Root key={a.id} size="sm">
                 <Card.Header>
-                  <Heading size="md">{heading}</Heading>
+                  <ChakraLink asChild>
+                    <Link to={`/articles/${a.id}`}>
+                      <Heading size="md">{heading}</Heading>
+                    </Link>
+                  </ChakraLink>
                 </Card.Header>
                 <Card.Body color="fg.muted">
                   <MarkdownViewer

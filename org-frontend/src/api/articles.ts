@@ -3,8 +3,8 @@ import { Article, fromJson } from "./model/article"
 import { commonHeaders } from "./utils"
 
 export const articleClient = {
-  upsert: function (content: string, id?: string) {
-    return client
+  upsert: (content: string, id?: string) =>
+    client
       .post("articles", {
         json: {
           id: id,
@@ -15,15 +15,23 @@ export const articleClient = {
         credentials: "include",
       })
       .json<Article>()
-      .then(fromJson)
-  },
-  fetchForUser: function () {
-    return client
+      .then(fromJson),
+
+  fetchForUser: () =>
+    client
       .get("articles", {
         headers: commonHeaders(),
         credentials: "include",
       })
       .json<Article[]>()
-      .then((a) => a.map(fromJson))
-  },
+      .then((a) => a.map(fromJson)),
+
+  fetch: (id: string) =>
+    client
+      .get(`articles/${id}`, {
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<Article>()
+      .then((a) => fromJson(a)),
 }
