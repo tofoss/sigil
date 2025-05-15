@@ -17,7 +17,7 @@ interface Pages {
     new: Page
   }
   sub: {
-    article: Page
+    note: Page
   }
 }
 
@@ -36,20 +36,20 @@ export const pages: Pages = {
       icon: LuHome,
     },
     new: {
-      path: "/articles/new",
-      display: "New Article",
+      path: "/notes/new",
+      display: "New Note",
       icon: LuPlus,
     },
     browse: {
-      path: "/articles/browse",
+      path: "/notes/browse",
       display: "Browse",
       icon: LuBook,
     },
   },
   sub: {
-    article: {
-      path: "/articles/:id",
-      display: "Article",
+    note: {
+      path: "/notes/:id",
+      display: "Note",
       icon: LuAtom,
     },
   },

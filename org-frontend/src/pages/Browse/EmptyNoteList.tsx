@@ -1,11 +1,11 @@
 import { EmptyState } from "components/ui/empty-state"
 import { LuMeh } from "react-icons/lu"
 
-export function EmptyArticleList() {
+export function EmptyNoteList() {
   return (
     <EmptyState
       icon={<LuMeh />}
-      title="No articles found"
+      title="No notes found"
       description="Try writing some"
     />
   )

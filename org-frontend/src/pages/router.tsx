@@ -39,8 +39,8 @@ export const router = createBrowserRouter([
         lazy: () => import("./New"),
       },
       {
-        path: pages.sub.article.path,
-        lazy: () => import("./Article"),
+        path: pages.sub.note.path,
+        lazy: () => import("./Note"),
       },
       /*
 		{

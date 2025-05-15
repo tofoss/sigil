@@ -1,30 +1,30 @@
 import { Box, Card, Heading, Link as ChakraLink, Stack } from "@chakra-ui/react"
-import { articleClient } from "api"
+import { noteClient } from "api"
 import { useFetch } from "utils/http"
-import { EmptyArticleList } from "./EmptyArticleList"
+import { EmptyNoteList } from "./EmptyNoteList"
 import { MarkdownViewer } from "modules/markdown"
 import { Skeleton } from "components/ui/skeleton"
 import { Link } from "shared/Router"
 
 const BrowsePage = () => {
   const {
-    data: articles,
+    data: notes,
     loading,
     error,
-  } = useFetch(() => articleClient.fetchForUser())
+  } = useFetch(() => noteClient.fetchForUser())
 
   if (loading) {
     return <Skeleton />
   }
 
-  if (articles === null || articles.length === 0) {
-    return <EmptyArticleList />
+  if (notes === null || notes.length === 0) {
+    return <EmptyNoteList />
   }
 
   return (
     <Box width="100%">
       <Stack>
-        {articles
+        {notes
           .toSorted((a, b) => (a.createdAt.isBefore(b.createdAt) ? 1 : -1))
           .map((a) => {
             const lines = a.content.trim().split("\n")
@@ -34,7 +34,7 @@ const BrowsePage = () => {
               <Card.Root key={a.id} size="sm">
                 <Card.Header>
                   <ChakraLink asChild>
-                    <Link to={`/articles/${a.id}`}>
+                    <Link to={`/notes/${a.id}`}>
                       <Heading size="md">{heading}</Heading>
                     </Link>
                   </ChakraLink>

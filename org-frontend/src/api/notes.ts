@@ -1,11 +1,11 @@
 import { client } from "./client"
-import { Article, fromJson } from "./model/article"
+import { Note, fromJson } from "./model/note"
 import { commonHeaders } from "./utils"
 
-export const articleClient = {
+export const noteClient = {
   upsert: (content: string, id?: string) =>
     client
-      .post("articles", {
+      .post("notes", {
         json: {
           id: id,
           content: content,
@@ -14,24 +14,24 @@ export const articleClient = {
         headers: commonHeaders(),
         credentials: "include",
       })
-      .json<Article>()
+      .json<Note>()
       .then(fromJson),
 
   fetchForUser: () =>
     client
-      .get("articles", {
+      .get("notes", {
         headers: commonHeaders(),
         credentials: "include",
       })
-      .json<Article[]>()
+      .json<Note[]>()
       .then((a) => a.map(fromJson)),
 
   fetch: (id: string) =>
     client
-      .get(`articles/${id}`, {
+      .get(`notes/${id}`, {
         headers: commonHeaders(),
         credentials: "include",
       })
-      .json<Article>()
+      .json<Note>()
       .then((a) => fromJson(a)),
 }

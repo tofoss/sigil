@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import dayjs, { Dayjs } from "dayjs"
 
-export interface Article {
+export interface Note {
   id: string
   userId: string
   title: string
@@ -13,11 +13,11 @@ export interface Article {
   isEditable?: boolean
 }
 
-export function fromJson(article: Article): Article {
+export function fromJson(note: Note): Note {
   return {
-    ...article,
-    createdAt: dayjs(article.createdAt),
-    updatedAt: dayjs(article.updatedAt),
-    publishedAt: article.publishedAt ? dayjs(article.publishedAt) : undefined,
+    ...note,
+    createdAt: dayjs(note.createdAt),
+    updatedAt: dayjs(note.updatedAt),
+    publishedAt: note.publishedAt ? dayjs(note.publishedAt) : undefined,
   }
 }

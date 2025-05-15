@@ -1,2 +1,2 @@
 export { userClient } from "./users"
-export { articleClient } from "./articles"
+export { noteClient } from "./notes"

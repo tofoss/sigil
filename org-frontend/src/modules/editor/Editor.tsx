@@ -8,25 +8,25 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import { Button } from "components/ui/button"
-import { articleClient } from "api"
+import { noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
 import { LuFileEdit, LuInfo, LuPresentation, LuSave } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
-import { Article } from "api/model/article"
+import { Note } from "api/model/note"
 import { DataListItem, DataListRoot } from "components/ui/data-list"
 
 interface EditorProps {
-  article?: Article
+  note?: Note
   mode?: "Display" | "Edit"
 }
 
 export function Editor(props: EditorProps) {
-  const [article, setArticle] = useState<Article | undefined>(props.article)
-  const [text, setText] = useState(article?.content ?? "")
+  const [note, setNote] = useState<Note | undefined>(props.note)
+  const [text, setText] = useState(note?.content ?? "")
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
-  const { call, loading, error } = apiRequest<Article>()
+  const { call, loading, error } = apiRequest<Note>()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -43,15 +43,13 @@ export function Editor(props: EditorProps) {
   }, [togglePreview])
 
   const onSave = async () => {
-    const updatedArticle = await call(() =>
-      articleClient.upsert(text, article?.id)
-    )
-    if (updatedArticle === undefined) {
-      console.error("Article is undefined")
+    const updatedNote = await call(() => noteClient.upsert(text, note?.id))
+    if (updatedNote === undefined) {
+      console.error("Note is undefined")
       return
     }
 
-    setArticle(updatedArticle)
+    setNote(updatedNote)
   }
 
   return (
@@ -65,7 +63,7 @@ export function Editor(props: EditorProps) {
             <Button variant="ghost" onClick={() => setTogglePreview(true)}>
               <LuPresentation /> Preview
             </Button>
-            {article && (
+            {note && (
               <Collapsible.Trigger paddingY="3">
                 <Button variant="ghost">
                   <LuInfo /> Metadata
@@ -82,28 +80,28 @@ export function Editor(props: EditorProps) {
               <LuSave /> Save
             </Button>
           </HStack>
-          {article && (
+          {note && (
             <Collapsible.Content width="100%">
               <Box paddingLeft="4">
                 <DataListRoot orientation="horizontal" size="sm">
-                  <DataListItem label="id" value={article.id} />
-                  <DataListItem label="user" value={article.userId} />
+                  <DataListItem label="id" value={note.id} />
+                  <DataListItem label="user" value={note.userId} />
                   <DataListItem
                     label="created at"
-                    value={article.createdAt.toString()}
+                    value={note.createdAt.toString()}
                   />
                   <DataListItem
                     label="updated at"
-                    value={article.updatedAt.toString()}
+                    value={note.updatedAt.toString()}
                   />
                   <DataListItem
                     label="published"
-                    value={article.published.toString()}
+                    value={note.published.toString()}
                   />
-                  {article.publishedAt && (
+                  {note.publishedAt && (
                     <DataListItem
                       label="published at"
-                      value={article.publishedAt.toString()}
+                      value={note.publishedAt.toString()}
                     />
                   )}
                 </DataListRoot>
