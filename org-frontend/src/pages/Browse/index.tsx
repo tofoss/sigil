@@ -1,4 +1,12 @@
-import { Box, Card, Heading, Link as ChakraLink, Stack } from "@chakra-ui/react"
+import {
+  Box,
+  Card,
+  Heading,
+  Link as ChakraLink,
+  Stack,
+  HStack,
+  Text,
+} from "@chakra-ui/react"
 import { noteClient } from "api"
 import { useFetch } from "utils/http"
 import { EmptyNoteList } from "./EmptyNoteList"
@@ -46,6 +54,25 @@ const BrowsePage = () => {
                       .slice(1, 4)
                       .join("\n")}
                   />
+                  {a.tags && a.tags.length > 0 && (
+                    <HStack gap={1} mt={2} wrap="wrap">
+                      {a.tags.map((tag) => (
+                        <Text
+                          key={tag.id}
+                          fontSize="xs"
+                          px="2"
+                          py="1"
+                          borderWidth="1px"
+                          borderColor="teal.300"
+                          color="teal.700"
+                          borderRadius="md"
+                          bg="transparent"
+                        >
+                          {tag.name}
+                        </Text>
+                      ))}
+                    </HStack>
+                  )}
                 </Card.Body>
               </Card.Root>
             )

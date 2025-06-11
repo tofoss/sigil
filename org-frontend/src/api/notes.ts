@@ -1,5 +1,6 @@
 import { client } from "./client"
 import { Note, fromJson } from "./model/note"
+import { Tag } from "./model/tag"
 import { commonHeaders } from "./utils"
 
 export const noteClient = {
@@ -34,4 +35,30 @@ export const noteClient = {
       })
       .json<Note>()
       .then((a) => fromJson(a)),
+
+  // Tag-related methods
+  getNoteTags: (noteId: string) =>
+    client
+      .get(`notes/${noteId}/tags`, {
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<Tag[]>(),
+
+  assignTagsToNote: (noteId: string, tagIds: string[]) =>
+    client
+      .put(`notes/${noteId}/tags`, {
+        json: {
+          tagIds: tagIds,
+        },
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<Tag[]>(),
+
+  removeTagFromNote: (noteId: string, tagId: string) =>
+    client.delete(`notes/${noteId}/tags/${tagId}`, {
+      headers: commonHeaders(),
+      credentials: "include",
+    }),
 }

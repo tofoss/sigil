@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import dayjs, { Dayjs } from "dayjs"
+import { Tag } from "./tag"
 
 export interface Note {
   id: string
@@ -11,6 +12,7 @@ export interface Note {
   publishedAt: Dayjs | undefined
   published: boolean
   isEditable?: boolean
+  tags: Tag[]
 }
 
 export function fromJson(note: Note): Note {
@@ -19,5 +21,6 @@ export function fromJson(note: Note): Note {
     createdAt: dayjs(note.createdAt),
     updatedAt: dayjs(note.updatedAt),
     publishedAt: note.publishedAt ? dayjs(note.publishedAt) : undefined,
+    tags: note.tags || [],
   }
 }

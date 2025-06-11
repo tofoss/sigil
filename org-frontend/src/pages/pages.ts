@@ -15,6 +15,7 @@ interface Pages {
     home: Page
     browse: Page
     new: Page
+    structure: Page
   }
   sub: {
     note: Page
@@ -44,6 +45,11 @@ export const pages: Pages = {
       path: "/notes/browse",
       display: "Browse",
       icon: LuBook,
+    },
+    structure: {
+      path: "/structure",
+      display: "Structure",
+      icon: LuAtom,
     },
   },
   sub: {

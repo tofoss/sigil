@@ -11,11 +11,19 @@ import { Button } from "components/ui/button"
 import { noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
-import { LuFileEdit, LuInfo, LuPresentation, LuSave } from "react-icons/lu"
+import {
+  LuFileEdit,
+  LuInfo,
+  LuPresentation,
+  LuSave,
+  LuTag,
+} from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
+import { Tag } from "api/model/tag"
 import { DataListItem, DataListRoot } from "components/ui/data-list"
+import { TagSelector } from "components/ui/tag-selector"
 
 interface EditorProps {
   note?: Note
@@ -25,8 +33,11 @@ interface EditorProps {
 export function Editor(props: EditorProps) {
   const [note, setNote] = useState<Note | undefined>(props.note)
   const [text, setText] = useState(note?.content ?? "")
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(note?.tags || [])
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
+  const [showTagEditor, setShowTagEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
+  const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -42,6 +53,12 @@ export function Editor(props: EditorProps) {
     adjustHeight()
   }, [togglePreview])
 
+  useEffect(() => {
+    if (props.note) {
+      setSelectedTags(props.note.tags || [])
+    }
+  }, [props.note])
+
   const onSave = async () => {
     const updatedNote = await call(() => noteClient.upsert(text, note?.id))
     if (updatedNote === undefined) {
@@ -50,6 +67,27 @@ export function Editor(props: EditorProps) {
     }
 
     setNote(updatedNote)
+
+    // Save tags if note has an ID and tags have changed
+    if (
+      updatedNote.id &&
+      (note?.tags?.length !== selectedTags.length ||
+        !note?.tags?.every((tag) =>
+          selectedTags.some((selected) => selected.id === tag.id)
+        ))
+    ) {
+      try {
+        const tagIds = selectedTags.map((tag) => tag.id)
+        const updatedTags = await assignTags(() =>
+          noteClient.assignTagsToNote(updatedNote.id, tagIds)
+        )
+        if (updatedTags) {
+          setNote((prev) => (prev ? { ...prev, tags: updatedTags } : prev))
+        }
+      } catch (error) {
+        console.error("Failed to assign tags:", error)
+      }
+    }
   }
 
   return (
@@ -63,6 +101,13 @@ export function Editor(props: EditorProps) {
             <Button variant="ghost" onClick={() => setTogglePreview(true)}>
               <LuPresentation /> Preview
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowTagEditor(!showTagEditor)}
+              colorPalette={showTagEditor ? "teal" : undefined}
+            >
+              <LuTag /> Tags
+            </Button>
             {note && (
               <Collapsible.Trigger paddingY="3">
                 <Button variant="ghost">
@@ -75,11 +120,26 @@ export function Editor(props: EditorProps) {
               colorPalette={colorPalette}
               ml="auto"
               onClick={onSave}
-              loading={loading}
+              loading={loading || assigningTags}
             >
               <LuSave /> Save
             </Button>
           </HStack>
+
+          {/* Tag Editor */}
+          {showTagEditor && (
+            <Box
+              width="100%"
+              paddingY="4"
+              borderTopWidth="1px"
+              borderColor="gray.200"
+            >
+              <TagSelector
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+              />
+            </Box>
+          )}
           {note && (
             <Collapsible.Content width="100%">
               <Box paddingLeft="4">

@@ -42,6 +42,10 @@ export const router = createBrowserRouter([
         path: pages.sub.note.path,
         lazy: () => import("./Note"),
       },
+      {
+        path: pages.private.structure.path,
+        lazy: () => import("./Structure"),
+      },
       /*
 		{
 			path: "/products",
