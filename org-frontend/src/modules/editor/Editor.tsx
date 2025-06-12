@@ -17,13 +17,18 @@ import {
   LuPresentation,
   LuSave,
   LuTag,
+  LuBookOpen,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
 import { Tag } from "api/model/tag"
+import { Notebook } from "api/model/notebook"
 import { DataListItem, DataListRoot } from "components/ui/data-list"
 import { TagSelector } from "components/ui/tag-selector"
+import { NotebookSelector } from "components/ui/notebook-selector"
+import { notebooks } from "api"
+import { useFetch } from "utils/http"
 
 interface EditorProps {
   note?: Note
@@ -34,10 +39,19 @@ export function Editor(props: EditorProps) {
   const [note, setNote] = useState<Note | undefined>(props.note)
   const [text, setText] = useState(note?.content ?? "")
   const [selectedTags, setSelectedTags] = useState<Tag[]>(note?.tags || [])
+  const [selectedNotebooks, setSelectedNotebooks] = useState<Notebook[]>([])
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
   const [showTagEditor, setShowTagEditor] = useState(false)
+  const [showNotebookEditor, setShowNotebookEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
+
+  // Fetch notebooks for this note
+  const { data: noteNotebooks = [] } = useFetch(
+    () =>
+      note?.id ? notebooks.getNotebooksForNote(note.id) : Promise.resolve([]),
+    [note?.id]
+  )
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -58,6 +72,10 @@ export function Editor(props: EditorProps) {
       setSelectedTags(props.note.tags || [])
     }
   }, [props.note])
+
+  useEffect(() => {
+    setSelectedNotebooks(noteNotebooks || [])
+  }, [noteNotebooks])
 
   const onSave = async () => {
     const updatedNote = await call(() => noteClient.upsert(text, note?.id))
@@ -108,6 +126,13 @@ export function Editor(props: EditorProps) {
             >
               <LuTag /> Tags
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowNotebookEditor(!showNotebookEditor)}
+              colorPalette={showNotebookEditor ? "teal" : undefined}
+            >
+              <LuBookOpen /> Notebooks
+            </Button>
             {note && (
               <Collapsible.Trigger paddingY="3">
                 <Button variant="ghost">
@@ -137,6 +162,22 @@ export function Editor(props: EditorProps) {
               <TagSelector
                 selectedTags={selectedTags}
                 onTagsChange={setSelectedTags}
+              />
+            </Box>
+          )}
+
+          {/* Notebook Editor */}
+          {showNotebookEditor && (
+            <Box
+              width="100%"
+              paddingY="4"
+              borderTopWidth="1px"
+              borderColor="gray.200"
+            >
+              <NotebookSelector
+                selectedNotebooks={selectedNotebooks}
+                onNotebooksChange={setSelectedNotebooks}
+                noteId={note?.id}
               />
             </Box>
           )}
