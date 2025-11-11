@@ -4,6 +4,7 @@ export {
   useNavigation,
   useLocation,
   useParams,
+  useSearchParams,
   Link,
   Outlet,
   Navigate,

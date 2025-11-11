@@ -16,6 +16,7 @@ import {
   DrawerTrigger,
 } from "components/ui/drawer"
 import { NavMenu } from "./NavMenu"
+import { SearchInput } from "components/SearchInput"
 import { useFetch } from "utils/http"
 import { userClient } from "api/users"
 import { pages } from "pages/pages"
@@ -56,6 +57,9 @@ export function Layout() {
                 <DrawerTitle>org</DrawerTitle>
               </DrawerHeader>
               <DrawerBody>
+                <Box mb="4">
+                  <SearchInput />
+                </Box>
                 <NavMenu />
               </DrawerBody>
               <DrawerCloseTrigger />
@@ -64,6 +68,9 @@ export function Layout() {
           <Text fontSize="2xl" fontWeight="extrabold">
             <Link to={pages.private.home.path}>org</Link>
           </Text>
+          <Box flex="1" px="4" hideBelow="md">
+            <SearchInput />
+          </Box>
           <HStack ml="auto">
             <ColorModeButton />
             <Avatar

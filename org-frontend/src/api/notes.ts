@@ -61,4 +61,18 @@ export const noteClient = {
       headers: commonHeaders(),
       credentials: "include",
     }),
+
+  search: (query: string, limit: number = 50, offset: number = 0) =>
+    client
+      .get("notes/search", {
+        searchParams: {
+          q: query,
+          limit: limit.toString(),
+          offset: offset.toString(),
+        },
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<Note[]>()
+      .then((a) => a.map(fromJson)),
 }
