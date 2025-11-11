@@ -38,10 +38,7 @@ const BrowsePage = () => {
     loading,
     error,
   } = useFetch(
-    () =>
-      searchQuery
-        ? noteClient.search(searchQuery, RESULTS_PER_PAGE, offset)
-        : Promise.resolve(null),
+    () => noteClient.search(searchQuery, RESULTS_PER_PAGE, offset),
     [searchQuery, offset]
   )
 
@@ -70,24 +67,17 @@ const BrowsePage = () => {
     return <Skeleton />
   }
 
-  // Show empty state when no search query
-  if (!searchQuery) {
-    return (
-      <EmptyState
-        icon={<LuSearch />}
-        title="Search for notes"
-        description="Enter a search query in the search bar above to find your notes"
-      />
-    )
-  }
-
   // Show empty results when search returns nothing
   if (!loading && displayNotes.length === 0) {
     return (
       <EmptyState
         icon={<LuSearch />}
-        title="No results found"
-        description={`No notes match "${searchQuery}"`}
+        title="No notes found"
+        description={
+          searchQuery
+            ? `No notes match "${searchQuery}"`
+            : "You don't have any notes yet"
+        }
       />
     )
   }
