@@ -3,6 +3,7 @@ import {
   LuAtom,
   LuBook,
   LuBookOpen,
+  LuChefHat,
   LuHome,
   LuLogIn,
   LuPlus,
@@ -22,6 +23,7 @@ interface Pages {
     home: Page
     browse: Page
     new: Page
+    recipe: Page
     structure: Page
     notebooks: Page
   }
@@ -54,6 +56,11 @@ export const pages: Pages = {
       path: "/notes/browse",
       display: "Browse",
       icon: LuBook,
+    },
+    recipe: {
+      path: "/recipes/new",
+      display: "New Recipe",
+      icon: LuChefHat,
     },
     notebooks: {
       path: "/notebooks",

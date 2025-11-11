@@ -19,7 +19,12 @@ export function NavMenu({ hideHome }: NavMenuProps) {
     <VStack width="100%">
       {Object.values(pages.private).map((page) => {
         const item = (
-          <NavItem icon={<page.icon />} text={page.display} href={page.path} />
+          <NavItem
+            key={page.path}
+            icon={<page.icon />}
+            text={page.display}
+            href={page.path}
+          />
         )
         if (page.path === pages.private.home.path && !hideHome) {
           return item
