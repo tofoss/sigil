@@ -68,10 +68,11 @@ export function Layout() {
           <Text fontSize="2xl" fontWeight="extrabold">
             <Link to={pages.private.home.path}>org</Link>
           </Text>
-          <Box flex="1" px="4" hideBelow="md">
-            <SearchInput />
-          </Box>
-          <HStack ml="auto">
+          <Box flex="1" />
+          <HStack ml="auto" gap="2">
+            <Box hideBelow="md" minWidth="250px">
+              <SearchInput />
+            </Box>
             <ColorModeButton />
             <Avatar
               colorPalette={colorPalette}
