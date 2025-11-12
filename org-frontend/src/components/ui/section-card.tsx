@@ -46,6 +46,7 @@ interface SectionCardProps {
   notes?: Note[]
   isUnsectioned?: boolean
   maxPosition?: number
+  onSuccess?: () => void
 }
 
 export function SectionCard({
@@ -54,6 +55,7 @@ export function SectionCard({
   notes: providedNotes,
   isUnsectioned = false,
   maxPosition = 0,
+  onSuccess,
 }: SectionCardProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const [deleting, setDeleting] = useState(false)
@@ -82,7 +84,7 @@ export function SectionCard({
         setDeleting(true)
         await sections.delete(section.id)
         onDeleteClose()
-        window.location.reload()
+        onSuccess?.()
       } catch (error) {
         console.error("Error deleting section:", error)
         setDeleting(false)
@@ -195,6 +197,7 @@ export function SectionCard({
           notebookId={notebookId}
           section={section}
           maxPosition={maxPosition}
+          onSuccess={onSuccess}
         />
       )}
 

@@ -31,7 +31,10 @@ import { Link } from "shared/Router"
 import { pages } from "pages/pages"
 
 export function Component() {
-  const { data: notebookList = [], loading } = useFetch(notebooks.list)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data: notebookList = [], loading } = useFetch(notebooks.list, [
+    refreshKey,
+  ])
   const { open, onOpen, onClose } = useDisclosure()
   const [newNotebook, setNewNotebook] = useState({ name: "", description: "" })
   const [creating, setCreating] = useState(false)
@@ -43,7 +46,7 @@ export function Component() {
         await notebooks.create(newNotebook)
         onClose()
         setNewNotebook({ name: "", description: "" })
-        window.location.reload() // Simple refresh for now
+        setRefreshKey((prev) => prev + 1)
       } catch (error) {
         console.error("Error creating notebook:", error)
       } finally {

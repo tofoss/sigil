@@ -38,13 +38,21 @@ export function Component() {
     onClose: onSectionClose,
   } = useDisclosure()
   const [deleting, setDeleting] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const { data: notebook } = useFetch(() => notebooks.get(id!), [id])
-  const { data: sectionsList } = useFetch(() => sections.list(id!), [id])
+  const { data: sectionsList } = useFetch(
+    () => sections.list(id!),
+    [id, refreshKey]
+  )
   const { data: unsectionedNotes } = useFetch(
     () => sections.getUnsectioned(id!),
-    [id]
+    [id, refreshKey]
   )
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1)
+  }
 
   const sectionsArray = sectionsList || []
   const unsectionedArray = unsectionedNotes || []
@@ -141,6 +149,7 @@ export function Component() {
                   notebookId={id!}
                   notes={unsectionedArray}
                   isUnsectioned
+                  onSuccess={handleRefresh}
                 />
               )}
 
@@ -151,6 +160,7 @@ export function Component() {
                   section={section}
                   notebookId={id!}
                   maxPosition={maxPosition}
+                  onSuccess={handleRefresh}
                 />
               ))}
             </Stack>
@@ -164,6 +174,7 @@ export function Component() {
         onClose={onSectionClose}
         notebookId={id!}
         maxPosition={maxPosition}
+        onSuccess={handleRefresh}
       />
 
       <DialogRoot open={open} onOpenChange={onClose}>

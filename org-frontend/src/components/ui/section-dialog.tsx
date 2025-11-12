@@ -19,6 +19,7 @@ interface SectionDialogProps {
   notebookId: string
   section?: Section
   maxPosition: number
+  onSuccess?: () => void
 }
 
 export function SectionDialog({
@@ -27,6 +28,7 @@ export function SectionDialog({
   notebookId,
   section,
   maxPosition,
+  onSuccess,
 }: SectionDialogProps) {
   const [name, setName] = useState(section?.name || "")
   const [saving, setSaving] = useState(false)
@@ -47,7 +49,7 @@ export function SectionDialog({
           })
         }
         handleClose()
-        window.location.reload()
+        onSuccess?.()
       } catch (error) {
         console.error("Error saving section:", error)
       } finally {
