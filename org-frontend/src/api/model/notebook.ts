@@ -8,6 +8,7 @@ export interface Notebook {
   description?: string
   created_at: Dayjs
   updated_at: Dayjs
+  section_id?: string // Section assignment when note is in this notebook
 }
 
 export function fromJson(notebook: Notebook): Notebook {
