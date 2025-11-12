@@ -7,12 +7,10 @@ import {
   Icon,
   Stack,
   Text,
-  Card,
   useDisclosure,
   Link as ChakraLink,
 } from "@chakra-ui/react"
-import { notebooks } from "api"
-import { Note } from "api/model"
+import { notebooks, sections } from "api"
 import {
   DialogRoot,
   DialogContent,
@@ -22,7 +20,9 @@ import {
   DialogFooter,
   DialogCloseTrigger,
 } from "components/ui/dialog"
-import { LuArrowLeft, LuBook, LuTrash2 } from "react-icons/lu"
+import { SectionCard } from "components/ui/section-card"
+import { SectionDialog } from "components/ui/section-dialog"
+import { LuArrowLeft, LuBook, LuFolderPlus, LuTrash2 } from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { Link, useParams, useNavigate } from "shared/Router"
 import { pages } from "pages/pages"
@@ -32,10 +32,27 @@ export function Component() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { open, onOpen, onClose } = useDisclosure()
+  const {
+    open: sectionOpen,
+    onOpen: onSectionOpen,
+    onClose: onSectionClose,
+  } = useDisclosure()
   const [deleting, setDeleting] = useState(false)
 
   const { data: notebook } = useFetch(() => notebooks.get(id!), [id])
-  const { data: notes = [] } = useFetch(() => notebooks.getNotes(id!), [id])
+  const { data: sectionsList } = useFetch(() => sections.list(id!), [id])
+  const { data: unsectionedNotes } = useFetch(
+    () => sections.getUnsectioned(id!),
+    [id]
+  )
+
+  const sectionsArray = sectionsList || []
+  const unsectionedArray = unsectionedNotes || []
+
+  const maxPosition =
+    sectionsArray.length > 0
+      ? Math.max(...sectionsArray.map((s) => s.position))
+      : -1
 
   const handleDelete = async () => {
     if (!deleting) {
@@ -91,6 +108,9 @@ export function Component() {
           </Stack>
 
           <HStack>
+            <Button variant="outline" onClick={onSectionOpen}>
+              <LuFolderPlus /> New Section
+            </Button>
             <Button colorScheme="red" variant="outline" onClick={onOpen}>
               <LuTrash2 /> Delete
             </Button>
@@ -101,7 +121,7 @@ export function Component() {
           <Heading size="lg" mb={4}>
             Table of Contents
           </Heading>
-          {!notes || notes.length === 0 ? (
+          {sectionsArray.length === 0 && unsectionedArray.length === 0 ? (
             <Box
               p={8}
               textAlign="center"
@@ -114,14 +134,37 @@ export function Component() {
               </Text>
             </Box>
           ) : (
-            <Stack gap={2}>
-              {notes?.map((note, index) => (
-                <NoteItem key={note.id} note={note} index={index + 1} />
+            <Stack gap={4}>
+              {/* Unsectioned Notes */}
+              {unsectionedArray.length > 0 && (
+                <SectionCard
+                  notebookId={id!}
+                  notes={unsectionedArray}
+                  isUnsectioned
+                />
+              )}
+
+              {/* Sections */}
+              {sectionsArray.map((section) => (
+                <SectionCard
+                  key={section.id}
+                  section={section}
+                  notebookId={id!}
+                  maxPosition={maxPosition}
+                />
               ))}
             </Stack>
           )}
         </Box>
       </Stack>
+
+      {/* Create Section Dialog */}
+      <SectionDialog
+        open={sectionOpen}
+        onClose={onSectionClose}
+        notebookId={id!}
+        maxPosition={maxPosition}
+      />
 
       <DialogRoot open={open} onOpenChange={onClose}>
         <DialogContent>
@@ -150,42 +193,5 @@ export function Component() {
         </DialogContent>
       </DialogRoot>
     </Container>
-  )
-}
-
-interface NoteItemProps {
-  note: Note
-  index: number
-}
-
-function NoteItem({ note, index }: NoteItemProps) {
-  return (
-    <Card.Root _hover={{ bg: "gray.50" }} transition="background-color 0.2s">
-      <Card.Body>
-        <ChakraLink asChild>
-          <Link to={pages.sub.note.path.replace(":id", note.id)}>
-            <HStack>
-              <Text fontWeight="bold" color="gray.400" minW="2rem">
-                {index}.
-              </Text>
-              <Stack gap={1} flex={1}>
-                <Text fontWeight="semibold" lineClamp={1}>
-                  {note.title || "Untitled"}
-                </Text>
-                <HStack fontSize="sm" color="gray.500">
-                  <Text>Updated {note.updatedAt.format("MMM D, YYYY")}</Text>
-                  {note.tags.length > 0 && (
-                    <>
-                      <Text>•</Text>
-                      <Text>{note.tags.map((tag) => tag.name).join(", ")}</Text>
-                    </>
-                  )}
-                </HStack>
-              </Stack>
-            </HStack>
-          </Link>
-        </ChakraLink>
-      </Card.Body>
-    </Card.Root>
   )
 }
