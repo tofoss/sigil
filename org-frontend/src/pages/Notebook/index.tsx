@@ -10,7 +10,13 @@ import {
   useDisclosure,
   Link as ChakraLink,
 } from "@chakra-ui/react"
-import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  pointerWithin,
+  rectIntersection,
+} from "@dnd-kit/core"
 import {
   SortableContext,
   arrayMove,
@@ -65,45 +71,92 @@ export function Component() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (!over || active.id === over.id) {
+    if (!over) {
       return
     }
 
-    const oldIndex = optimisticSections.findIndex((s) => s.id === active.id)
-    const newIndex = optimisticSections.findIndex((s) => s.id === over.id)
+    const dragData = active.data.current
+    const dropData = over.data.current
 
-    if (oldIndex === -1 || newIndex === -1) {
+    // Handle section reordering
+    if (dragData?.type === "section-sort") {
+      // This is a section drag
+      if (active.id === over.id) {
+        return
+      }
+
+      const oldIndex = optimisticSections.findIndex((s) => s.id === active.id)
+      const newIndex = optimisticSections.findIndex((s) => s.id === over.id)
+
+      if (oldIndex === -1 || newIndex === -1) {
+        return
+      }
+
+      // Optimistically reorder
+      const reordered = arrayMove(optimisticSections, oldIndex, newIndex)
+      setOptimisticSections(reordered)
+
+      try {
+        // Call API with new position (0-based index)
+        await sections.updatePosition(active.id as string, newIndex)
+
+        toaster.create({
+          title: "Section reordered",
+          type: "success",
+          duration: 2000,
+        })
+
+        // Refresh to ensure consistency with server
+        handleRefresh()
+      } catch (error) {
+        console.error("Error reordering section:", error)
+
+        // Rollback optimistic update
+        setOptimisticSections(sectionsArray)
+
+        toaster.create({
+          title: "Failed to reorder section",
+          description: "Please try again",
+          type: "error",
+          duration: 3000,
+        })
+      }
       return
     }
 
-    // Optimistically reorder
-    const reordered = arrayMove(optimisticSections, oldIndex, newIndex)
-    setOptimisticSections(reordered)
+    // Handle note dragging to sections
+    if (dragData?.type === "note" && dropData?.type === "section") {
+      const noteId = active.id as string
+      const currentSectionId = dragData.currentSectionId
+      const targetSectionId = dropData.sectionId
 
-    try {
-      // Call API with new position (0-based index)
-      await sections.updatePosition(active.id as string, newIndex)
+      // No change if dropping in same section
+      if (currentSectionId === targetSectionId) {
+        return
+      }
 
-      toaster.create({
-        title: "Section reordered",
-        type: "success",
-        duration: 2000,
-      })
+      try {
+        // Call API to reassign note to new section
+        await sections.assignNote(noteId, id!, targetSectionId)
 
-      // Refresh to ensure consistency with server
-      handleRefresh()
-    } catch (error) {
-      console.error("Error reordering section:", error)
+        toaster.create({
+          title: "Note moved",
+          type: "success",
+          duration: 2000,
+        })
 
-      // Rollback optimistic update
-      setOptimisticSections(sectionsArray)
+        // Refresh to get updated note lists
+        handleRefresh()
+      } catch (error) {
+        console.error("Error moving note:", error)
 
-      toaster.create({
-        title: "Failed to reorder section",
-        description: "Please try again",
-        type: "error",
-        duration: 3000,
-      })
+        toaster.create({
+          title: "Failed to move note",
+          description: "Please try again",
+          type: "error",
+          duration: 3000,
+        })
+      }
     }
   }
 
@@ -203,22 +256,23 @@ export function Component() {
               </Text>
             </Box>
           ) : (
-            <Stack gap={4}>
-              {/* Unsectioned Notes */}
-              {unsectionedArray.length > 0 && (
-                <SectionCard
-                  notebookId={id!}
-                  notes={unsectionedArray}
-                  isUnsectioned
-                  onSuccess={handleRefresh}
-                />
-              )}
+            <DndContext
+              collisionDetection={pointerWithin}
+              onDragEnd={handleDragEnd}
+            >
+              <Stack gap={4}>
+                {/* Unsectioned Notes */}
+                {unsectionedArray.length > 0 && (
+                  <SectionCard
+                    notebookId={id!}
+                    notes={unsectionedArray}
+                    isUnsectioned
+                    onSuccess={handleRefresh}
+                    refreshKey={refreshKey}
+                  />
+                )}
 
-              {/* Sections with Drag-and-Drop */}
-              <DndContext
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
+                {/* Sections with Drag-and-Drop */}
                 <SortableContext
                   items={optimisticSections.map((s) => s.id)}
                   strategy={verticalListSortingStrategy}
@@ -230,11 +284,12 @@ export function Component() {
                       notebookId={id!}
                       maxPosition={maxPosition}
                       onSuccess={handleRefresh}
+                      refreshKey={refreshKey}
                     />
                   ))}
                 </SortableContext>
-              </DndContext>
-            </Stack>
+              </Stack>
+            </DndContext>
           )}
         </Box>
       </Stack>

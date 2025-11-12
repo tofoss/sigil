@@ -22,12 +22,6 @@ export function SectionSelector({
   noteId,
   onSectionChange,
 }: SectionSelectorProps) {
-  console.log(
-    "SectionSelector - notebook:",
-    notebook,
-    "section_id:",
-    notebook.section_id
-  )
   const { data: sectionsList = [] } = useFetch(
     () => sections.list(notebook.id),
     [notebook.id]

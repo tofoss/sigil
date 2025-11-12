@@ -10,6 +10,7 @@ import {
   Link as ChakraLink,
   useDisclosure,
 } from "@chakra-ui/react"
+import { useDroppable } from "@dnd-kit/core"
 import { sections } from "api"
 import { Note, Section } from "api/model"
 import {
@@ -40,6 +41,7 @@ import {
 import { Link } from "shared/Router"
 import { useFetch } from "utils/http"
 import { useCollapsedSections } from "utils/use-collapsed-sections"
+import { DraggableNote } from "./draggable-note"
 import { SectionDialog } from "./section-dialog"
 
 interface SectionCardProps {
@@ -52,6 +54,8 @@ interface SectionCardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dragHandleProps?: Record<string, any>
   isDragging?: boolean
+  isOver?: boolean
+  refreshKey?: number
 }
 
 export function SectionCard({
@@ -63,6 +67,8 @@ export function SectionCard({
   onSuccess,
   dragHandleProps,
   isDragging = false,
+  isOver: isOverProp,
+  refreshKey = 0,
 }: SectionCardProps) {
   const sectionId = section?.id || "unsectioned"
   const { isCollapsed, toggle } = useCollapsedSections(notebookId)
@@ -78,10 +84,24 @@ export function SectionCard({
     onClose: onEditClose,
   } = useDisclosure()
 
+  // Make this section a drop zone for notes (only for unsectioned, otherwise handled by SortableSectionCard)
+  const droppableHook = useDroppable({
+    id: sectionId,
+    data: {
+      type: "section",
+      sectionId: section?.id || null,
+      notebookId,
+    },
+  })
+
+  // Use external isOver if provided, otherwise use our own
+  const setNodeRef = isUnsectioned ? droppableHook.setNodeRef : undefined
+  const isOver = isOverProp !== undefined ? isOverProp : droppableHook.isOver
+
   // Fetch notes for this section if not provided (used for regular sections)
   const { data: fetchedNotes = [] } = useFetch(
     () => (section ? sections.getNotes(section.id) : Promise.resolve([])),
-    [section?.id]
+    [section?.id, refreshKey]
   )
 
   const notes = providedNotes || fetchedNotes || []
@@ -105,7 +125,17 @@ export function SectionCard({
 
   return (
     <>
-      <Card.Root>
+      <Card.Root
+        ref={setNodeRef}
+        style={{
+          backgroundColor: isOver ? "var(--chakra-colors-bg-muted)" : undefined,
+          borderColor: isOver
+            ? "var(--chakra-colors-border-accent)"
+            : undefined,
+          borderWidth: isOver ? "2px" : undefined,
+          transition: "all 0.2s",
+        }}
+      >
         <Card.Body>
           <Stack gap={3}>
             <HStack justify="space-between">
@@ -189,22 +219,12 @@ export function SectionCard({
                 ) : (
                   <Stack gap={1}>
                     {notes?.map((note, index) => (
-                      <HStack
+                      <DraggableNote
                         key={note.id}
-                        p={2}
-                        borderRadius="md"
-                        _hover={{ bg: "bg.muted" }}
-                        asChild
-                      >
-                        <ChakraLink asChild>
-                          <Link to={`/notes/${note.id}`}>
-                            <Text fontSize="sm" color="fg.muted" minW="6">
-                              {index + 1}.
-                            </Text>
-                            <Text flex={1}>{note.title || "Untitled"}</Text>
-                          </Link>
-                        </ChakraLink>
-                      </HStack>
+                        note={note}
+                        index={index}
+                        sectionId={section?.id || null}
+                      />
                     ))}
                   </Stack>
                 )}
