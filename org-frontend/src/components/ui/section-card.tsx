@@ -38,6 +38,7 @@ import {
 } from "react-icons/lu"
 import { Link } from "shared/Router"
 import { useFetch } from "utils/http"
+import { useCollapsedSections } from "utils/use-collapsed-sections"
 import { SectionDialog } from "./section-dialog"
 
 interface SectionCardProps {
@@ -57,7 +58,8 @@ export function SectionCard({
   maxPosition = 0,
   onSuccess,
 }: SectionCardProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const sectionId = section?.id || "unsectioned"
+  const { isCollapsed, toggle } = useCollapsedSections(notebookId)
   const [deleting, setDeleting] = useState(false)
   const {
     open: deleteOpen,
@@ -105,10 +107,14 @@ export function SectionCard({
                 gap={2}
                 flex={1}
                 cursor="pointer"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => toggle(sectionId)}
               >
                 <Icon fontSize="xl" color="fg.muted">
-                  {isExpanded ? <LuChevronDown /> : <LuChevronRight />}
+                  {!isCollapsed(sectionId) ? (
+                    <LuChevronDown />
+                  ) : (
+                    <LuChevronRight />
+                  )}
                 </Icon>
                 <Heading size="md">{sectionName}</Heading>
                 <Text fontSize="sm" color="fg.muted">
@@ -147,7 +153,7 @@ export function SectionCard({
               )}
             </HStack>
 
-            {isExpanded && (
+            {!isCollapsed(sectionId) && (
               <Box pl={8}>
                 {!notes || notes.length === 0 ? (
                   <Box
