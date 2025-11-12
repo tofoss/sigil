@@ -32,6 +32,7 @@ import { useState } from "react"
 import {
   LuChevronDown,
   LuChevronRight,
+  LuGripVertical,
   LuMoreVertical,
   LuPencil,
   LuTrash2,
@@ -48,6 +49,9 @@ interface SectionCardProps {
   isUnsectioned?: boolean
   maxPosition?: number
   onSuccess?: () => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dragHandleProps?: Record<string, any>
+  isDragging?: boolean
 }
 
 export function SectionCard({
@@ -57,6 +61,8 @@ export function SectionCard({
   isUnsectioned = false,
   maxPosition = 0,
   onSuccess,
+  dragHandleProps,
+  isDragging = false,
 }: SectionCardProps) {
   const sectionId = section?.id || "unsectioned"
   const { isCollapsed, toggle } = useCollapsedSections(notebookId)
@@ -103,23 +109,36 @@ export function SectionCard({
         <Card.Body>
           <Stack gap={3}>
             <HStack justify="space-between">
-              <HStack
-                gap={2}
-                flex={1}
-                cursor="pointer"
-                onClick={() => toggle(sectionId)}
-              >
-                <Icon fontSize="xl" color="fg.muted">
-                  {!isCollapsed(sectionId) ? (
-                    <LuChevronDown />
-                  ) : (
-                    <LuChevronRight />
-                  )}
-                </Icon>
-                <Heading size="md">{sectionName}</Heading>
-                <Text fontSize="sm" color="fg.muted">
-                  ({noteCount} {noteCount === 1 ? "note" : "notes"})
-                </Text>
+              <HStack gap={2} flex={1}>
+                {!isUnsectioned && dragHandleProps && (
+                  <Icon
+                    fontSize="xl"
+                    color="fg.muted"
+                    cursor="grab"
+                    _active={{ cursor: "grabbing" }}
+                    {...dragHandleProps}
+                  >
+                    <LuGripVertical />
+                  </Icon>
+                )}
+                <HStack
+                  gap={2}
+                  flex={1}
+                  cursor="pointer"
+                  onClick={() => toggle(sectionId)}
+                >
+                  <Icon fontSize="xl" color="fg.muted">
+                    {!isCollapsed(sectionId) ? (
+                      <LuChevronDown />
+                    ) : (
+                      <LuChevronRight />
+                    )}
+                  </Icon>
+                  <Heading size="md">{sectionName}</Heading>
+                  <Text fontSize="sm" color="fg.muted">
+                    ({noteCount} {noteCount === 1 ? "note" : "notes"})
+                  </Text>
+                </HStack>
               </HStack>
 
               {!isUnsectioned && section && (

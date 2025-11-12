@@ -10,6 +10,12 @@ import {
   useDisclosure,
   Link as ChakraLink,
 } from "@chakra-ui/react"
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
 import { notebooks, sections } from "api"
 import {
   DialogRoot,
@@ -22,11 +28,13 @@ import {
 } from "components/ui/dialog"
 import { SectionCard } from "components/ui/section-card"
 import { SectionDialog } from "components/ui/section-dialog"
+import { SortableSectionCard } from "components/ui/sortable-section-card"
+import { Toaster, toaster } from "components/ui/toaster"
 import { LuArrowLeft, LuBook, LuFolderPlus, LuTrash2 } from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { Link, useParams, useNavigate } from "shared/Router"
 import { pages } from "pages/pages"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export function Component() {
   const { id } = useParams<{ id: string }>()
@@ -54,8 +62,61 @@ export function Component() {
     setRefreshKey((prev) => prev + 1)
   }
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const oldIndex = optimisticSections.findIndex((s) => s.id === active.id)
+    const newIndex = optimisticSections.findIndex((s) => s.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return
+    }
+
+    // Optimistically reorder
+    const reordered = arrayMove(optimisticSections, oldIndex, newIndex)
+    setOptimisticSections(reordered)
+
+    try {
+      // Call API with new position (0-based index)
+      await sections.updatePosition(active.id as string, newIndex)
+
+      toaster.create({
+        title: "Section reordered",
+        type: "success",
+        duration: 2000,
+      })
+
+      // Refresh to ensure consistency with server
+      handleRefresh()
+    } catch (error) {
+      console.error("Error reordering section:", error)
+
+      // Rollback optimistic update
+      setOptimisticSections(sectionsArray)
+
+      toaster.create({
+        title: "Failed to reorder section",
+        description: "Please try again",
+        type: "error",
+        duration: 3000,
+      })
+    }
+  }
+
   const sectionsArray = sectionsList || []
   const unsectionedArray = unsectionedNotes || []
+
+  // Optimistic state for drag-and-drop
+  const [optimisticSections, setOptimisticSections] = useState(sectionsArray)
+
+  // Sync optimistic state when real data changes
+  useEffect(() => {
+    setOptimisticSections(sectionsArray)
+  }, [sectionsList])
 
   const maxPosition =
     sectionsArray.length > 0
@@ -153,16 +214,26 @@ export function Component() {
                 />
               )}
 
-              {/* Sections */}
-              {sectionsArray.map((section) => (
-                <SectionCard
-                  key={section.id}
-                  section={section}
-                  notebookId={id!}
-                  maxPosition={maxPosition}
-                  onSuccess={handleRefresh}
-                />
-              ))}
+              {/* Sections with Drag-and-Drop */}
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={optimisticSections.map((s) => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {optimisticSections.map((section) => (
+                    <SortableSectionCard
+                      key={section.id}
+                      section={section}
+                      notebookId={id!}
+                      maxPosition={maxPosition}
+                      onSuccess={handleRefresh}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </Stack>
           )}
         </Box>
@@ -203,6 +274,7 @@ export function Component() {
           </DialogFooter>
         </DialogContent>
       </DialogRoot>
+      <Toaster />
     </Container>
   )
 }
