@@ -1,8 +1,17 @@
-import { Box, Heading, Stack, Text } from "@chakra-ui/react"
+import {
+  Box,
+  HStack,
+  Heading,
+  IconButton,
+  Input,
+  Stack,
+  Text,
+} from "@chakra-ui/react"
 import { notebooks, sections } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
+import { LuPlus, LuX } from "react-icons/lu"
 import { useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
@@ -20,6 +29,8 @@ export function NotebookTree() {
   const [treeData, setTreeData] = useState<TreeData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
+  const [newNotebookName, setNewNotebookName] = useState("")
 
   const {
     expandedNotebooks,
@@ -39,47 +50,62 @@ export function NotebookTree() {
   const lastAutoExpandedId = useRef<string | null>(null)
 
   // Fetch all tree data
-  useEffect(() => {
-    const fetchTreeData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  const fetchTreeData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-        // 1. Fetch all notebooks
-        const notebooksData = await notebooks.list()
+      // 1. Fetch all notebooks
+      const notebooksData = await notebooks.list()
 
-        // 2. For each notebook, fetch sections and unsectioned notes
-        const treeDataPromises = notebooksData.map(async (notebook) => {
-          const [sectionsData, unsectionedNotesData] = await Promise.all([
-            sections.list(notebook.id),
-            sections.getUnsectioned(notebook.id),
-          ])
+      // 2. For each notebook, fetch sections and unsectioned notes
+      const treeDataPromises = notebooksData.map(async (notebook) => {
+        const [sectionsData, unsectionedNotesData] = await Promise.all([
+          sections.list(notebook.id),
+          sections.getUnsectioned(notebook.id),
+        ])
 
-          // 3. For each section, fetch notes
-          const sectionsWithNotes = await Promise.all(
-            sectionsData.map(async (section) => ({
-              section,
-              notes: await sections.getNotes(section.id),
-            }))
-          )
+        // 3. For each section, fetch notes
+        const sectionsWithNotes = await Promise.all(
+          sectionsData.map(async (section) => ({
+            section,
+            notes: await sections.getNotes(section.id),
+          }))
+        )
 
-          return {
-            notebook,
-            sections: sectionsWithNotes,
-            unsectionedNotes: unsectionedNotesData,
-          }
-        })
+        return {
+          notebook,
+          sections: sectionsWithNotes,
+          unsectionedNotes: unsectionedNotesData,
+        }
+      })
 
-        const data = await Promise.all(treeDataPromises)
-        setTreeData(data)
-      } catch (err) {
-        console.error("Error fetching tree data:", err)
-        setError("Failed to load notebooks")
-      } finally {
-        setLoading(false)
-      }
+      const data = await Promise.all(treeDataPromises)
+      setTreeData(data)
+    } catch (err) {
+      console.error("Error fetching tree data:", err)
+      setError("Failed to load notebooks")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  // Handle creating a new notebook
+  const handleCreateNotebook = async () => {
+    if (!newNotebookName.trim()) return
+
+    try {
+      await notebooks.create({ name: newNotebookName.trim() })
+      setNewNotebookName("")
+      setIsCreatingNotebook(false)
+      await fetchTreeData() // Refresh tree
+    } catch (err) {
+      console.error("Error creating notebook:", err)
+      setError("Failed to create notebook")
+    }
+  }
+
+  useEffect(() => {
     fetchTreeData()
   }, [])
 
@@ -211,10 +237,52 @@ export function NotebookTree() {
 
   return (
     <Box px={2}>
-      <Heading size="xs" mb={3} px={2} color="fg.muted">
-        My Notebooks ({treeData.length})
-      </Heading>
+      <HStack mb={3} px={2} justifyContent="space-between">
+        <Heading size="xs" color="fg.muted">
+          My Notebooks ({treeData.length})
+        </Heading>
+        <IconButton
+          size="xs"
+          variant="ghost"
+          aria-label="Create notebook"
+          onClick={() => setIsCreatingNotebook(true)}
+        >
+          <LuPlus />
+        </IconButton>
+      </HStack>
+
       <Stack gap={0.5}>
+        {isCreatingNotebook && (
+          <HStack px={2} py={1.5} gap={2}>
+            <Input
+              size="sm"
+              placeholder="Notebook name"
+              value={newNotebookName}
+              onChange={(e) => setNewNotebookName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleCreateNotebook()
+                } else if (e.key === "Escape") {
+                  setIsCreatingNotebook(false)
+                  setNewNotebookName("")
+                }
+              }}
+              autoFocus
+            />
+            <IconButton
+              size="xs"
+              variant="ghost"
+              aria-label="Cancel"
+              onClick={() => {
+                setIsCreatingNotebook(false)
+                setNewNotebookName("")
+              }}
+            >
+              <LuX />
+            </IconButton>
+          </HStack>
+        )}
+
         {treeData.map(
           ({ notebook, sections: sectionsData, unsectionedNotes }) => (
             <NotebookTreeItem
@@ -230,6 +298,7 @@ export function NotebookTree() {
               currentNoteId={
                 location.pathname.startsWith("/notes/") ? currentId : undefined
               }
+              onRefresh={fetchTreeData}
             />
           )
         )}

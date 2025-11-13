@@ -1,7 +1,9 @@
-import { Box, HStack, Icon, Text } from "@chakra-ui/react"
+import { Box, HStack, Icon, IconButton, Input, Text } from "@chakra-ui/react"
+import { noteClient, notebooks, sections as sectionsApi } from "api"
 import { Note, Notebook, Section } from "api/model"
-import { LuBookOpen, LuChevronDown, LuChevronRight } from "react-icons/lu"
-import { Link, useParams } from "shared/Router"
+import { useState } from "react"
+import { LuBookOpen, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
+import { Link, useNavigate, useParams } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { SectionTreeItem } from "./SectionTreeItem"
 
@@ -18,6 +20,7 @@ interface NotebookTreeItemProps {
   onToggleSection: (sectionId: string) => void
   containsActiveNote?: boolean
   currentNoteId?: string
+  onRefresh: () => Promise<void>
 }
 
 export function NotebookTreeItem({
@@ -30,9 +33,16 @@ export function NotebookTreeItem({
   onToggleSection,
   containsActiveNote = false,
   currentNoteId,
+  onRefresh,
 }: NotebookTreeItemProps) {
   const { id: currentNotebookId } = useParams()
+  const navigate = useNavigate()
   const isActive = currentNotebookId === notebook.id
+
+  const [isCreatingSection, setIsCreatingSection] = useState(false)
+  const [newSectionName, setNewSectionName] = useState("")
+  const [isCreatingUnsectionedNote, setIsCreatingUnsectionedNote] =
+    useState(false)
 
   const totalNotes =
     unsectionedNotes.length +
@@ -52,6 +62,36 @@ export function NotebookTreeItem({
   }
 
   const activeSectionId = getActiveSectionId()
+
+  // Handle creating a new section
+  const handleCreateSection = async () => {
+    if (!newSectionName.trim()) return
+
+    try {
+      await sectionsApi.create({
+        notebook_id: notebook.id,
+        name: newSectionName.trim(),
+        position: sections.length,
+      })
+      setNewSectionName("")
+      setIsCreatingSection(false)
+      await onRefresh()
+    } catch (err) {
+      console.error("Error creating section:", err)
+    }
+  }
+
+  // Handle creating a new unsectioned note
+  const handleCreateUnsectionedNote = async () => {
+    try {
+      const note = await noteClient.upsert("", undefined)
+      await notebooks.addNote(notebook.id, note.id)
+      setIsCreatingUnsectionedNote(false)
+      navigate(`/notes/${note.id}`)
+    } catch (err) {
+      console.error("Error creating note:", err)
+    }
+  }
 
   return (
     <Box>
@@ -123,19 +163,76 @@ export function NotebookTreeItem({
       {/* Expanded Content */}
       {isExpanded && (
         <Box>
+          {/* Create Section Button */}
+          <HStack pl="12px" pr={2} py={1} mb={1}>
+            {isCreatingSection ? (
+              <>
+                <Input
+                  size="xs"
+                  placeholder="Section name"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleCreateSection()
+                    } else if (e.key === "Escape") {
+                      setIsCreatingSection(false)
+                      setNewSectionName("")
+                    }
+                  }}
+                  autoFocus
+                  flex={1}
+                />
+                <IconButton
+                  size="2xs"
+                  variant="ghost"
+                  aria-label="Cancel"
+                  onClick={() => {
+                    setIsCreatingSection(false)
+                    setNewSectionName("")
+                  }}
+                >
+                  <LuX />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <Text fontSize="xs" color="fg.muted" flex={1}>
+                  Add section
+                </Text>
+                <IconButton
+                  size="2xs"
+                  variant="ghost"
+                  aria-label="Create section"
+                  onClick={() => setIsCreatingSection(true)}
+                >
+                  <LuPlus />
+                </IconButton>
+              </>
+            )}
+          </HStack>
+
           {/* Unsectioned Notes */}
-          {unsectionedNotes.length > 0 && (
+          {(unsectionedNotes.length > 0 || isCreatingUnsectionedNote) && (
             <Box mb={1}>
-              <Text
-                fontSize="xs"
-                color="fg.muted"
-                pl="12px"
-                pr={2}
-                py={1}
-                fontWeight="medium"
-              >
-                Unsectioned ({unsectionedNotes.length})
-              </Text>
+              <HStack pl="12px" pr={2} py={1}>
+                <Text
+                  fontSize="xs"
+                  color="fg.muted"
+                  fontWeight="medium"
+                  flex={1}
+                >
+                  Unsectioned ({unsectionedNotes.length})
+                </Text>
+                <IconButton
+                  size="2xs"
+                  variant="ghost"
+                  aria-label="Create note"
+                  onClick={handleCreateUnsectionedNote}
+                >
+                  <LuPlus />
+                </IconButton>
+              </HStack>
               {unsectionedNotes.map((note) => (
                 <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
               ))}
@@ -152,6 +249,7 @@ export function NotebookTreeItem({
               onToggle={() => onToggleSection(section.id)}
               paddingLeft={12}
               containsActiveNote={activeSectionId === section.id}
+              notebookId={notebook.id}
             />
           ))}
 
