@@ -75,6 +75,19 @@ export const sections = {
     })
   },
 
+  // Update note position within its section
+  updateNotePosition: async (
+    noteId: string,
+    notebookId: string,
+    position: number
+  ): Promise<void> => {
+    await client.put(`notes/${noteId}/notebooks/${notebookId}/position`, {
+      json: { position },
+      headers: commonHeaders(),
+      credentials: "include",
+    })
+  },
+
   // Delete a section (notes become unsectioned)
   delete: async (id: string): Promise<void> => {
     await client.delete(`sections/${id}`, {

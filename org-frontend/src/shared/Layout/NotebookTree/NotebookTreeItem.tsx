@@ -6,6 +6,7 @@ import { LuBookOpen, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
 import { Link, useNavigate, useParams } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { SectionTreeItem } from "./SectionTreeItem"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 
 interface NotebookTreeItemProps {
   notebook: Notebook
@@ -233,25 +234,41 @@ export function NotebookTreeItem({
                   <LuPlus />
                 </IconButton>
               </HStack>
-              {unsectionedNotes.map((note) => (
-                <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
-              ))}
+              <SortableContext
+                items={unsectionedNotes.map((note) => note.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {unsectionedNotes.map((note) => (
+                  <NoteTreeItem
+                    key={note.id}
+                    note={note}
+                    paddingLeft={12}
+                    notebookId={notebook.id}
+                    sectionId={null}
+                  />
+                ))}
+              </SortableContext>
             </Box>
           )}
 
           {/* Sections */}
-          {sections.map(({ section, notes }) => (
-            <SectionTreeItem
-              key={section.id}
-              section={section}
-              notes={notes}
-              isExpanded={expandedSections.includes(section.id)}
-              onToggle={() => onToggleSection(section.id)}
-              paddingLeft={12}
-              containsActiveNote={activeSectionId === section.id}
-              notebookId={notebook.id}
-            />
-          ))}
+          <SortableContext
+            items={sections.map(({ section }) => section.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {sections.map(({ section, notes }) => (
+              <SectionTreeItem
+                key={section.id}
+                section={section}
+                notes={notes}
+                isExpanded={expandedSections.includes(section.id)}
+                onToggle={() => onToggleSection(section.id)}
+                paddingLeft={12}
+                containsActiveNote={activeSectionId === section.id}
+                notebookId={notebook.id}
+              />
+            ))}
+          </SortableContext>
 
           {/* Empty State */}
           {sections.length === 0 && unsectionedNotes.length === 0 && (
