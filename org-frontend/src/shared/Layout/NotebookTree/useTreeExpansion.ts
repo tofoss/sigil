@@ -67,6 +67,23 @@ export function useTreeExpansion() {
     [expandedSections]
   )
 
+  const collapseAll = useCallback(() => {
+    setExpandedNotebooks([])
+    setExpandedSections([])
+    localStorage.setItem("expanded-notebooks", JSON.stringify([]))
+    localStorage.setItem("expanded-sections", JSON.stringify([]))
+  }, [])
+
+  const expandAll = useCallback(
+    (notebookIds: string[], sectionIds: string[]) => {
+      setExpandedNotebooks(notebookIds)
+      setExpandedSections(sectionIds)
+      localStorage.setItem("expanded-notebooks", JSON.stringify(notebookIds))
+      localStorage.setItem("expanded-sections", JSON.stringify(sectionIds))
+    },
+    []
+  )
+
   return {
     expandedNotebooks,
     expandedSections,
@@ -76,5 +93,7 @@ export function useTreeExpansion() {
     expandSection,
     isNotebookExpanded,
     isSectionExpanded,
+    collapseAll,
+    expandAll,
   }
 }

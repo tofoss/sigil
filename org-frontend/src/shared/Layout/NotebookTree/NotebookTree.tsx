@@ -11,7 +11,7 @@ import { notebooks, sections } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
-import { LuPlus, LuX } from "react-icons/lu"
+import { LuChevronDown, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
 import { useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
@@ -41,6 +41,8 @@ export function NotebookTree() {
     expandSection,
     isNotebookExpanded,
     isSectionExpanded,
+    collapseAll,
+    expandAll,
   } = useTreeExpansion()
 
   const location = useLocation()
@@ -295,20 +297,48 @@ export function NotebookTree() {
 
   const activeNotebookId = getActiveNotebookId()
 
+  // Determine if all notebooks are expanded
+  const allExpanded =
+    treeData.length > 0 &&
+    treeData.every((item) => expandedNotebooks.includes(item.notebook.id))
+
+  // Handle collapse/expand all
+  const handleToggleAll = () => {
+    if (allExpanded) {
+      collapseAll()
+    } else {
+      const notebookIds = treeData.map((item) => item.notebook.id)
+      const sectionIds = treeData.flatMap((item) =>
+        item.sections.map(({ section }) => section.id)
+      )
+      expandAll(notebookIds, sectionIds)
+    }
+  }
+
   return (
     <Box px={2}>
       <HStack mb={3} px={2} justifyContent="space-between">
         <Heading size="xs" color="fg.muted">
           My Notebooks ({treeData.length})
         </Heading>
-        <IconButton
-          size="xs"
-          variant="ghost"
-          aria-label="Create notebook"
-          onClick={() => setIsCreatingNotebook(true)}
-        >
-          <LuPlus />
-        </IconButton>
+        <HStack gap={1}>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            aria-label={allExpanded ? "Collapse all" : "Expand all"}
+            onClick={handleToggleAll}
+          >
+            {allExpanded ? <LuChevronRight /> : <LuChevronDown />}
+          </IconButton>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            aria-label="Create notebook"
+            onClick={() => setIsCreatingNotebook(true)}
+          >
+            <LuPlus />
+          </IconButton>
+        </HStack>
       </HStack>
 
       <Stack gap={0.5}>

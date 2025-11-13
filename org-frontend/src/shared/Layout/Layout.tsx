@@ -100,7 +100,7 @@ export function Layout() {
             hideBelow="lg"
             flexDirection="column"
           >
-            <Box overflowY="auto" flex={1} pb={4}>
+            <Box overflowY="auto" flex={1} pb={4} className="custom-scrollbar">
               <NavMenu hideHome={true} />
               <Separator my={4} />
               <NotebookTree />
