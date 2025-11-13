@@ -2,11 +2,14 @@ import { Box } from "@chakra-ui/react"
 import { noteClient } from "api"
 import { Skeleton } from "components/ui/skeleton"
 import { Editor } from "modules/editor"
-import { useParams } from "shared/Router"
+import { useParams, useSearchParams } from "shared/Router"
 import { useFetch } from "utils/http"
 
 const notePage = () => {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const shouldEdit = searchParams.get("edit") === "true"
+
   if (!id) {
     return <ErrorBoundary />
   }
@@ -27,7 +30,7 @@ const notePage = () => {
 
   return (
     <Box width="100%">
-      <Editor note={note} mode="Display" />
+      <Editor note={note} mode={shouldEdit ? "Edit" : "Display"} />
     </Box>
   )
 }

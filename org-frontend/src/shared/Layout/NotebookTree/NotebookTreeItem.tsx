@@ -87,7 +87,7 @@ export function NotebookTreeItem({
       const note = await noteClient.upsert("", undefined)
       await notebooks.addNote(notebook.id, note.id)
       setIsCreatingUnsectionedNote(false)
-      navigate(`/notes/${note.id}`)
+      navigate(`/notes/${note.id}?edit=true`)
     } catch (err) {
       console.error("Error creating note:", err)
     }

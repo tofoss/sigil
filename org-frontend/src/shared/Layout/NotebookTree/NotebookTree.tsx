@@ -109,6 +109,66 @@ export function NotebookTree() {
     fetchTreeData()
   }, [])
 
+  // Listen for note save events to update the specific note in the tree
+  useEffect(() => {
+    const handleNoteSaved = (event: Event) => {
+      const customEvent = event as CustomEvent<{ note: Note }>
+      const updatedNote = customEvent.detail?.note
+
+      if (!updatedNote) {
+        return
+      }
+
+      // Check if the note exists in the current tree
+      const noteExists = treeData.some(
+        (item) =>
+          item.unsectionedNotes.some((note) => note.id === updatedNote.id) ||
+          item.sections.some(({ notes }) =>
+            notes.some((note) => note.id === updatedNote.id)
+          )
+      )
+
+      // If note doesn't exist yet (newly created), refresh the entire tree
+      if (!noteExists) {
+        fetchTreeData()
+        return
+      }
+
+      // Otherwise, update the specific note in the tree state
+      setTreeData((prevTreeData) =>
+        prevTreeData.map((item) => {
+          // Check if this notebook contains the note
+          const noteInUnsectioned = item.unsectionedNotes.some(
+            (note) => note.id === updatedNote.id
+          )
+          const noteInSection = item.sections.some(({ notes }) =>
+            notes.some((note) => note.id === updatedNote.id)
+          )
+
+          if (!noteInUnsectioned && !noteInSection) {
+            return item // Note not in this notebook, return unchanged
+          }
+
+          return {
+            ...item,
+            unsectionedNotes: item.unsectionedNotes.map((note) =>
+              note.id === updatedNote.id ? updatedNote : note
+            ),
+            sections: item.sections.map(({ section, notes }) => ({
+              section,
+              notes: notes.map((note) =>
+                note.id === updatedNote.id ? updatedNote : note
+              ),
+            })),
+          }
+        })
+      )
+    }
+
+    window.addEventListener("note-saved", handleNoteSaved)
+    return () => window.removeEventListener("note-saved", handleNoteSaved)
+  }, [treeData])
+
   // Auto-expand to show active note (only when ID changes)
   useEffect(() => {
     if (!currentId || loading || treeData.length === 0) return

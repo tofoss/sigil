@@ -1,5 +1,6 @@
 import { HStack, Icon, Text } from "@chakra-ui/react"
 import { Note } from "api/model"
+import { memo } from "react"
 import { LuFileText } from "react-icons/lu"
 import { Link, useParams } from "shared/Router"
 
@@ -8,7 +9,10 @@ interface NoteTreeItemProps {
   paddingLeft?: number
 }
 
-export function NoteTreeItem({ note, paddingLeft = 24 }: NoteTreeItemProps) {
+export const NoteTreeItem = memo(function NoteTreeItem({
+  note,
+  paddingLeft = 24,
+}: NoteTreeItemProps) {
   const { id: currentNoteId } = useParams()
   const isActive = currentNoteId === note.id
 
@@ -44,4 +48,4 @@ export function NoteTreeItem({ note, paddingLeft = 24 }: NoteTreeItemProps) {
       </HStack>
     </Link>
   )
-}
+})

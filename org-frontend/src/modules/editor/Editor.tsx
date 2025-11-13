@@ -110,6 +110,13 @@ export function Editor(props: EditorProps) {
         console.error("Failed to assign tags:", error)
       }
     }
+
+    // Dispatch event to update sidebar tree with the updated note data
+    window.dispatchEvent(
+      new CustomEvent("note-saved", {
+        detail: { note: updatedNote },
+      })
+    )
   }
 
   return (

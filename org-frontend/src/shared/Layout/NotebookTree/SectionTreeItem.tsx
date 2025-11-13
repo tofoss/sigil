@@ -33,7 +33,7 @@ export function SectionTreeItem({
       const note = await noteClient.upsert("", undefined)
       await notebooks.addNote(notebookId, note.id)
       await sectionsApi.assignNote(note.id, notebookId, section.id)
-      navigate(`/notes/${note.id}`)
+      navigate(`/notes/${note.id}?edit=true`)
     } catch (err) {
       console.error("Error creating note:", err)
     }
@@ -99,25 +99,13 @@ export function SectionTreeItem({
             </IconButton>
           </HStack>
 
-          {notes.length === 0 ? (
-            <Text
-              fontSize="xs"
-              color="fg.muted"
-              pl={`${paddingLeft + 24}px`}
-              pr={2}
-              py={1}
-            >
-              No notes
-            </Text>
-          ) : (
-            notes.map((note) => (
-              <NoteTreeItem
-                key={note.id}
-                note={note}
-                paddingLeft={paddingLeft + 12}
-              />
-            ))
-          )}
+          {notes.map((note) => (
+            <NoteTreeItem
+              key={note.id}
+              note={note}
+              paddingLeft={paddingLeft + 12}
+            />
+          ))}
         </Box>
       )}
     </Box>
