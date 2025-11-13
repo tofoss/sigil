@@ -11,7 +11,11 @@ const notePage = () => {
     return <ErrorBoundary />
   }
 
-  const { data: note, loading, error } = useFetch(() => noteClient.fetch(id))
+  const {
+    data: note,
+    loading,
+    error,
+  } = useFetch(() => noteClient.fetch(id), [id])
 
   if (loading) {
     return <Skeleton />

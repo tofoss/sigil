@@ -1,4 +1,12 @@
-import { Box, Flex, HStack, IconButton, Text, VStack } from "@chakra-ui/react"
+import {
+  Box,
+  Flex,
+  HStack,
+  IconButton,
+  Separator,
+  Text,
+  VStack,
+} from "@chakra-ui/react"
 import { Avatar } from "components/ui/avatar"
 import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
@@ -16,6 +24,7 @@ import {
   DrawerTrigger,
 } from "components/ui/drawer"
 import { NavMenu } from "./NavMenu"
+import { NotebookTree } from "./NotebookTree"
 import { SearchInput } from "components/SearchInput"
 import { useFetch } from "utils/http"
 import { userClient } from "api/users"
@@ -61,6 +70,8 @@ export function Layout() {
                   <SearchInput />
                 </Box>
                 <NavMenu />
+                <Separator my={4} />
+                <NotebookTree />
               </DrawerBody>
               <DrawerCloseTrigger />
             </DrawerContent>
@@ -87,8 +98,13 @@ export function Layout() {
             height="100vh"
             width="250px"
             hideBelow="lg"
+            flexDirection="column"
           >
-            <NavMenu hideHome={true} />
+            <Box overflowY="auto" flex={1} pb={4}>
+              <NavMenu hideHome={true} />
+              <Separator my={4} />
+              <NotebookTree />
+            </Box>
           </Flex>
           <Box as="main" width="100%">
             <Outlet />
