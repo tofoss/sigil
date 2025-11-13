@@ -16,6 +16,8 @@ interface NotebookTreeItemProps {
   onToggle: () => void
   expandedSections: string[]
   onToggleSection: (sectionId: string) => void
+  containsActiveNote?: boolean
+  currentNoteId?: string
 }
 
 export function NotebookTreeItem({
@@ -26,6 +28,8 @@ export function NotebookTreeItem({
   onToggle,
   expandedSections,
   onToggleSection,
+  containsActiveNote = false,
+  currentNoteId,
 }: NotebookTreeItemProps) {
   const { id: currentNotebookId } = useParams()
   const isActive = currentNotebookId === notebook.id
@@ -33,6 +37,21 @@ export function NotebookTreeItem({
   const totalNotes =
     unsectionedNotes.length +
     sections.reduce((sum, { notes }) => sum + notes.length, 0)
+
+  // Find which section contains the active note
+  const getActiveSectionId = (): string | null => {
+    if (!currentNoteId) return null
+
+    for (const { section, notes } of sections) {
+      if (notes.some((note) => note.id === currentNoteId)) {
+        return section.id
+      }
+    }
+
+    return null
+  }
+
+  const activeSectionId = getActiveSectionId()
 
   return (
     <Box>
@@ -42,12 +61,18 @@ export function NotebookTreeItem({
         py={1.5}
         gap={2}
         borderRadius="md"
-        bg={isActive ? "bg.muted" : undefined}
-        fontWeight={isActive ? "semibold" : "normal"}
+        bg={
+          isActive ? "bg.muted" : containsActiveNote ? "teal.subtle" : undefined
+        }
+        fontWeight={isActive || containsActiveNote ? "semibold" : "normal"}
         _hover={{
-          bg: "bg.subtle",
+          bg: isActive
+            ? "bg.muted"
+            : containsActiveNote
+            ? "teal.subtle"
+            : "gray.subtle",
         }}
-        transition="background 0.2s"
+        transition="background 0.15s"
       >
         {/* Chevron for expand/collapse */}
         <Icon
@@ -61,7 +86,6 @@ export function NotebookTreeItem({
             onToggle()
           }}
           transform={isExpanded ? "rotate(90deg)" : undefined}
-          transition="transform 0.2s"
         >
           <LuChevronRight />
         </Icon>
@@ -127,6 +151,7 @@ export function NotebookTreeItem({
               isExpanded={expandedSections.includes(section.id)}
               onToggle={() => onToggleSection(section.id)}
               paddingLeft={12}
+              containsActiveNote={activeSectionId === section.id}
             />
           ))}
 

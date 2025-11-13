@@ -9,6 +9,7 @@ interface SectionTreeItemProps {
   isExpanded: boolean
   onToggle: () => void
   paddingLeft?: number
+  containsActiveNote?: boolean
 }
 
 export function SectionTreeItem({
@@ -17,6 +18,7 @@ export function SectionTreeItem({
   isExpanded,
   onToggle,
   paddingLeft = 12,
+  containsActiveNote = false,
 }: SectionTreeItemProps) {
   return (
     <Box>
@@ -29,17 +31,18 @@ export function SectionTreeItem({
         cursor="pointer"
         borderRadius="md"
         onClick={onToggle}
+        bg={containsActiveNote ? "teal.subtle" : undefined}
+        fontWeight={containsActiveNote ? "semibold" : "normal"}
         _hover={{
-          bg: "bg.subtle",
+          bg: containsActiveNote ? "teal.subtle" : "gray.subtle",
         }}
-        transition="background 0.2s"
+        transition="background 0.15s"
       >
         <Icon
           fontSize="sm"
           color="fg.muted"
           flexShrink={0}
           transform={isExpanded ? "rotate(90deg)" : undefined}
-          transition="transform 0.2s"
         >
           <LuChevronRight />
         </Icon>

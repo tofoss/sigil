@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
 export function useTreeExpansion() {
   const [expandedNotebooks, setExpandedNotebooks] = useState<string[]>(() => {
@@ -19,7 +19,7 @@ export function useTreeExpansion() {
     }
   })
 
-  const toggleNotebook = (id: string) => {
+  const toggleNotebook = useCallback((id: string) => {
     setExpandedNotebooks((prev) => {
       const updated = prev.includes(id)
         ? prev.filter((nid) => nid !== id)
@@ -27,9 +27,9 @@ export function useTreeExpansion() {
       localStorage.setItem("expanded-notebooks", JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
 
-  const toggleSection = (id: string) => {
+  const toggleSection = useCallback((id: string) => {
     setExpandedSections((prev) => {
       const updated = prev.includes(id)
         ? prev.filter((sid) => sid !== id)
@@ -37,25 +37,35 @@ export function useTreeExpansion() {
       localStorage.setItem("expanded-sections", JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
 
-  const expandNotebook = (id: string) => {
+  const expandNotebook = useCallback((id: string) => {
     setExpandedNotebooks((prev) => {
       if (prev.includes(id)) return prev
       const updated = [...prev, id]
       localStorage.setItem("expanded-notebooks", JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
 
-  const expandSection = (id: string) => {
+  const expandSection = useCallback((id: string) => {
     setExpandedSections((prev) => {
       if (prev.includes(id)) return prev
       const updated = [...prev, id]
       localStorage.setItem("expanded-sections", JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
+
+  const isNotebookExpanded = useCallback(
+    (id: string) => expandedNotebooks.includes(id),
+    [expandedNotebooks]
+  )
+
+  const isSectionExpanded = useCallback(
+    (id: string) => expandedSections.includes(id),
+    [expandedSections]
+  )
 
   return {
     expandedNotebooks,
@@ -64,7 +74,7 @@ export function useTreeExpansion() {
     toggleSection,
     expandNotebook,
     expandSection,
-    isNotebookExpanded: (id: string) => expandedNotebooks.includes(id),
-    isSectionExpanded: (id: string) => expandedSections.includes(id),
+    isNotebookExpanded,
+    isSectionExpanded,
   }
 }

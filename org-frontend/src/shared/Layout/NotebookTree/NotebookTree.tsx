@@ -2,7 +2,7 @@ import { Box, Heading, Stack, Text } from "@chakra-ui/react"
 import { notebooks, sections } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
@@ -34,6 +34,9 @@ export function NotebookTree() {
 
   const location = useLocation()
   const { id: currentId } = useParams()
+
+  // Track the last auto-expanded ID to prevent continuous re-expansion
+  const lastAutoExpandedId = useRef<string | null>(null)
 
   // Fetch all tree data
   useEffect(() => {
@@ -80,9 +83,14 @@ export function NotebookTree() {
     fetchTreeData()
   }, [])
 
-  // Auto-expand to show active note
+  // Auto-expand to show active note (only when ID changes)
   useEffect(() => {
     if (!currentId || loading || treeData.length === 0) return
+
+    // Only auto-expand if the ID has changed
+    if (lastAutoExpandedId.current === currentId) return
+
+    lastAutoExpandedId.current = currentId
 
     // If we're on a note page, find which notebook/section contains it
     if (location.pathname.startsWith("/notes/")) {
@@ -168,6 +176,39 @@ export function NotebookTree() {
     )
   }
 
+  // Calculate which notebook contains the active note
+  const getActiveNotebookId = (): string | null => {
+    if (!currentId) return null
+
+    if (location.pathname.startsWith("/notes/")) {
+      for (const {
+        notebook,
+        sections: sectionsList,
+        unsectionedNotes,
+      } of treeData) {
+        // Check unsectioned notes
+        if (unsectionedNotes.some((note) => note.id === currentId)) {
+          return notebook.id
+        }
+
+        // Check sections
+        for (const { notes: sectionNotes } of sectionsList) {
+          if (sectionNotes.some((note) => note.id === currentId)) {
+            return notebook.id
+          }
+        }
+      }
+    }
+
+    if (location.pathname.startsWith("/notebooks/")) {
+      return currentId
+    }
+
+    return null
+  }
+
+  const activeNotebookId = getActiveNotebookId()
+
   return (
     <Box px={2}>
       <Heading size="xs" mb={3} px={2} color="fg.muted">
@@ -185,6 +226,10 @@ export function NotebookTree() {
               onToggle={() => toggleNotebook(notebook.id)}
               expandedSections={expandedSections}
               onToggleSection={toggleSection}
+              containsActiveNote={activeNotebookId === notebook.id}
+              currentNoteId={
+                location.pathname.startsWith("/notes/") ? currentId : undefined
+              }
             />
           )
         )}

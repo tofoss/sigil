@@ -24,9 +24,9 @@ export function NoteTreeItem({ note, paddingLeft = 24 }: NoteTreeItemProps) {
         bg={isActive ? "bg.muted" : undefined}
         fontWeight={isActive ? "semibold" : "normal"}
         _hover={{
-          bg: "bg.subtle",
+          bg: isActive ? "bg.muted" : "gray.subtle",
         }}
-        transition="background 0.2s"
+        transition="background 0.15s"
       >
         <Icon fontSize="sm" color="fg.muted" flexShrink={0}>
           <LuFileText />
