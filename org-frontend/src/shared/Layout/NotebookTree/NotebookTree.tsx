@@ -195,6 +195,17 @@ export function NotebookTree() {
     return () => window.removeEventListener("note-saved", handleNoteSaved)
   }, [treeData])
 
+  // Listen for notebook update events (when notebooks/sections change)
+  useEffect(() => {
+    const handleNotebookUpdated = () => {
+      fetchTreeData()
+    }
+
+    window.addEventListener("notebook-updated", handleNotebookUpdated)
+    return () =>
+      window.removeEventListener("notebook-updated", handleNotebookUpdated)
+  }, [])
+
   // Auto-expand to show active note (only when ID changes)
   useEffect(() => {
     if (!currentId || loading || treeData.length === 0) return

@@ -13,12 +13,12 @@ import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
 import {
   LuFileEdit,
-  LuFolderTree,
   LuInfo,
   LuPresentation,
   LuSave,
   LuTag,
   LuBookOpen,
+  LuTrash2,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
@@ -28,13 +28,13 @@ import { Notebook } from "api/model/notebook"
 import { DataListItem, DataListRoot } from "components/ui/data-list"
 import { TagSelector } from "components/ui/tag-selector"
 import { NotebookSelector } from "components/ui/notebook-selector"
-import { SectionSelector } from "components/ui/section-selector"
 import { notebooks } from "api"
 import { useFetch } from "utils/http"
 
 interface EditorProps {
   note?: Note
   mode?: "Display" | "Edit"
+  onDelete?: () => void
 }
 
 export function Editor(props: EditorProps) {
@@ -45,7 +45,6 @@ export function Editor(props: EditorProps) {
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
   const [showTagEditor, setShowTagEditor] = useState(false)
   const [showNotebookEditor, setShowNotebookEditor] = useState(false)
-  const [showSectionEditor, setShowSectionEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
 
@@ -125,48 +124,50 @@ export function Editor(props: EditorProps) {
         <VStack width="100%">
           <HStack width="100%">
             <Button variant="ghost" onClick={() => setTogglePreview(false)}>
-              <LuFileEdit /> Edit
+              <LuFileEdit />
             </Button>
             <Button variant="ghost" onClick={() => setTogglePreview(true)}>
-              <LuPresentation /> Preview
+              <LuPresentation />
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowTagEditor(!showTagEditor)}
-              colorPalette={showTagEditor ? "teal" : undefined}
-            >
-              <LuTag /> Tags
-            </Button>
+            {import.meta.env.VITE_ENABLE_TAGS === "true" && (
+              <Button
+                variant="ghost"
+                onClick={() => setShowTagEditor(!showTagEditor)}
+                colorPalette={showTagEditor ? "teal" : undefined}
+              >
+                <LuTag />
+              </Button>
+            )}
             <Button
               variant="ghost"
               onClick={() => setShowNotebookEditor(!showNotebookEditor)}
               colorPalette={showNotebookEditor ? "teal" : undefined}
             >
-              <LuBookOpen /> Notebooks
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowSectionEditor(!showSectionEditor)}
-              colorPalette={showSectionEditor ? "teal" : undefined}
-              disabled={selectedNotebooks.length === 0}
-            >
-              <LuFolderTree /> Sections
+              <LuBookOpen />
             </Button>
             {note && (
               <Collapsible.Trigger paddingY="3">
                 <Button variant="ghost">
-                  <LuInfo /> Metadata
+                  <LuInfo />
                 </Button>
               </Collapsible.Trigger>
             )}
             <Button
               variant="ghost"
-              colorPalette={colorPalette}
+              colorPalette="red"
               ml="auto"
+              onClick={props.onDelete}
+              disabled={!props.onDelete}
+            >
+              <LuTrash2 />
+            </Button>
+            <Button
+              variant="ghost"
+              colorPalette={colorPalette}
               onClick={onSave}
               loading={loading || assigningTags}
             >
-              <LuSave /> Save
+              <LuSave />
             </Button>
           </HStack>
 
@@ -198,45 +199,6 @@ export function Editor(props: EditorProps) {
                 onNotebooksChange={setSelectedNotebooks}
                 noteId={note?.id}
               />
-            </Box>
-          )}
-
-          {/* Section Editor */}
-          {showSectionEditor && note?.id && (
-            <Box
-              width="100%"
-              paddingY="4"
-              borderTopWidth="1px"
-              borderColor="gray.200"
-            >
-              <Text fontWeight="semibold" mb={3}>
-                Section Assignment
-              </Text>
-              {selectedNotebooks.length === 0 ? (
-                <Text fontSize="sm" color="gray.500">
-                  Add this note to a notebook first to assign it to a section.
-                </Text>
-              ) : (
-                <VStack gap={2} align="stretch">
-                  {selectedNotebooks.map((notebook) => (
-                    <SectionSelector
-                      key={notebook.id}
-                      notebook={notebook}
-                      noteId={note.id}
-                      onSectionChange={(notebookId, sectionId) => {
-                        // Update the local state to reflect the change
-                        setSelectedNotebooks((prev) =>
-                          prev.map((nb) =>
-                            nb.id === notebookId
-                              ? { ...nb, section_id: sectionId || undefined }
-                              : nb
-                          )
-                        )
-                      }}
-                    />
-                  ))}
-                </VStack>
-              )}
             </Box>
           )}
 

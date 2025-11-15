@@ -75,4 +75,10 @@ export const noteClient = {
       })
       .json<Note[]>()
       .then((a) => a.map(fromJson)),
+
+  delete: (noteId: string) =>
+    client.delete(`notes/${noteId}`, {
+      headers: commonHeaders(),
+      credentials: "include",
+    }),
 }

@@ -18,4 +18,11 @@ export const userClient = {
       })
       .json<AuthStatus>()
   },
+
+  logout: function () {
+    return client.post("users/logout", {
+      headers: commonHeaders(),
+      credentials: "include",
+    })
+  },
 }

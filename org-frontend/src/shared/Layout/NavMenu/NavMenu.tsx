@@ -40,7 +40,6 @@ interface NavItemProps {
   icon: ReactNode
   text: string
   href: string
-  onClick?: () => void
 }
 function NavItem({ icon, text, href }: NavItemProps) {
   return (

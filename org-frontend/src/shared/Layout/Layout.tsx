@@ -6,12 +6,16 @@ import {
   Separator,
   Text,
   VStack,
+  Menu,
+  Portal,
 } from "@chakra-ui/react"
 import { Avatar } from "components/ui/avatar"
 import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
+import { LuLogOut } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { ColorModeButton } from "components/ui/color-mode"
+import { toaster } from "components/ui/toaster"
 
 import {
   DrawerBackdrop,
@@ -36,6 +40,24 @@ export function Layout() {
 
   if (authStatus !== null && !authStatus.loggedIn) {
     navigate("/login")
+  }
+
+  const handleLogout = async () => {
+    try {
+      await userClient.logout()
+      toaster.create({
+        title: "Logged out successfully",
+        type: "success",
+      })
+      navigate("/login")
+    } catch (err) {
+      console.error("Logout failed:", err)
+      toaster.create({
+        title: "Logout failed",
+        description: "Please try again",
+        type: "error",
+      })
+    }
   }
 
   return (
@@ -85,11 +107,26 @@ export function Layout() {
               <SearchInput />
             </Box>
             <ColorModeButton />
-            <Avatar
-              colorPalette={colorPalette}
-              size="xs"
-              name={authStatus?.username}
-            />
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Menu.Trigger>
+                <Avatar
+                  colorPalette={colorPalette}
+                  size="xs"
+                  name={authStatus?.username}
+                  cursor="pointer"
+                />
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="logout" onClick={handleLogout}>
+                      <LuLogOut />
+                      Logout
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
           </HStack>
         </HStack>
         <HStack width="inherit" alignItems="start">
