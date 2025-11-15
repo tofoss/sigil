@@ -2,6 +2,7 @@ import {
   Box,
   HStack,
   Heading,
+  Icon,
   IconButton,
   Input,
   Stack,
@@ -14,6 +15,7 @@ import { useEffect, useRef, useState } from "react"
 import { LuChevronDown, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
 import { useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
+import { NoteTreeItem } from "./NoteTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
 import {
   DndContext,
@@ -41,6 +43,7 @@ interface TreeData {
 
 export function NotebookTree() {
   const [treeData, setTreeData] = useState<TreeData[]>([])
+  const [unassignedNotes, setUnassignedNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
@@ -57,6 +60,8 @@ export function NotebookTree() {
     isSectionExpanded,
     collapseAll,
     expandAll,
+    isUnassignedExpanded,
+    toggleUnassigned,
   } = useTreeExpansion()
 
   const location = useLocation()
@@ -81,8 +86,11 @@ export function NotebookTree() {
       setLoading(true)
       setError(null)
 
-      // 1. Fetch all notebooks
-      const notebooksData = await notebooks.list()
+      // 1. Fetch all notebooks and all user notes in parallel
+      const [notebooksData, allUserNotes] = await Promise.all([
+        notebooks.list(),
+        noteClient.fetchForUser(),
+      ])
 
       // 2. For each notebook, fetch sections and unsectioned notes
       const treeDataPromises = notebooksData.map(async (notebook) => {
@@ -108,6 +116,20 @@ export function NotebookTree() {
 
       const data = await Promise.all(treeDataPromises)
       setTreeData(data)
+
+      // 4. Calculate unassigned notes (notes not in any notebook)
+      const notesInNotebooks = new Set<string>()
+      data.forEach((item) => {
+        item.unsectionedNotes.forEach((note) => notesInNotebooks.add(note.id))
+        item.sections.forEach(({ notes }) => {
+          notes.forEach((note) => notesInNotebooks.add(note.id))
+        })
+      })
+
+      const unassigned = allUserNotes.filter(
+        (note) => !notesInNotebooks.has(note.id)
+      )
+      setUnassignedNotes(unassigned)
     } catch (err) {
       console.error("Error fetching tree data:", err)
       setError("Failed to load notebooks")
@@ -145,8 +167,8 @@ export function NotebookTree() {
         return
       }
 
-      // Check if the note exists in the current tree
-      const noteExists = treeData.some(
+      // Check if the note exists in the current tree or unassigned notes
+      const noteExistsInTree = treeData.some(
         (item) =>
           item.unsectionedNotes.some((note) => note.id === updatedNote.id) ||
           item.sections.some(({ notes }) =>
@@ -154,46 +176,59 @@ export function NotebookTree() {
           )
       )
 
-      // If note doesn't exist yet (newly created), refresh the entire tree
-      if (!noteExists) {
-        fetchTreeData()
+      const noteExistsInUnassigned = unassignedNotes.some(
+        (note) => note.id === updatedNote.id
+      )
+
+      // If note doesn't exist yet (newly created), add to unassigned notes
+      if (!noteExistsInTree && !noteExistsInUnassigned) {
+        setUnassignedNotes((prev) => [...prev, updatedNote])
         return
       }
 
-      // Otherwise, update the specific note in the tree state
-      setTreeData((prevTreeData) =>
-        prevTreeData.map((item) => {
-          // Check if this notebook contains the note
-          const noteInUnsectioned = item.unsectionedNotes.some(
-            (note) => note.id === updatedNote.id
-          )
-          const noteInSection = item.sections.some(({ notes }) =>
-            notes.some((note) => note.id === updatedNote.id)
-          )
+      // Update in tree if exists there
+      if (noteExistsInTree) {
+        setTreeData((prevTreeData) =>
+          prevTreeData.map((item) => {
+            // Check if this notebook contains the note
+            const noteInUnsectioned = item.unsectionedNotes.some(
+              (note) => note.id === updatedNote.id
+            )
+            const noteInSection = item.sections.some(({ notes }) =>
+              notes.some((note) => note.id === updatedNote.id)
+            )
 
-          if (!noteInUnsectioned && !noteInSection) {
-            return item // Note not in this notebook, return unchanged
-          }
+            if (!noteInUnsectioned && !noteInSection) {
+              return item // Note not in this notebook, return unchanged
+            }
 
-          return {
-            ...item,
-            unsectionedNotes: item.unsectionedNotes.map((note) =>
-              note.id === updatedNote.id ? updatedNote : note
-            ),
-            sections: item.sections.map(({ section, notes }) => ({
-              section,
-              notes: notes.map((note) =>
+            return {
+              ...item,
+              unsectionedNotes: item.unsectionedNotes.map((note) =>
                 note.id === updatedNote.id ? updatedNote : note
               ),
-            })),
-          }
-        })
-      )
+              sections: item.sections.map(({ section, notes }) => ({
+                section,
+                notes: notes.map((note) =>
+                  note.id === updatedNote.id ? updatedNote : note
+                ),
+              })),
+            }
+          })
+        )
+      }
+
+      // Update in unassigned notes if exists there
+      if (noteExistsInUnassigned) {
+        setUnassignedNotes((prev) =>
+          prev.map((note) => (note.id === updatedNote.id ? updatedNote : note))
+        )
+      }
     }
 
     window.addEventListener("note-saved", handleNoteSaved)
     return () => window.removeEventListener("note-saved", handleNoteSaved)
-  }, [treeData])
+  }, [treeData, unassignedNotes])
 
   // Listen for specific notebook/note update events
   useEffect(() => {
@@ -220,22 +255,38 @@ export function NotebookTree() {
               : item
           )
         )
+
+        // Remove from unassigned notes if it was there
+        setUnassignedNotes((prev) => prev.filter((n) => n.id !== noteId))
       } catch (err) {
         console.error("Failed to fetch note for tree update:", err)
       }
     }
 
     // Handle note removed from notebook
-    const handleNoteRemovedFromNotebook = (event: Event) => {
+    const handleNoteRemovedFromNotebook = async (event: Event) => {
       const customEvent = event as CustomEvent<{
         noteId: string
         notebookId: string
       }>
       const { noteId, notebookId } = customEvent.detail
 
-      setTreeData((prev) =>
-        prev.map((item) => {
+      // Find the note before removing it
+      let removedNote: Note | undefined
+      setTreeData((prev) => {
+        const updatedTree = prev.map((item) => {
           if (item.notebook.id !== notebookId) return item
+
+          // Find the note in this notebook
+          if (!removedNote) {
+            removedNote = item.unsectionedNotes.find((n) => n.id === noteId)
+            if (!removedNote) {
+              for (const { notes } of item.sections) {
+                removedNote = notes.find((n) => n.id === noteId)
+                if (removedNote) break
+              }
+            }
+          }
 
           return {
             ...item,
@@ -248,7 +299,21 @@ export function NotebookTree() {
             })),
           }
         })
-      )
+
+        // Check if note still exists in any other notebook
+        const stillInAnyNotebook = updatedTree.some(
+          (item) =>
+            item.unsectionedNotes.some((n) => n.id === noteId) ||
+            item.sections.some((s) => s.notes.some((n) => n.id === noteId))
+        )
+
+        // If not in any notebook, add to unassigned
+        if (!stillInAnyNotebook && removedNote) {
+          setUnassignedNotes((prev) => [...prev, removedNote!])
+        }
+
+        return updatedTree
+      })
     }
 
     // Handle note section changed
@@ -330,6 +395,9 @@ export function NotebookTree() {
           })),
         }))
       )
+
+      // Also remove from unassigned notes
+      setUnassignedNotes((prev) => prev.filter((note) => note.id !== noteId))
     }
 
     window.addEventListener("note-added-to-notebook", handleNoteAddedToNotebook)
@@ -730,6 +798,42 @@ export function NotebookTree() {
             )
           )}
         </Stack>
+
+        {/* Unassigned Notes Section */}
+        {unassignedNotes.length > 0 && (
+          <Box mt={4}>
+            <HStack
+              mb={isUnassignedExpanded ? 3 : 0}
+              px={2}
+              cursor="pointer"
+              onClick={toggleUnassigned}
+              _hover={{ bg: "gray.subtle" }}
+              borderRadius="md"
+              py={1.5}
+            >
+              <Icon
+                fontSize="sm"
+                color="fg.muted"
+                flexShrink={0}
+                transform={isUnassignedExpanded ? "rotate(90deg)" : undefined}
+                transition="transform 0.15s"
+              >
+                <LuChevronRight />
+              </Icon>
+              <Heading size="xs" color="fg.muted" flex={1}>
+                Unassigned Notes ({unassignedNotes.length})
+              </Heading>
+            </HStack>
+
+            {isUnassignedExpanded && (
+              <Stack gap={0.5}>
+                {unassignedNotes.map((note) => (
+                  <NoteTreeItem key={note.id} note={note} paddingLeft={8} />
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
       </Box>
     </DndContext>
   )
