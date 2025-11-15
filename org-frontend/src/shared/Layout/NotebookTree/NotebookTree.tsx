@@ -7,7 +7,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react"
-import { notebooks, sections } from "api"
+import { notebooks, sections, noteClient } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
@@ -195,15 +195,166 @@ export function NotebookTree() {
     return () => window.removeEventListener("note-saved", handleNoteSaved)
   }, [treeData])
 
-  // Listen for notebook update events (when notebooks/sections change)
+  // Listen for specific notebook/note update events
   useEffect(() => {
-    const handleNotebookUpdated = () => {
-      fetchTreeData()
+    // Handle note added to notebook
+    const handleNoteAddedToNotebook = async (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        noteId: string
+        notebookId: string
+      }>
+      const { noteId, notebookId } = customEvent.detail
+
+      try {
+        // Fetch the note data
+        const note = await noteClient.fetch(noteId)
+
+        // Add to unsectioned notes of the specified notebook
+        setTreeData((prev) =>
+          prev.map((item) =>
+            item.notebook.id === notebookId
+              ? {
+                  ...item,
+                  unsectionedNotes: [...item.unsectionedNotes, note],
+                }
+              : item
+          )
+        )
+      } catch (err) {
+        console.error("Failed to fetch note for tree update:", err)
+      }
     }
 
-    window.addEventListener("notebook-updated", handleNotebookUpdated)
-    return () =>
-      window.removeEventListener("notebook-updated", handleNotebookUpdated)
+    // Handle note removed from notebook
+    const handleNoteRemovedFromNotebook = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        noteId: string
+        notebookId: string
+      }>
+      const { noteId, notebookId } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) => {
+          if (item.notebook.id !== notebookId) return item
+
+          return {
+            ...item,
+            unsectionedNotes: item.unsectionedNotes.filter(
+              (note) => note.id !== noteId
+            ),
+            sections: item.sections.map((s) => ({
+              ...s,
+              notes: s.notes.filter((note) => note.id !== noteId),
+            })),
+          }
+        })
+      )
+    }
+
+    // Handle note section changed
+    const handleNoteSectionChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        noteId: string
+        notebookId: string
+        sectionId: string | null
+      }>
+      const { noteId, notebookId, sectionId } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) => {
+          if (item.notebook.id !== notebookId) return item
+
+          // Find the note in the notebook
+          let noteToMove: Note | undefined
+
+          // Check unsectioned notes
+          noteToMove = item.unsectionedNotes.find((n) => n.id === noteId)
+
+          // Check all sections
+          if (!noteToMove) {
+            for (const { notes } of item.sections) {
+              noteToMove = notes.find((n) => n.id === noteId)
+              if (noteToMove) break
+            }
+          }
+
+          if (!noteToMove) return item
+
+          // Remove note from current location
+          const updatedUnsectionedNotes = item.unsectionedNotes.filter(
+            (n) => n.id !== noteId
+          )
+          const updatedSections = item.sections.map((s) => ({
+            ...s,
+            notes: s.notes.filter((n) => n.id !== noteId),
+          }))
+
+          // Add note to new location
+          if (sectionId === null) {
+            // Move to unsectioned
+            return {
+              ...item,
+              unsectionedNotes: [...updatedUnsectionedNotes, noteToMove],
+              sections: updatedSections,
+            }
+          } else {
+            // Move to specific section
+            return {
+              ...item,
+              unsectionedNotes: updatedUnsectionedNotes,
+              sections: updatedSections.map((s) =>
+                s.section.id === sectionId
+                  ? { ...s, notes: [...s.notes, noteToMove!] }
+                  : s
+              ),
+            }
+          }
+        })
+      )
+    }
+
+    // Handle note deleted
+    const handleNoteDeleted = (event: Event) => {
+      const customEvent = event as CustomEvent<{ noteId: string }>
+      const { noteId } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) => ({
+          ...item,
+          unsectionedNotes: item.unsectionedNotes.filter(
+            (note) => note.id !== noteId
+          ),
+          sections: item.sections.map((s) => ({
+            ...s,
+            notes: s.notes.filter((note) => note.id !== noteId),
+          })),
+        }))
+      )
+    }
+
+    window.addEventListener("note-added-to-notebook", handleNoteAddedToNotebook)
+    window.addEventListener(
+      "note-removed-from-notebook",
+      handleNoteRemovedFromNotebook
+    )
+    window.addEventListener("note-section-changed", handleNoteSectionChanged)
+    window.addEventListener("note-deleted", handleNoteDeleted)
+
+    return () => {
+      window.removeEventListener(
+        "note-added-to-notebook",
+        handleNoteAddedToNotebook
+      )
+      window.removeEventListener(
+        "note-removed-from-notebook",
+        handleNoteRemovedFromNotebook
+      )
+      window.removeEventListener(
+        "note-section-changed",
+        handleNoteSectionChanged
+      )
+      window.removeEventListener("note-deleted", handleNoteDeleted)
+    }
   }, [])
 
   // Auto-expand to show active note (only when ID changes)

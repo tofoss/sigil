@@ -34,7 +34,11 @@ const notePage = () => {
       await noteClient.delete(id)
 
       // Dispatch event to update notebook tree
-      window.dispatchEvent(new CustomEvent("notebook-updated"))
+      window.dispatchEvent(
+        new CustomEvent("note-deleted", {
+          detail: { noteId: id },
+        })
+      )
 
       toaster.create({
         title: "Note deleted successfully",

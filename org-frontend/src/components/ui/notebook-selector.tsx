@@ -63,7 +63,15 @@ function NotebookSectionSelector({
       onSectionChange(notebook.id, newSectionId)
 
       // Dispatch event to update notebook tree
-      window.dispatchEvent(new CustomEvent("notebook-updated"))
+      window.dispatchEvent(
+        new CustomEvent("note-section-changed", {
+          detail: {
+            noteId,
+            notebookId: notebook.id,
+            sectionId: newSectionId,
+          },
+        })
+      )
     } catch (error) {
       console.error("Error assigning note to section:", error)
     } finally {
@@ -125,7 +133,11 @@ export function NotebookSelector({
       onNotebooksChange([...selectedNotebooks, notebook])
 
       // Dispatch event to update notebook tree
-      window.dispatchEvent(new CustomEvent("notebook-updated"))
+      window.dispatchEvent(
+        new CustomEvent("note-added-to-notebook", {
+          detail: { noteId, notebookId: notebook.id },
+        })
+      )
     } catch (error) {
       console.error("Error adding note to notebook:", error)
     } finally {
@@ -142,7 +154,11 @@ export function NotebookSelector({
       onNotebooksChange(selectedNotebooks.filter((n) => n.id !== notebook.id))
 
       // Dispatch event to update notebook tree
-      window.dispatchEvent(new CustomEvent("notebook-updated"))
+      window.dispatchEvent(
+        new CustomEvent("note-removed-from-notebook", {
+          detail: { noteId, notebookId: notebook.id },
+        })
+      )
     } catch (error) {
       console.error("Error removing note from notebook:", error)
     } finally {
