@@ -25,4 +25,10 @@ export const userClient = {
       credentials: "include",
     })
   },
+
+  refresh: function () {
+    return client.post("users/refresh", {
+      credentials: "include",
+    })
+  },
 }
