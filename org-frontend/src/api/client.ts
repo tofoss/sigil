@@ -1,4 +1,5 @@
 import ky, { HTTPError } from "ky"
+import { getCookie } from "./utils"
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -29,33 +30,47 @@ async function refreshToken() {
 export const client = ky.create({
   prefixUrl: apiUrl,
   hooks: {
-    beforeRetry: [
-      async ({ request, error, retryCount }) => {
-        // Only attempt refresh on first retry and for 401 errors
-        if (retryCount !== 1) return
-
-        if (error instanceof HTTPError && error.response.status === 401) {
-          // Don't retry refresh or login endpoints
+    afterResponse: [
+      async (request, options, response) => {
+        // Handle 401 responses by refreshing token and retrying
+        if (response.status === 401) {
           const url = request.url
+
+          // Don't refresh for login/refresh endpoints
           if (url.includes("/users/refresh") || url.includes("/users/login")) {
-            return
+            return response
           }
 
           try {
             // Refresh the token
             await refreshToken()
-          } catch (refreshError) {
-            // If refresh fails, redirect to login
-            console.error("Token refresh failed:", refreshError)
-            // Don't redirect here - let the application handle it
-            throw refreshError
+
+            // Get the new XSRF token from cookie
+            const newXsrfToken = getCookie("XSRF-TOKEN")
+
+            // Retry the original request with updated credentials
+            // Clone the request and update the XSRF header
+            const newHeaders = new Headers(request.headers)
+            if (newXsrfToken) {
+              newHeaders.set("X-XSRF-TOKEN", newXsrfToken)
+            }
+
+            // Create a new request with updated headers
+            const retryResponse = await ky(request.url, {
+              method: request.method,
+              headers: newHeaders,
+              body: request.body,
+              credentials: "include",
+            })
+
+            return retryResponse
+          } catch (error) {
+            return response // Return original 401 response
           }
         }
+
+        return response
       },
     ],
-  },
-  retry: {
-    limit: 1,
-    statusCodes: [401],
   },
 })
