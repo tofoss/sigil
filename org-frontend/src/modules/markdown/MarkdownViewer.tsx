@@ -3,6 +3,7 @@ import {
   Code,
   CodeProps,
   Heading,
+  Image,
   Link,
   List,
   Table,
@@ -30,6 +31,7 @@ import { theme } from "theme"
 interface Props {
   text: string
 }
+
 export function MarkdownViewer({ text }: Props) {
   return (
     <ReactMarkdown
@@ -102,6 +104,21 @@ export function MarkdownViewer({ text }: Props) {
           <Table.ColumnHeader bg="bg.panel" fontWeight="bold" {...props} />
         ),
         td: ({ node, ...props }) => <Table.Cell bg="bg.panel" {...props} />,
+        img: ({ node, src, alt, ...props }) => {
+          const useCredentials = src?.startsWith("/files/")
+          return (
+            <Image
+              src={src}
+              alt={alt}
+              maxW="100%"
+              height="auto"
+              my={4}
+              borderRadius="md"
+              crossOrigin={useCredentials ? "use-credentials" : undefined}
+              {...props}
+            />
+          )
+        },
       }}
     >
       {text}

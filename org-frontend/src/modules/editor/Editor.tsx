@@ -8,7 +8,7 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import { Button } from "components/ui/button"
-import { noteClient } from "api"
+import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useEffect, useRef, useState } from "react"
 import {
@@ -61,6 +61,22 @@ export function Editor(props: EditorProps) {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto"
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile()
+        if (!file) continue
+        const fileID = await fileClient.upload(file, note?.id)
+        // Use API-relative URL that persists across page refreshes
+        // The markdown renderer will prepend the API base URL
+        setText((prev) => prev + `![uploaded image](/files/${fileID})`)
+      }
     }
   }
 
@@ -250,6 +266,7 @@ export function Editor(props: EditorProps) {
           resize="none"
           onInput={adjustHeight}
           onChange={(e) => setText(e.target.value)}
+          onPaste={handlePaste}
           overflow="hidden"
           minHeight="80vh"
         />

@@ -17,6 +17,17 @@ export default defineConfig({
     }),
   ],
   assetsInclude: ["/sb-preview/runtime.js"],
+  server: {
+    proxy: {
+      // Proxy file requests to the backend in development
+      // In production, nginx handles this routing
+      "/files": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",
