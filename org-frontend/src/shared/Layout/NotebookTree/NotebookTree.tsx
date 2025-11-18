@@ -7,13 +7,14 @@ import {
   Input,
   Stack,
   Text,
+  Link as ChakraLink,
 } from "@chakra-ui/react"
 import { notebooks, sections, noteClient } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
 import { LuChevronDown, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
-import { useLocation, useParams } from "shared/Router"
+import { Link, useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
@@ -31,6 +32,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable"
+import { pages } from "pages/pages"
 
 interface TreeData {
   notebook: Notebook
@@ -479,7 +481,9 @@ export function NotebookTree() {
     return (
       <Box px={2}>
         <Heading size="xs" mb={3} px={2} color="fg.muted">
-          My Notebooks
+          <ChakraLink asChild>
+            <Link to={pages.private.notebooks.path}>My Notebooks</Link>
+          </ChakraLink>
         </Heading>
         <Stack gap={2}>
           <Skeleton height="32px" />
@@ -495,7 +499,9 @@ export function NotebookTree() {
     return (
       <Box px={4} py={2}>
         <Heading size="xs" mb={2} color="fg.muted">
-          My Notebooks
+          <ChakraLink asChild>
+            <Link to={pages.private.notebooks.path}>My Notebooks</Link>
+          </ChakraLink>
         </Heading>
         <Text fontSize="sm" color="fg.error">
           {error}
@@ -509,7 +515,9 @@ export function NotebookTree() {
     return (
       <Box px={4} py={2}>
         <Heading size="xs" mb={2} color="fg.muted">
-          My Notebooks (0)
+          <ChakraLink asChild>
+            <Link to={pages.private.notebooks.path}>My Notebooks</Link>
+          </ChakraLink>
         </Heading>
         <Text fontSize="sm" color="fg.muted">
           No notebooks yet. Create one to get started!
@@ -722,7 +730,11 @@ export function NotebookTree() {
       <Box px={2}>
         <HStack mb={3} px={2} justifyContent="space-between">
           <Heading size="xs" color="fg.muted">
-            My Notebooks ({treeData.length})
+            <ChakraLink asChild>
+              <Link to={pages.private.notebooks.path}>
+                My Notebooks ({treeData.length})
+              </Link>
+            </ChakraLink>
           </Heading>
           <HStack gap={1}>
             <IconButton

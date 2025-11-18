@@ -1,7 +1,6 @@
 import { IconType } from "react-icons"
 import {
   LuAtom,
-  LuBook,
   LuBookOpen,
   LuChefHat,
   LuHome,
@@ -21,10 +20,8 @@ interface Pages {
   }
   private: {
     home: Page
-    browse: Page
     new: Page
     recipe: Page
-    structure: Page
     notebooks: Page
   }
   sub: {
@@ -52,11 +49,6 @@ export const pages: Pages = {
       display: "New Note",
       icon: LuPlus,
     },
-    browse: {
-      path: "/notes/browse",
-      display: "Browse",
-      icon: LuBook,
-    },
     recipe: {
       path: "/recipes/new",
       display: "New Recipe",
@@ -66,11 +58,6 @@ export const pages: Pages = {
       path: "/notebooks",
       display: "Notebooks",
       icon: LuBookOpen,
-    },
-    structure: {
-      path: "/structure",
-      display: "Structure",
-      icon: LuAtom,
     },
   },
   sub: {

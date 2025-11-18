@@ -31,10 +31,6 @@ export const router = createBrowserRouter([
         lazy: () => import("./Browse"),
       },
       {
-        path: pages.private.browse.path,
-        lazy: () => import("./Browse"),
-      },
-      {
         path: pages.private.new.path,
         lazy: () => import("./New"),
       },
@@ -45,10 +41,6 @@ export const router = createBrowserRouter([
       {
         path: pages.sub.note.path,
         lazy: () => import("./Note"),
-      },
-      {
-        path: pages.private.structure.path,
-        lazy: () => import("./Structure"),
       },
       {
         path: pages.private.notebooks.path,
