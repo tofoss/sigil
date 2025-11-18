@@ -14,11 +14,4 @@ export const fileClient = {
     })
     return response.text()
   },
-  getFileForUser: async (fileID: string) => {
-    const response = await client.get(`files/${fileID}`, {
-      headers: commonHeaders(),
-      credentials: "include",
-    })
-    return URL.createObjectURL(await response.blob())
-  },
 }

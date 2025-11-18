@@ -72,10 +72,29 @@ export function Editor(props: EditorProps) {
       if (item.type.startsWith("image/")) {
         const file = item.getAsFile()
         if (!file) continue
+
+        // Get cursor position
+        const textarea = textareaRef.current
+        const cursorPos = textarea?.selectionStart || text.length
+
         const fileID = await fileClient.upload(file, note?.id)
-        // Use API-relative URL that persists across page refreshes
-        // The markdown renderer will prepend the API base URL
-        setText((prev) => prev + `![uploaded image](/files/${fileID})`)
+        const imageMarkdown = `![uploaded image](/files/${fileID})`
+
+        // Insert at cursor position
+        setText((prev) => {
+          const before = prev.slice(0, cursorPos)
+          const after = prev.slice(cursorPos)
+          return before + imageMarkdown + after
+        })
+
+        // Move cursor after inserted image
+        setTimeout(() => {
+          if (textarea) {
+            const newPos = cursorPos + imageMarkdown.length
+            textarea.setSelectionRange(newPos, newPos)
+            textarea.focus()
+          }
+        }, 0)
       }
     }
   }
