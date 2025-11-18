@@ -5,6 +5,8 @@ import {
   Heading,
   HStack,
   Icon,
+  IconButton,
+  Input,
   Stack,
   Text,
   useDisclosure,
@@ -44,6 +46,7 @@ import {
   LuPencil,
   LuCheck,
   LuChevronRight,
+  LuX,
 } from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { Link, useParams, useNavigate } from "shared/Router"
@@ -180,8 +183,17 @@ export function Component() {
   const [deleting, setDeleting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isRenamingNotebook, setIsRenamingNotebook] = useState(false)
+  const [notebookName, setNotebookName] = useState("")
 
   const { data: notebook } = useFetch(() => notebooks.get(id!), [id])
+
+  // Update local notebook name when notebook data changes
+  useEffect(() => {
+    if (notebook) {
+      setNotebookName(notebook.name)
+    }
+  }, [notebook])
   const { data: sectionsList } = useFetch(
     () => sections.list(id!),
     [id, refreshKey]
@@ -337,6 +349,39 @@ export function Component() {
     }
   }
 
+  const handleRenameNotebook = async () => {
+    if (!notebookName.trim() || notebookName.trim() === notebook?.name) {
+      setIsRenamingNotebook(false)
+      setNotebookName(notebook?.name || "")
+      return
+    }
+
+    try {
+      await notebooks.update(id!, { name: notebookName.trim() })
+      setIsRenamingNotebook(false)
+      setRefreshKey((prev) => prev + 1)
+      toaster.create({
+        title: "Notebook renamed",
+        type: "success",
+        duration: 2000,
+      })
+    } catch (error) {
+      console.error("Error renaming notebook:", error)
+      setNotebookName(notebook?.name || "")
+      setIsRenamingNotebook(false)
+      toaster.create({
+        title: "Failed to rename notebook",
+        type: "error",
+        duration: 3000,
+      })
+    }
+  }
+
+  const handleCancelRename = () => {
+    setIsRenamingNotebook(false)
+    setNotebookName(notebook?.name || "")
+  }
+
   if (!notebook) {
     return (
       <Container maxW="4xl" py={8}>
@@ -364,7 +409,51 @@ export function Component() {
               <Icon fontSize="2xl">
                 <LuBook />
               </Icon>
-              <Heading size="xl">{notebook.name}</Heading>
+              {isEditMode && isRenamingNotebook ? (
+                <>
+                  <Input
+                    value={notebookName}
+                    onChange={(e) => setNotebookName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleRenameNotebook()
+                      } else if (e.key === "Escape") {
+                        handleCancelRename()
+                      }
+                    }}
+                    size="lg"
+                    autoFocus
+                  />
+                  <IconButton
+                    variant="ghost"
+                    aria-label="Save"
+                    onClick={handleRenameNotebook}
+                  >
+                    <LuCheck />
+                  </IconButton>
+                  <IconButton
+                    variant="ghost"
+                    aria-label="Cancel"
+                    onClick={handleCancelRename}
+                  >
+                    <LuX />
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <Heading size="xl">{notebook.name}</Heading>
+                  {isEditMode && (
+                    <IconButton
+                      variant="ghost"
+                      aria-label="Rename notebook"
+                      onClick={() => setIsRenamingNotebook(true)}
+                      size="sm"
+                    >
+                      <LuPencil />
+                    </IconButton>
+                  )}
+                </>
+              )}
             </HStack>
             {notebook.description && (
               <Text color="gray.600" fontSize="lg">

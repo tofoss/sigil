@@ -1,7 +1,6 @@
 import { Box, HStack, Icon, IconButton, Text } from "@chakra-ui/react"
 import { noteClient, notebooks, sections as sectionsApi } from "api"
 import { Note, Section } from "api/model"
-import { useState } from "react"
 import { LuChevronRight, LuFolder, LuPlus } from "react-icons/lu"
 import { useNavigate } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
@@ -78,11 +77,24 @@ export function SectionTreeItem({
       const note = await noteClient.upsert("", undefined)
       await notebooks.addNote(notebookId, note.id)
       await sectionsApi.assignNote(note.id, notebookId, section.id)
+
+      // Dispatch event to update the tree - NotebookTree will handle the state update
+      window.dispatchEvent(
+        new CustomEvent("note-section-changed", {
+          detail: {
+            noteId: note.id,
+            notebookId: notebookId,
+            sectionId: section.id,
+          },
+        })
+      )
+
       navigate(`/notes/${note.id}?edit=true`)
     } catch (err) {
       console.error("Error creating note:", err)
     }
   }
+
   return (
     <Box>
       {/* Section Header */}
@@ -94,6 +106,7 @@ export function SectionTreeItem({
         pr={2}
         py={1.5}
         gap={2}
+        minWidth="0"
         cursor={isDragging ? "grabbing" : "grab"}
         borderRadius="md"
         onClick={onToggle}
@@ -121,6 +134,7 @@ export function SectionTreeItem({
         <Text
           fontSize="sm"
           flex={1}
+          minWidth="0"
           overflow="hidden"
           textOverflow="ellipsis"
           whiteSpace="nowrap"
@@ -128,28 +142,29 @@ export function SectionTreeItem({
         >
           {section.name}
         </Text>
-        <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-          ({notes.length})
-        </Text>
+        {/* Note count with add note button */}
+        <HStack gap={0.5} flexShrink={0}>
+          <Text fontSize="xs" color="fg.muted">
+            ({notes.length})
+          </Text>
+          <IconButton
+            size="2xs"
+            variant="ghost"
+            aria-label="Create note"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleCreateNote()
+            }}
+          >
+            <LuPlus />
+          </IconButton>
+        </HStack>
       </HStack>
 
       {/* Notes List */}
       {isExpanded && (
         <Box>
-          <HStack pl={`${paddingLeft + 12}px`} pr={2} py={1}>
-            <Text fontSize="xs" color="fg.muted" flex={1}>
-              Add note
-            </Text>
-            <IconButton
-              size="2xs"
-              variant="ghost"
-              aria-label="Create note"
-              onClick={handleCreateNote}
-            >
-              <LuPlus />
-            </IconButton>
-          </HStack>
-
           <SortableContext
             items={notes.map((note) => note.id)}
             strategy={verticalListSortingStrategy}

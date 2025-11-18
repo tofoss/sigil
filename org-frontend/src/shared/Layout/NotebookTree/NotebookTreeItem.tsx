@@ -87,6 +87,17 @@ export function NotebookTreeItem({
     try {
       const note = await noteClient.upsert("", undefined)
       await notebooks.addNote(notebook.id, note.id)
+
+      // Dispatch event to update the tree - NotebookTree will handle the state update
+      window.dispatchEvent(
+        new CustomEvent("note-added-to-notebook", {
+          detail: {
+            noteId: note.id,
+            notebookId: notebook.id,
+          },
+        })
+      )
+
       setIsCreatingUnsectionedNote(false)
       navigate(`/notes/${note.id}?edit=true`)
     } catch (err) {
@@ -101,6 +112,7 @@ export function NotebookTreeItem({
         pr={2}
         py={1.5}
         gap={2}
+        minWidth="0"
         borderRadius="md"
         bg={
           isActive ? "bg.muted" : containsActiveNote ? "teal.subtle" : undefined
@@ -132,18 +144,19 @@ export function NotebookTreeItem({
         </Icon>
 
         {/* Clickable notebook name */}
-        <Box flex={1}>
+        <Box flex={1} minWidth="0">
           <Link
             to={`/notebooks/${notebook.id}`}
             style={{ textDecoration: "none", display: "block" }}
           >
-            <HStack gap={2}>
+            <HStack gap={2} minWidth="0">
               <Icon fontSize="sm" color="fg.muted" flexShrink={0}>
                 <LuBookOpen />
               </Icon>
               <Text
                 fontSize="sm"
                 flex={1}
+                minWidth="0"
                 overflow="hidden"
                 textOverflow="ellipsis"
                 whiteSpace="nowrap"
@@ -155,63 +168,61 @@ export function NotebookTreeItem({
           </Link>
         </Box>
 
-        {/* Note count */}
-        <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-          ({totalNotes})
-        </Text>
+        {/* Note count with add section button */}
+        <HStack gap={0.5} flexShrink={0}>
+          <Text fontSize="xs" color="fg.muted">
+            ({totalNotes})
+          </Text>
+          <IconButton
+            size="2xs"
+            variant="ghost"
+            aria-label="Create section"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsCreatingSection(true)
+            }}
+          >
+            <LuPlus />
+          </IconButton>
+        </HStack>
       </HStack>
 
       {/* Expanded Content */}
       {isExpanded && (
         <Box>
-          {/* Create Section Button */}
-          <HStack pl="12px" pr={2} py={1} mb={1}>
-            {isCreatingSection ? (
-              <>
-                <Input
-                  size="xs"
-                  placeholder="Section name"
-                  value={newSectionName}
-                  onChange={(e) => setNewSectionName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateSection()
-                    } else if (e.key === "Escape") {
-                      setIsCreatingSection(false)
-                      setNewSectionName("")
-                    }
-                  }}
-                  autoFocus
-                  flex={1}
-                />
-                <IconButton
-                  size="2xs"
-                  variant="ghost"
-                  aria-label="Cancel"
-                  onClick={() => {
+          {/* Create Section Input */}
+          {isCreatingSection && (
+            <HStack pl="12px" pr={2} py={1} mb={1}>
+              <Input
+                size="xs"
+                placeholder="Section name"
+                value={newSectionName}
+                onChange={(e) => setNewSectionName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateSection()
+                  } else if (e.key === "Escape") {
                     setIsCreatingSection(false)
                     setNewSectionName("")
-                  }}
-                >
-                  <LuX />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <Text fontSize="xs" color="fg.muted" flex={1}>
-                  Add section
-                </Text>
-                <IconButton
-                  size="2xs"
-                  variant="ghost"
-                  aria-label="Create section"
-                  onClick={() => setIsCreatingSection(true)}
-                >
-                  <LuPlus />
-                </IconButton>
-              </>
-            )}
-          </HStack>
+                  }
+                }}
+                autoFocus
+                flex={1}
+              />
+              <IconButton
+                size="2xs"
+                variant="ghost"
+                aria-label="Cancel"
+                onClick={() => {
+                  setIsCreatingSection(false)
+                  setNewSectionName("")
+                }}
+              >
+                <LuX />
+              </IconButton>
+            </HStack>
+          )}
 
           {/* Unsectioned Notes */}
           {(unsectionedNotes.length > 0 || isCreatingUnsectionedNote) && (

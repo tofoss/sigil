@@ -65,7 +65,7 @@ const notePage = () => {
   }
 
   return (
-    <Box width="100%">
+    <Box width="100%" maxWidth="100%" minWidth="0">
       <Editor
         note={note}
         mode={shouldEdit ? "Edit" : "Display"}

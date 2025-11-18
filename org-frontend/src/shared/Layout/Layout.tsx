@@ -96,7 +96,9 @@ export function Layout() {
                 <Box mb="4">
                   <SearchInput />
                 </Box>
-                <NotebookTree />
+                <Box overflowX="hidden" pr={2}>
+                  <NotebookTree />
+                </Box>
               </DrawerBody>
               <DrawerCloseTrigger />
             </DrawerContent>
@@ -176,14 +178,29 @@ export function Layout() {
             justifyContent="start"
             height="100vh"
             width="250px"
+            minWidth="250px"
+            maxWidth="250px"
             hideBelow="lg"
             flexDirection="column"
           >
-            <Box overflowY="auto" flex={1} pb={4} className="custom-scrollbar">
+            <Box
+              overflowY="auto"
+              overflowX="hidden"
+              flex={1}
+              pb={4}
+              pr={2}
+              className="custom-scrollbar"
+            >
               <NotebookTree />
             </Box>
           </Flex>
-          <Box as="main" width="100%">
+          <Box
+            as="main"
+            width="100%"
+            maxWidth="100%"
+            minWidth="0"
+            overflow="hidden"
+          >
             <Outlet />
           </Box>
         </HStack>

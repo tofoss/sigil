@@ -99,6 +99,25 @@ export function Editor(props: EditorProps) {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault()
+
+      const textarea = e.currentTarget
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+
+      // Insert tab character at cursor position
+      const newText = text.substring(0, start) + "\t" + text.substring(end)
+      setText(newText)
+
+      // Move cursor after the inserted tab
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1
+      }, 0)
+    }
+  }
+
   useEffect(() => {
     adjustHeight()
     adjustHeight()
@@ -154,9 +173,16 @@ export function Editor(props: EditorProps) {
   }
 
   return (
-    <Box minHeight="100vh" pl="0.5rem" pr="0.5rem" width="100%">
+    <Box
+      minHeight="100vh"
+      pl="0.5rem"
+      pr="0.5rem"
+      width="100%"
+      maxWidth="100%"
+      minWidth="0"
+    >
       <Collapsible.Root>
-        <VStack width="100%">
+        <VStack width="100%" maxWidth="100%" minWidth="0">
           <HStack width="100%">
             <Button variant="ghost" onClick={() => setTogglePreview(false)}>
               <LuFileEdit />
@@ -273,7 +299,14 @@ export function Editor(props: EditorProps) {
         </Text>
       )}
       {togglePreview ? (
-        <Box mt="1rem" padding="1rem" borderWidth="1px" borderRadius="md">
+        <Box
+          mt="1rem"
+          padding="1rem"
+          borderWidth="1px"
+          borderRadius="md"
+          maxWidth="100%"
+          width="100%"
+        >
           <MarkdownViewer text={text} />
         </Box>
       ) : (
@@ -286,6 +319,7 @@ export function Editor(props: EditorProps) {
           onInput={adjustHeight}
           onChange={(e) => setText(e.target.value)}
           onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
           overflow="hidden"
           minHeight="80vh"
         />

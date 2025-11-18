@@ -319,7 +319,7 @@ export function NotebookTree() {
     }
 
     // Handle note section changed
-    const handleNoteSectionChanged = (event: Event) => {
+    const handleNoteSectionChanged = async (event: Event) => {
       const customEvent = event as CustomEvent<{
         noteId: string
         notebookId: string
@@ -327,6 +327,60 @@ export function NotebookTree() {
       }>
       const { noteId, notebookId, sectionId } = customEvent.detail
 
+      // First, check if the note exists in the tree
+      let noteExists = false
+      for (const item of treeData) {
+        if (item.notebook.id !== notebookId) continue
+
+        const inUnsectioned = item.unsectionedNotes.some((n) => n.id === noteId)
+        const inSection = item.sections.some(({ notes }) =>
+          notes.some((n) => n.id === noteId)
+        )
+
+        if (inUnsectioned || inSection) {
+          noteExists = true
+          break
+        }
+      }
+
+      // If note doesn't exist, fetch it and add it
+      if (!noteExists) {
+        try {
+          const note = await noteClient.fetch(noteId)
+
+          setTreeData((prev) =>
+            prev.map((item) => {
+              if (item.notebook.id !== notebookId) return item
+
+              if (sectionId === null) {
+                // Add to unsectioned
+                return {
+                  ...item,
+                  unsectionedNotes: [...item.unsectionedNotes, note],
+                }
+              } else {
+                // Add to specific section
+                return {
+                  ...item,
+                  sections: item.sections.map((s) =>
+                    s.section.id === sectionId
+                      ? { ...s, notes: [...s.notes, note] }
+                      : s
+                  ),
+                }
+              }
+            })
+          )
+
+          // Remove from unassigned notes if it was there
+          setUnassignedNotes((prev) => prev.filter((n) => n.id !== noteId))
+        } catch (err) {
+          console.error("Failed to fetch note for tree update:", err)
+        }
+        return
+      }
+
+      // Note exists, move it within the tree
       setTreeData((prev) =>
         prev.map((item) => {
           if (item.notebook.id !== notebookId) return item
