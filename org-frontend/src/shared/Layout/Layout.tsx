@@ -11,7 +11,14 @@ import {
 import { Avatar } from "components/ui/avatar"
 import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
-import { LuLogOut, LuPlus } from "react-icons/lu"
+import {
+  LuLogOut,
+  LuPlus,
+  LuFileText,
+  LuChefHat,
+  LuBookOpen,
+  LuChevronDown,
+} from "react-icons/lu"
 import { colorPalette } from "theme"
 import { ColorModeButton } from "components/ui/color-mode"
 import { toaster } from "components/ui/toaster"
@@ -99,16 +106,45 @@ export function Layout() {
           </Text>
           <Box flex="1" />
           <HStack ml="auto" gap="2">
-            <IconButton
-              asChild
-              variant="outline"
-              colorPalette={colorPalette}
-              title="New Note"
-            >
-              <Link to={pages.private.new.path}>
-                <LuPlus />
-              </Link>
-            </IconButton>
+            <Menu.Root positioning={{ placement: "bottom-end" }}>
+              <Menu.Trigger asChild>
+                <IconButton
+                  variant="outline"
+                  colorPalette={colorPalette}
+                  title="Create new..."
+                  size="xs"
+                  gap="0"
+                  px="1"
+                >
+                  <LuPlus />
+                  <LuChevronDown />
+                </IconButton>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="new-note" asChild>
+                      <Link to={pages.private.new.path}>
+                        <LuFileText />
+                        New Note
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item value="new-recipe" asChild>
+                      <Link to={pages.private.recipe.path}>
+                        <LuChefHat />
+                        New Recipe
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item value="new-notebook" asChild>
+                      <Link to={pages.private.notebooks.path}>
+                        <LuBookOpen />
+                        New Notebook
+                      </Link>
+                    </Menu.Item>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
             <Box hideBelow="md" minWidth="250px">
               <SearchInput />
             </Box>
