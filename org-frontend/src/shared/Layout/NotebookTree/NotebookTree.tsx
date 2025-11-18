@@ -18,6 +18,7 @@ import { Link, useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
+import { pages } from "pages/pages"
 import {
   DndContext,
   DragEndEvent,
@@ -32,7 +33,6 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable"
-import { pages } from "pages/pages"
 
 interface TreeData {
   notebook: Notebook

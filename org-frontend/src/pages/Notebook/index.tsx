@@ -36,11 +36,137 @@ import { SectionCard } from "components/ui/section-card"
 import { SectionDialog } from "components/ui/section-dialog"
 import { SortableSectionCard } from "components/ui/sortable-section-card"
 import { Toaster, toaster } from "components/ui/toaster"
-import { LuArrowLeft, LuBook, LuFolderPlus, LuTrash2 } from "react-icons/lu"
+import {
+  LuArrowLeft,
+  LuBook,
+  LuFolderPlus,
+  LuTrash2,
+  LuPencil,
+  LuCheck,
+  LuChevronRight,
+} from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { Link, useParams, useNavigate } from "shared/Router"
 import { pages } from "pages/pages"
 import { useState, useEffect } from "react"
+import { Note, Section } from "api/model"
+
+interface SimpleSectionProps {
+  section: Section
+  notes: Note[]
+  notebookId: string
+}
+
+function SimpleSection({ section, notes, notebookId }: SimpleSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  return (
+    <Box>
+      <HStack
+        px={3}
+        py={2}
+        bg="gray.50"
+        _dark={{ bg: "gray.800" }}
+        borderRadius="md"
+        cursor="pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+        _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+      >
+        <Icon
+          fontSize="sm"
+          color="fg.muted"
+          transform={isExpanded ? "rotate(90deg)" : undefined}
+          transition="transform 0.15s"
+        >
+          <LuChevronRight />
+        </Icon>
+        <Heading size="sm" flex={1}>
+          {section.name}
+        </Heading>
+        <Text fontSize="xs" color="fg.muted">
+          {notes.length} {notes.length === 1 ? "note" : "notes"}
+        </Text>
+      </HStack>
+      {isExpanded && notes.length > 0 && (
+        <Stack gap={1} mt={2} ml={6}>
+          {notes.map((note) => (
+            <ChakraLink asChild key={note.id}>
+              <Link to={`/notes/${note.id}`}>
+                <Box
+                  px={3}
+                  py={1.5}
+                  borderRadius="md"
+                  _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
+                >
+                  <Text fontSize="sm">{note.title || "Untitled"}</Text>
+                </Box>
+              </Link>
+            </ChakraLink>
+          ))}
+        </Stack>
+      )}
+    </Box>
+  )
+}
+
+interface SimpleUnsectionedProps {
+  notes: Note[]
+  notebookId: string
+}
+
+function SimpleUnsectioned({ notes, notebookId }: SimpleUnsectionedProps) {
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  if (notes.length === 0) return null
+
+  return (
+    <Box>
+      <HStack
+        px={3}
+        py={2}
+        bg="gray.50"
+        _dark={{ bg: "gray.800" }}
+        borderRadius="md"
+        cursor="pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+        _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+      >
+        <Icon
+          fontSize="sm"
+          color="fg.muted"
+          transform={isExpanded ? "rotate(90deg)" : undefined}
+          transition="transform 0.15s"
+        >
+          <LuChevronRight />
+        </Icon>
+        <Heading size="sm" flex={1} fontStyle="italic" color="fg.muted">
+          Unsectioned
+        </Heading>
+        <Text fontSize="xs" color="fg.muted">
+          {notes.length} {notes.length === 1 ? "note" : "notes"}
+        </Text>
+      </HStack>
+      {isExpanded && (
+        <Stack gap={1} mt={2} ml={6}>
+          {notes.map((note) => (
+            <ChakraLink asChild key={note.id}>
+              <Link to={`/notes/${note.id}`}>
+                <Box
+                  px={3}
+                  py={1.5}
+                  borderRadius="md"
+                  _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
+                >
+                  <Text fontSize="sm">{note.title || "Untitled"}</Text>
+                </Box>
+              </Link>
+            </ChakraLink>
+          ))}
+        </Stack>
+      )}
+    </Box>
+  )
+}
 
 export function Component() {
   const { id } = useParams<{ id: string }>()
@@ -53,6 +179,7 @@ export function Component() {
   } = useDisclosure()
   const [deleting, setDeleting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [isEditMode, setIsEditMode] = useState(false)
 
   const { data: notebook } = useFetch(() => notebooks.get(id!), [id])
   const { data: sectionsList } = useFetch(
@@ -63,6 +190,27 @@ export function Component() {
     () => sections.getUnsectioned(id!),
     [id, refreshKey]
   )
+
+  // Fetch notes for each section
+  const [sectionsWithNotes, setSectionsWithNotes] = useState<
+    Array<{ section: Section; notes: Note[] }>
+  >([])
+
+  useEffect(() => {
+    if (!sectionsList) return
+
+    const fetchAllNotes = async () => {
+      const results = await Promise.all(
+        sectionsList.map(async (section) => ({
+          section,
+          notes: await sections.getNotes(section.id),
+        }))
+      )
+      setSectionsWithNotes(results)
+    }
+
+    fetchAllNotes()
+  }, [sectionsList, refreshKey])
 
   const handleRefresh = () => {
     setRefreshKey((prev) => prev + 1)
@@ -230,12 +378,30 @@ export function Component() {
           </Stack>
 
           <HStack>
-            <Button variant="outline" onClick={onSectionOpen}>
-              <LuFolderPlus /> New Section
+            <Button
+              variant="outline"
+              onClick={() => setIsEditMode(!isEditMode)}
+            >
+              {isEditMode ? (
+                <>
+                  <LuCheck /> Done
+                </>
+              ) : (
+                <>
+                  <LuPencil /> Edit
+                </>
+              )}
             </Button>
-            <Button colorScheme="red" variant="outline" onClick={onOpen}>
-              <LuTrash2 /> Delete
-            </Button>
+            {isEditMode && (
+              <>
+                <Button variant="outline" onClick={onSectionOpen}>
+                  <LuFolderPlus /> New Section
+                </Button>
+                <Button colorScheme="red" variant="outline" onClick={onOpen}>
+                  <LuTrash2 /> Delete
+                </Button>
+              </>
+            )}
           </HStack>
         </HStack>
 
@@ -255,7 +421,8 @@ export function Component() {
                 This notebook is empty. Add some notes to get started!
               </Text>
             </Box>
-          ) : (
+          ) : isEditMode ? (
+            // Edit Mode: Drag-and-drop interface
             <DndContext
               collisionDetection={pointerWithin}
               onDragEnd={handleDragEnd}
@@ -290,6 +457,22 @@ export function Component() {
                 </SortableContext>
               </Stack>
             </DndContext>
+          ) : (
+            // Read-only Mode: Simple TOC view
+            <Stack gap={3}>
+              {/* Unsectioned Notes */}
+              <SimpleUnsectioned notes={unsectionedArray} notebookId={id!} />
+
+              {/* Sections */}
+              {sectionsWithNotes.map(({ section, notes }) => (
+                <SimpleSection
+                  key={section.id}
+                  section={section}
+                  notes={notes}
+                  notebookId={id!}
+                />
+              ))}
+            </Stack>
           )}
         </Box>
       </Stack>

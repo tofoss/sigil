@@ -3,7 +3,6 @@ import {
   Flex,
   HStack,
   IconButton,
-  Separator,
   Text,
   VStack,
   Menu,
@@ -12,7 +11,7 @@ import {
 import { Avatar } from "components/ui/avatar"
 import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
-import { LuLogOut } from "react-icons/lu"
+import { LuLogOut, LuPlus } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { ColorModeButton } from "components/ui/color-mode"
 import { toaster } from "components/ui/toaster"
@@ -27,7 +26,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "components/ui/drawer"
-import { NavMenu } from "./NavMenu"
 import { NotebookTree } from "./NotebookTree"
 import { SearchInput } from "components/SearchInput"
 import { useFetch } from "utils/http"
@@ -91,8 +89,6 @@ export function Layout() {
                 <Box mb="4">
                   <SearchInput />
                 </Box>
-                <NavMenu />
-                <Separator my={4} />
                 <NotebookTree />
               </DrawerBody>
               <DrawerCloseTrigger />
@@ -103,6 +99,16 @@ export function Layout() {
           </Text>
           <Box flex="1" />
           <HStack ml="auto" gap="2">
+            <IconButton
+              asChild
+              variant="outline"
+              colorPalette={colorPalette}
+              title="New Note"
+            >
+              <Link to={pages.private.new.path}>
+                <LuPlus />
+              </Link>
+            </IconButton>
             <Box hideBelow="md" minWidth="250px">
               <SearchInput />
             </Box>
@@ -138,8 +144,6 @@ export function Layout() {
             flexDirection="column"
           >
             <Box overflowY="auto" flex={1} pb={4} className="custom-scrollbar">
-              <NavMenu hideHome={true} />
-              <Separator my={4} />
               <NotebookTree />
             </Box>
           </Flex>
