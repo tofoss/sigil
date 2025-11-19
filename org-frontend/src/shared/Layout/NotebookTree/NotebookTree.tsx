@@ -456,6 +456,73 @@ export function NotebookTree() {
       setUnassignedNotes((prev) => prev.filter((note) => note.id !== noteId))
     }
 
+    // Handle notebook renamed
+    const handleNotebookRenamed = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        notebookId: string
+        newName: string
+      }>
+      const { notebookId, newName } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) =>
+          item.notebook.id === notebookId
+            ? { ...item, notebook: { ...item.notebook, name: newName } }
+            : item
+        )
+      )
+    }
+
+    // Handle section renamed
+    const handleSectionRenamed = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        sectionId: string
+        newName: string
+      }>
+      const { sectionId, newName } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) => ({
+          ...item,
+          sections: item.sections.map((s) =>
+            s.section.id === sectionId
+              ? { ...s, section: { ...s.section, name: newName } }
+              : s
+          ),
+        }))
+      )
+    }
+
+    // Handle notebook deleted
+    const handleNotebookDeleted = (event: Event) => {
+      const customEvent = event as CustomEvent<{ notebookId: string }>
+      const { notebookId } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.filter((item) => item.notebook.id !== notebookId)
+      )
+    }
+
+    // Handle section created
+    const handleSectionCreated = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        notebookId: string
+        section: Section
+      }>
+      const { notebookId, section } = customEvent.detail
+
+      setTreeData((prev) =>
+        prev.map((item) =>
+          item.notebook.id === notebookId
+            ? {
+                ...item,
+                sections: [...item.sections, { section, notes: [] }],
+              }
+            : item
+        )
+      )
+    }
+
     window.addEventListener("note-added-to-notebook", handleNoteAddedToNotebook)
     window.addEventListener(
       "note-removed-from-notebook",
@@ -463,6 +530,10 @@ export function NotebookTree() {
     )
     window.addEventListener("note-section-changed", handleNoteSectionChanged)
     window.addEventListener("note-deleted", handleNoteDeleted)
+    window.addEventListener("notebook-renamed", handleNotebookRenamed)
+    window.addEventListener("section-renamed", handleSectionRenamed)
+    window.addEventListener("notebook-deleted", handleNotebookDeleted)
+    window.addEventListener("section-created", handleSectionCreated)
 
     return () => {
       window.removeEventListener(
@@ -477,6 +548,10 @@ export function NotebookTree() {
         "note-section-changed",
         handleNoteSectionChanged
       )
+      window.removeEventListener("notebook-renamed", handleNotebookRenamed)
+      window.removeEventListener("section-renamed", handleSectionRenamed)
+      window.removeEventListener("notebook-deleted", handleNotebookDeleted)
+      window.removeEventListener("section-created", handleSectionCreated)
       window.removeEventListener("note-deleted", handleNoteDeleted)
     }
   }, [])

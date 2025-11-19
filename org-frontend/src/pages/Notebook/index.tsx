@@ -186,7 +186,10 @@ export function Component() {
   const [isRenamingNotebook, setIsRenamingNotebook] = useState(false)
   const [notebookName, setNotebookName] = useState("")
 
-  const { data: notebook } = useFetch(() => notebooks.get(id!), [id])
+  const { data: notebook } = useFetch(
+    () => notebooks.get(id!),
+    [id, refreshKey]
+  )
 
   // Update local notebook name when notebook data changes
   useEffect(() => {
@@ -341,6 +344,14 @@ export function Component() {
       try {
         setDeleting(true)
         await notebooks.delete(id!)
+
+        // Dispatch event to update treeview
+        window.dispatchEvent(
+          new CustomEvent("notebook-deleted", {
+            detail: { notebookId: id! },
+          })
+        )
+
         navigate(pages.private.notebooks.path)
       } catch (error) {
         console.error("Error deleting notebook:", error)
@@ -357,9 +368,20 @@ export function Component() {
     }
 
     try {
-      await notebooks.update(id!, { name: notebookName.trim() })
+      const trimmedName = notebookName.trim()
+      await notebooks.update(id!, { name: trimmedName })
       setIsRenamingNotebook(false)
+
+      // Dispatch event to update treeview
+      window.dispatchEvent(
+        new CustomEvent("notebook-renamed", {
+          detail: { notebookId: id!, newName: trimmedName },
+        })
+      )
+
+      // Refresh local notebook data
       setRefreshKey((prev) => prev + 1)
+
       toaster.create({
         title: "Notebook renamed",
         type: "success",

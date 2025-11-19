@@ -39,14 +39,28 @@ export function SectionDialog({
         setSaving(true)
         if (section) {
           // Update existing section
-          await sections.updateName(section.id, name)
+          await sections.updateName(section.id, name.trim())
+
+          // Dispatch event to update treeview
+          window.dispatchEvent(
+            new CustomEvent("section-renamed", {
+              detail: { sectionId: section.id, newName: name.trim() },
+            })
+          )
         } else {
           // Create new section
-          await sections.create({
+          const newSection = await sections.create({
             notebook_id: notebookId,
-            name,
+            name: name.trim(),
             position: maxPosition + 1,
           })
+
+          // Dispatch event to update treeview
+          window.dispatchEvent(
+            new CustomEvent("section-created", {
+              detail: { notebookId, section: newSection },
+            })
+          )
         }
         handleClose()
         onSuccess?.()
