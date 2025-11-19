@@ -10,7 +10,7 @@ import {
 import { Button } from "components/ui/button"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   LuFileEdit,
   LuInfo,
@@ -47,6 +47,22 @@ export function Editor(props: EditorProps) {
   const [showNotebookEditor, setShowNotebookEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
+
+  // Autosave refs
+  const lastSavedContentRef = useRef(text)
+  const isAutosavingRef = useRef(false)
+  const textRef = useRef(text)
+  const noteIdRef = useRef(note?.id)
+  const AUTOSAVE_INTERVAL = 10000 // 10 seconds
+
+  // Keep refs updated
+  useEffect(() => {
+    textRef.current = text
+  }, [text])
+
+  useEffect(() => {
+    noteIdRef.current = note?.id
+  }, [note?.id])
 
   // Fetch notebooks for this note
   const { data: noteNotebooks = [] } = useFetch(
@@ -134,6 +150,69 @@ export function Editor(props: EditorProps) {
     setSelectedNotebooks(noteNotebooks || [])
   }, [noteNotebooks])
 
+  // Autosave function
+  const performAutosave = useCallback(async () => {
+    const currentText = textRef.current
+    const currentNoteId = noteIdRef.current
+
+    // Don't autosave if already saving or content hasn't changed
+    if (
+      isAutosavingRef.current ||
+      currentText === lastSavedContentRef.current
+    ) {
+      return
+    }
+
+    isAutosavingRef.current = true
+
+    try {
+      const updatedNote = await noteClient.upsert(currentText, currentNoteId)
+      if (updatedNote) {
+        setNote(updatedNote)
+        lastSavedContentRef.current = currentText
+
+        // Dispatch event to update sidebar tree
+        window.dispatchEvent(
+          new CustomEvent("note-saved", {
+            detail: { note: updatedNote },
+          })
+        )
+      }
+    } catch (err) {
+      // Silently handle errors - don't interrupt user
+      console.error("Autosave failed:", err)
+    } finally {
+      isAutosavingRef.current = false
+    }
+  }, [])
+
+  // Autosave interval
+  useEffect(() => {
+    // Only autosave when in edit mode
+    if (togglePreview) return
+
+    const intervalId = setInterval(performAutosave, AUTOSAVE_INTERVAL)
+
+    return () => clearInterval(intervalId)
+  }, [togglePreview, performAutosave])
+
+  // Initialize lastSavedContentRef when note is loaded
+  useEffect(() => {
+    if (note?.content) {
+      lastSavedContentRef.current = note.content
+    }
+  }, [note?.id])
+
+  // Auto-save when switching to preview mode
+  const prevTogglePreviewRef = useRef(togglePreview)
+  useEffect(() => {
+    // Only save when transitioning from edit to preview
+    if (togglePreview && !prevTogglePreviewRef.current) {
+      performAutosave()
+    }
+    prevTogglePreviewRef.current = togglePreview
+  }, [togglePreview, performAutosave])
+
   const onSave = async () => {
     const updatedNote = await call(() => noteClient.upsert(text, note?.id))
     if (updatedNote === undefined) {
@@ -142,6 +221,7 @@ export function Editor(props: EditorProps) {
     }
 
     setNote(updatedNote)
+    lastSavedContentRef.current = text
 
     // Save tags if note has an ID and tags have changed
     if (
