@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { SectionTreeItem } from "./SectionTreeItem"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { useTreeStore } from "stores/treeStore"
 
 interface NotebookTreeItemProps {
   notebook: Notebook
@@ -39,6 +40,7 @@ export function NotebookTreeItem({
   const { id: currentNotebookId } = useParams()
   const navigate = useNavigate()
   const isActive = currentNotebookId === notebook.id
+  const { moveNoteToNotebook } = useTreeStore()
 
   const [isCreatingSection, setIsCreatingSection] = useState(false)
   const [newSectionName, setNewSectionName] = useState("")
@@ -88,15 +90,8 @@ export function NotebookTreeItem({
       const note = await noteClient.upsert("", undefined)
       await notebooks.addNote(notebook.id, note.id)
 
-      // Dispatch event to update the tree - NotebookTree will handle the state update
-      window.dispatchEvent(
-        new CustomEvent("note-added-to-notebook", {
-          detail: {
-            noteId: note.id,
-            notebookId: notebook.id,
-          },
-        })
-      )
+      // Update the tree via store
+      await moveNoteToNotebook(note.id, notebook.id, null)
 
       setIsCreatingUnsectionedNote(false)
       navigate(`/notes/${note.id}?edit=true`)

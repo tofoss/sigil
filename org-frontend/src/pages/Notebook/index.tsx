@@ -53,6 +53,7 @@ import { Link, useParams, useNavigate } from "shared/Router"
 import { pages } from "pages/pages"
 import { useState, useEffect } from "react"
 import { Note, Section } from "api/model"
+import { useTreeStore } from "stores/treeStore"
 
 interface SimpleSectionProps {
   section: Section
@@ -185,6 +186,7 @@ export function Component() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isRenamingNotebook, setIsRenamingNotebook] = useState(false)
   const [notebookName, setNotebookName] = useState("")
+  const { deleteNotebook, renameNotebook } = useTreeStore()
 
   const { data: notebook } = useFetch(
     () => notebooks.get(id!),
@@ -345,12 +347,8 @@ export function Component() {
         setDeleting(true)
         await notebooks.delete(id!)
 
-        // Dispatch event to update treeview
-        window.dispatchEvent(
-          new CustomEvent("notebook-deleted", {
-            detail: { notebookId: id! },
-          })
-        )
+        // Update treeview via store
+        deleteNotebook(id!)
 
         navigate(pages.private.notebooks.path)
       } catch (error) {
@@ -372,12 +370,8 @@ export function Component() {
       await notebooks.update(id!, { name: trimmedName })
       setIsRenamingNotebook(false)
 
-      // Dispatch event to update treeview
-      window.dispatchEvent(
-        new CustomEvent("notebook-renamed", {
-          detail: { notebookId: id!, newName: trimmedName },
-        })
-      )
+      // Update treeview via store
+      renameNotebook(id!, trimmedName)
 
       // Refresh local notebook data
       setRefreshKey((prev) => prev + 1)

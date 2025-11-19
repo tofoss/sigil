@@ -43,6 +43,7 @@ import { useFetch } from "utils/http"
 import { useCollapsedSections } from "utils/use-collapsed-sections"
 import { DraggableNote } from "./draggable-note"
 import { SectionDialog } from "./section-dialog"
+import { useTreeStore } from "stores/treeStore"
 
 interface SectionCardProps {
   section?: Section
@@ -73,6 +74,7 @@ export function SectionCard({
   const sectionId = section?.id || "unsectioned"
   const { isCollapsed, toggle } = useCollapsedSections(notebookId)
   const [deleting, setDeleting] = useState(false)
+  const { deleteSection } = useTreeStore()
   const {
     open: deleteOpen,
     onOpen: onDeleteOpen,
@@ -111,6 +113,10 @@ export function SectionCard({
       try {
         setDeleting(true)
         await sections.delete(section.id)
+
+        // Update treeview via store
+        deleteSection(section.id)
+
         onDeleteClose()
         onSuccess?.()
       } catch (error) {

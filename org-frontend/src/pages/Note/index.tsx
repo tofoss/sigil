@@ -16,6 +16,7 @@ import { useState } from "react"
 import { useParams, useSearchParams, useNavigate } from "shared/Router"
 import { useFetch } from "utils/http"
 import { toaster } from "components/ui/toaster"
+import { useTreeStore } from "stores/treeStore"
 
 const notePage = () => {
   const { id } = useParams<{ id: string }>()
@@ -24,6 +25,7 @@ const notePage = () => {
   const shouldEdit = searchParams.get("edit") === "true"
   const [isDeleting, setIsDeleting] = useState(false)
   const { open, onOpen, onClose } = useDisclosure()
+  const { deleteNote } = useTreeStore()
 
   if (!id) {
     return <ErrorBoundary />
@@ -45,12 +47,8 @@ const notePage = () => {
     try {
       await noteClient.delete(id)
 
-      // Dispatch event to update notebook tree
-      window.dispatchEvent(
-        new CustomEvent("note-deleted", {
-          detail: { noteId: id },
-        })
-      )
+      // Update notebook tree via store
+      deleteNote(id)
 
       toaster.create({
         title: "Note deleted successfully",

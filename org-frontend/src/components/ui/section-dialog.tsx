@@ -12,6 +12,7 @@ import {
 } from "components/ui/dialog"
 import { Field } from "components/ui/field"
 import { useState } from "react"
+import { useTreeStore } from "stores/treeStore"
 
 interface SectionDialogProps {
   open: boolean
@@ -32,6 +33,7 @@ export function SectionDialog({
 }: SectionDialogProps) {
   const [name, setName] = useState(section?.name || "")
   const [saving, setSaving] = useState(false)
+  const { renameSection, addSection } = useTreeStore()
 
   const handleSave = async () => {
     if (name.trim() && !saving) {
@@ -41,12 +43,8 @@ export function SectionDialog({
           // Update existing section
           await sections.updateName(section.id, name.trim())
 
-          // Dispatch event to update treeview
-          window.dispatchEvent(
-            new CustomEvent("section-renamed", {
-              detail: { sectionId: section.id, newName: name.trim() },
-            })
-          )
+          // Update treeview via store
+          renameSection(section.id, name.trim())
         } else {
           // Create new section
           const newSection = await sections.create({
@@ -55,12 +53,8 @@ export function SectionDialog({
             position: maxPosition + 1,
           })
 
-          // Dispatch event to update treeview
-          window.dispatchEvent(
-            new CustomEvent("section-created", {
-              detail: { notebookId, section: newSection },
-            })
-          )
+          // Update treeview via store
+          addSection(notebookId, newSection)
         }
         handleClose()
         onSuccess?.()

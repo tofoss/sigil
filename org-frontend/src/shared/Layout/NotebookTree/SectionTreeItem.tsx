@@ -11,6 +11,7 @@ import {
 } from "@dnd-kit/sortable"
 import { useDroppable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
+import { useTreeStore } from "stores/treeStore"
 
 interface SectionTreeItemProps {
   section: Section
@@ -32,6 +33,7 @@ export function SectionTreeItem({
   notebookId,
 }: SectionTreeItemProps) {
   const navigate = useNavigate()
+  const { moveNoteToNotebook } = useTreeStore()
 
   // Drag and drop hooks
   const {
@@ -78,16 +80,8 @@ export function SectionTreeItem({
       await notebooks.addNote(notebookId, note.id)
       await sectionsApi.assignNote(note.id, notebookId, section.id)
 
-      // Dispatch event to update the tree - NotebookTree will handle the state update
-      window.dispatchEvent(
-        new CustomEvent("note-section-changed", {
-          detail: {
-            noteId: note.id,
-            notebookId: notebookId,
-            sectionId: section.id,
-          },
-        })
-      )
+      // Update the tree via store
+      await moveNoteToNotebook(note.id, notebookId, section.id)
 
       navigate(`/notes/${note.id}?edit=true`)
     } catch (err) {

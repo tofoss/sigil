@@ -30,6 +30,7 @@ import { TagSelector } from "components/ui/tag-selector"
 import { NotebookSelector } from "components/ui/notebook-selector"
 import { notebooks } from "api"
 import { useFetch } from "utils/http"
+import { useTreeStore } from "stores/treeStore"
 
 interface EditorProps {
   note?: Note
@@ -47,6 +48,7 @@ export function Editor(props: EditorProps) {
   const [showNotebookEditor, setShowNotebookEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
+  const { updateNoteTitle, addNoteToTree } = useTreeStore()
 
   // Autosave refs
   const lastSavedContentRef = useRef(text)
@@ -171,12 +173,13 @@ export function Editor(props: EditorProps) {
         setNote(updatedNote)
         lastSavedContentRef.current = currentText
 
-        // Dispatch event to update sidebar tree
-        window.dispatchEvent(
-          new CustomEvent("note-saved", {
-            detail: { note: updatedNote },
-          })
-        )
+        // Update sidebar tree via store
+        if (currentNoteId) {
+          updateNoteTitle(updatedNote.id, updatedNote.title)
+        } else {
+          // New note - add to unassigned
+          addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+        }
       }
     } catch (err) {
       // Silently handle errors - don't interrupt user
@@ -184,7 +187,7 @@ export function Editor(props: EditorProps) {
     } finally {
       isAutosavingRef.current = false
     }
-  }, [])
+  }, [updateNoteTitle, addNoteToTree])
 
   // Autosave interval
   useEffect(() => {
@@ -244,12 +247,13 @@ export function Editor(props: EditorProps) {
       }
     }
 
-    // Dispatch event to update sidebar tree with the updated note data
-    window.dispatchEvent(
-      new CustomEvent("note-saved", {
-        detail: { note: updatedNote },
-      })
-    )
+    // Update sidebar tree via store
+    if (note?.id) {
+      updateNoteTitle(updatedNote.id, updatedNote.title)
+    } else {
+      // New note - add to unassigned
+      addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+    }
   }
 
   return (

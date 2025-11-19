@@ -29,6 +29,7 @@ import {
 import { LuBookOpen, LuPlus, LuX, LuFolderTree } from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { useState } from "react"
+import { useTreeStore } from "stores/treeStore"
 
 interface NotebookSelectorProps {
   selectedNotebooks: Notebook[]
@@ -52,6 +53,7 @@ function NotebookSectionSelector({
     [notebook.id]
   )
   const [updating, setUpdating] = useState(false)
+  const { moveNoteToSection } = useTreeStore()
 
   const handleChange = async (details: { value: string[] }) => {
     const value = details.value[0]
@@ -62,16 +64,8 @@ function NotebookSectionSelector({
       await sections.assignNote(noteId, notebook.id, newSectionId)
       onSectionChange(notebook.id, newSectionId)
 
-      // Dispatch event to update notebook tree
-      window.dispatchEvent(
-        new CustomEvent("note-section-changed", {
-          detail: {
-            noteId,
-            notebookId: notebook.id,
-            sectionId: newSectionId,
-          },
-        })
-      )
+      // Update notebook tree via store
+      moveNoteToSection(noteId, notebook.id, newSectionId)
     } catch (error) {
       console.error("Error assigning note to section:", error)
     } finally {
@@ -123,6 +117,7 @@ export function NotebookSelector({
   const { data: allNotebooks = [] } = useFetch(notebooks.list)
   const { open, onOpen, onClose } = useDisclosure()
   const [working, setWorking] = useState(false)
+  const { moveNoteToNotebook, removeNoteFromNotebook } = useTreeStore()
 
   const handleAddNotebook = async (notebook: Notebook) => {
     if (!noteId) return
@@ -132,12 +127,8 @@ export function NotebookSelector({
       await notebooks.addNote(notebook.id, noteId)
       onNotebooksChange([...selectedNotebooks, notebook])
 
-      // Dispatch event to update notebook tree
-      window.dispatchEvent(
-        new CustomEvent("note-added-to-notebook", {
-          detail: { noteId, notebookId: notebook.id },
-        })
-      )
+      // Update notebook tree via store
+      await moveNoteToNotebook(noteId, notebook.id, null)
     } catch (error) {
       console.error("Error adding note to notebook:", error)
     } finally {
@@ -153,12 +144,8 @@ export function NotebookSelector({
       await notebooks.removeNote(notebook.id, noteId)
       onNotebooksChange(selectedNotebooks.filter((n) => n.id !== notebook.id))
 
-      // Dispatch event to update notebook tree
-      window.dispatchEvent(
-        new CustomEvent("note-removed-from-notebook", {
-          detail: { noteId, notebookId: notebook.id },
-        })
-      )
+      // Update notebook tree via store
+      removeNoteFromNotebook(noteId, notebook.id)
     } catch (error) {
       console.error("Error removing note from notebook:", error)
     } finally {
