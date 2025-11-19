@@ -93,14 +93,12 @@ const BrowsePage = () => {
       <Stack gap={4}>
         {displayNotes.map((a) => {
           const lines = a.content.trim().split("\n")
-          const heading =
-            lines.length > 0 ? lines[0].replaceAll("#", "").trim() : a.title
           return (
             <Card.Root key={a.id} size="sm">
               <Card.Header>
                 <ChakraLink asChild>
                   <Link to={`/notes/${a.id}`}>
-                    <Heading size="md">{heading}</Heading>
+                    <Heading size="md">{a.title || "Untitled"}</Heading>
                   </Link>
                 </ChakraLink>
               </Card.Header>

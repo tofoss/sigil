@@ -140,7 +140,8 @@ function CodeViewer(props: CodeProps) {
     <Code
       as="pre"
       size="lg"
-      fontSize="1rem"
+      fontSize="0.875rem"
+      fontFamily="'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
       color="white"
       p={4}
       borderRadius="sm"

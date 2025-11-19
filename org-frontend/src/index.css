@@ -1,3 +1,12 @@
+/* Code block font override */
+code[class*="language-"],
+pre[class*="language-"],
+code,
+pre {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
 /* Custom scrollbar styles */
 
 /* Firefox */
@@ -37,5 +46,28 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #718096; /* gray.500 */
+  }
+}
+
+/* Text selection styles for better contrast in dark mode */
+::selection {
+  background: #319795; /* teal.500 */
+  color: white;
+}
+
+::-moz-selection {
+  background: #319795; /* teal.500 */
+  color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::selection {
+    background: #38b2ac; /* teal.400 */
+    color: #1a202c; /* gray.900 */
+  }
+
+  ::-moz-selection {
+    background: #38b2ac; /* teal.400 */
+    color: #1a202c; /* gray.900 */
   }
 }
