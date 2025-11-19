@@ -1,5 +1,15 @@
-import { Box } from "@chakra-ui/react"
+import { Box, Button, IconButton, useDisclosure } from "@chakra-ui/react"
+import { LuX } from "react-icons/lu"
 import { noteClient } from "api"
+import {
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogCloseTrigger,
+} from "components/ui/dialog"
 import { Skeleton } from "components/ui/skeleton"
 import { Editor } from "modules/editor"
 import { useState } from "react"
@@ -13,6 +23,7 @@ const notePage = () => {
   const navigate = useNavigate()
   const shouldEdit = searchParams.get("edit") === "true"
   const [isDeleting, setIsDeleting] = useState(false)
+  const { open, onOpen, onClose } = useDisclosure()
 
   if (!id) {
     return <ErrorBoundary />
@@ -24,12 +35,13 @@ const notePage = () => {
     error,
   } = useFetch(() => noteClient.fetch(id), [id])
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this note?")) {
-      return
-    }
+  const handleDeleteClick = () => {
+    onOpen()
+  }
 
+  const handleDeleteConfirm = async () => {
     setIsDeleting(true)
+    onClose()
     try {
       await noteClient.delete(id)
 
@@ -69,8 +81,42 @@ const notePage = () => {
       <Editor
         note={note}
         mode={shouldEdit ? "Edit" : "Display"}
-        onDelete={handleDelete}
+        onDelete={handleDeleteClick}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <DialogRoot open={open} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Note</DialogTitle>
+          </DialogHeader>
+          <DialogCloseTrigger asChild>
+            <IconButton
+              variant="ghost"
+              size="sm"
+              aria-label="Close"
+              position="absolute"
+              top="2"
+              right="2"
+            >
+              <LuX />
+            </IconButton>
+          </DialogCloseTrigger>
+          <DialogBody>
+            Are you sure you want to delete this note? This action cannot be
+            undone.
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              colorPalette="red"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
     </Box>
   )
 }
