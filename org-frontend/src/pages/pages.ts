@@ -23,6 +23,7 @@ interface Pages {
     new: Page
     recipe: Page
     notebooks: Page
+    browse: Page
   }
   sub: {
     note: Page
@@ -58,6 +59,11 @@ export const pages: Pages = {
       path: "/notebooks",
       display: "Notebooks",
       icon: LuBookOpen,
+    },
+    browse: {
+      path: "/notes/browse",
+      display: "Browse",
+      icon: LuHome,
     },
   },
   sub: {
