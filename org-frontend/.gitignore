@@ -23,3 +23,5 @@ storybook-static
 *.sw?
 
 .pnpm-store
+
+.env
