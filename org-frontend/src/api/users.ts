@@ -26,6 +26,13 @@ export const userClient = {
     })
   },
 
+  register: function (username: string, password: string) {
+    return client.post("users/register", {
+      json: { username: username, password: password },
+      credentials: "include",
+    })
+  },
+
   refresh: function () {
     return client.post("users/refresh", {
       credentials: "include",

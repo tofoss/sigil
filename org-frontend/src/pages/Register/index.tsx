@@ -6,14 +6,14 @@ import { Button } from "components/ui/button"
 import { useNavigate, Link } from "shared/Router"
 import { userClient } from "api/users"
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
   const { call, loading, error } = apiRequest()
   const navigate = useNavigate()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!username || !password) {
@@ -21,13 +21,13 @@ const LoginPage = () => {
       return
     }
 
-    await call(() => userClient.login(username, password))
+    await call(() => userClient.register(username, password))
 
     if (!error && !loading) {
       setErrorMessage(undefined)
-      navigate("/")
+      navigate("/login")
     } else if (error && !loading) {
-      setErrorMessage("Wrong username or password")
+      setErrorMessage("Registration failed. Username may already exist.")
     } else {
       setErrorMessage(undefined)
     }
@@ -44,14 +44,14 @@ const LoginPage = () => {
       boxShadow="lg"
     >
       <Heading as="h1" size="lg" textAlign="center" mb={6}>
-        Login
+        Register
       </Heading>
       {errorMessage && (
         <Text color="red.500" mb={4} textAlign="center">
           {errorMessage}
         </Text>
       )}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleRegister}>
         <VStack>
           <Field label="Username">
             <Input
@@ -68,15 +68,15 @@ const LoginPage = () => {
             />
           </Field>
           <Button type="submit" width="full" loading={loading}>
-            Login
+            Register
           </Button>
           <Text fontSize="sm">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              to="/register"
+              to="/login"
               style={{ color: "var(--chakra-colors-blue-500)" }}
             >
-              Register
+              Login
             </Link>
           </Text>
         </VStack>
@@ -85,4 +85,4 @@ const LoginPage = () => {
   )
 }
 
-export const Component = LoginPage
+export const Component = RegisterPage

@@ -16,6 +16,10 @@ export const router = createBrowserRouter([
         path: pages.public.login.path,
         lazy: () => import("./Login"),
       },
+      {
+        path: pages.public.register.path,
+        lazy: () => import("./Register"),
+      },
     ],
   },
   {

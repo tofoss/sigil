@@ -6,6 +6,7 @@ import {
   LuHome,
   LuLogIn,
   LuPlus,
+  LuUserPlus,
 } from "react-icons/lu"
 
 interface Page {
@@ -17,6 +18,7 @@ interface Page {
 interface Pages {
   public: {
     login: Page
+    register: Page
   }
   private: {
     home: Page
@@ -37,6 +39,11 @@ export const pages: Pages = {
       path: "/login",
       display: "Login",
       icon: LuLogIn,
+    },
+    register: {
+      path: "/register",
+      display: "Register",
+      icon: LuUserPlus,
     },
   },
   private: {

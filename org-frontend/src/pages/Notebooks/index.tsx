@@ -6,6 +6,7 @@ import {
   Grid,
   Heading,
   HStack,
+  IconButton,
   Input,
   Text,
   Stack,
@@ -24,11 +25,12 @@ import {
   DialogCloseTrigger,
 } from "components/ui/dialog"
 import { Field } from "components/ui/field"
-import { LuPlus } from "react-icons/lu"
+import { LuPlus, LuX } from "react-icons/lu"
 import { useFetch } from "utils/http"
 import { useState } from "react"
 import { Link } from "shared/Router"
 import { pages } from "pages/pages"
+import { useTreeStore } from "stores/treeStore"
 
 export function Component() {
   const [refreshKey, setRefreshKey] = useState(0)
@@ -38,12 +40,22 @@ export function Component() {
   const { open, onOpen, onClose } = useDisclosure()
   const [newNotebook, setNewNotebook] = useState({ name: "", description: "" })
   const [creating, setCreating] = useState(false)
+  const { addNotebook } = useTreeStore()
 
   const handleCreate = async () => {
     if (newNotebook.name.trim() && !creating) {
       try {
         setCreating(true)
-        await notebooks.create(newNotebook)
+        const created = await notebooks.create(newNotebook)
+
+        // Update treeview
+        addNotebook({
+          id: created.id,
+          title: created.name,
+          sections: [],
+          unsectioned: [],
+        })
+
         onClose()
         setNewNotebook({ name: "", description: "" })
         setRefreshKey((prev) => prev + 1)
@@ -86,6 +98,18 @@ export function Component() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Notebook</DialogTitle>
+            <DialogCloseTrigger asChild>
+              <IconButton
+                variant="ghost"
+                size="sm"
+                aria-label="Close"
+                position="absolute"
+                top={2}
+                right={2}
+              >
+                <LuX />
+              </IconButton>
+            </DialogCloseTrigger>
           </DialogHeader>
           <DialogBody>
             <Stack gap={4}>
@@ -113,9 +137,6 @@ export function Component() {
             </Stack>
           </DialogBody>
           <DialogFooter>
-            <DialogCloseTrigger asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogCloseTrigger>
             <Button
               onClick={handleCreate}
               disabled={!newNotebook.name.trim() || creating}
