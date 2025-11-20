@@ -3,12 +3,14 @@ import { Box, Input, Heading, VStack, Text } from "@chakra-ui/react"
 import { Field } from "components/ui/field"
 import { apiRequest } from "utils/http"
 import { Button } from "components/ui/button"
+import { Alert } from "components/ui/alert"
 import { useNavigate, Link } from "shared/Router"
 import { userClient } from "api/users"
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [inviteCode, setInviteCode] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
   const { call, loading, error } = apiRequest()
   const navigate = useNavigate()
@@ -16,20 +18,22 @@ const RegisterPage = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!username || !password) {
+    if (!username || !password || !inviteCode) {
       setErrorMessage("Please fill in all fields.")
       return
     }
 
-    await call(() => userClient.register(username, password))
+    const result = await call(() =>
+      userClient.register(username, password, inviteCode)
+    )
 
-    if (!error && !loading) {
+    if (result) {
       setErrorMessage(undefined)
       navigate("/login")
-    } else if (error && !loading) {
-      setErrorMessage("Registration failed. Username may already exist.")
     } else {
-      setErrorMessage(undefined)
+      setErrorMessage(
+        "Registration failed. Invalid invite code or username already exists."
+      )
     }
   }
 
@@ -47,12 +51,24 @@ const RegisterPage = () => {
         Register
       </Heading>
       {errorMessage && (
-        <Text color="red.500" mb={4} textAlign="center">
-          {errorMessage}
-        </Text>
+        <Alert
+          status="error"
+          title={errorMessage}
+          mb={4}
+          closable
+          onClose={() => setErrorMessage(undefined)}
+        />
       )}
       <form onSubmit={handleRegister}>
         <VStack>
+          <Field label="Invite Code">
+            <Input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              placeholder="Enter your invite code"
+            />
+          </Field>
           <Field label="Username">
             <Input
               type="text"

@@ -3,6 +3,7 @@ import { Box, Input, Heading, VStack, Text } from "@chakra-ui/react"
 import { Field } from "components/ui/field"
 import { apiRequest } from "utils/http"
 import { Button } from "components/ui/button"
+import { Alert } from "components/ui/alert"
 import { useNavigate, Link } from "shared/Router"
 import { userClient } from "api/users"
 
@@ -21,15 +22,13 @@ const LoginPage = () => {
       return
     }
 
-    await call(() => userClient.login(username, password))
+    const result = await call(() => userClient.login(username, password))
 
-    if (!error && !loading) {
+    if (result) {
       setErrorMessage(undefined)
       navigate("/")
-    } else if (error && !loading) {
-      setErrorMessage("Wrong username or password")
     } else {
-      setErrorMessage(undefined)
+      setErrorMessage("Wrong username or password")
     }
   }
 
@@ -47,9 +46,13 @@ const LoginPage = () => {
         Login
       </Heading>
       {errorMessage && (
-        <Text color="red.500" mb={4} textAlign="center">
-          {errorMessage}
-        </Text>
+        <Alert
+          status="error"
+          title={errorMessage}
+          mb={4}
+          closable
+          onClose={() => setErrorMessage(undefined)}
+        />
       )}
       <form onSubmit={handleLogin}>
         <VStack>
