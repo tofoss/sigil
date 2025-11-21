@@ -35,16 +35,16 @@ docker-compose up db -d
 export $(grep -v '^#' .env | xargs)
 
 # Install frontend dependencies
-cd org-frontend && pnpm install
+cd sigil-frontend && pnpm install
 
 # Run database migrations
 # (migrations in db/ folder)
 
 # Start backend
-cd org-go && go run cmd/server/main.go
+cd sigil-go && go run cmd/server/main.go
 
 # Start frontend (new terminal)
-cd org-frontend && pnpm dev
+cd sigil-frontend && pnpm dev
 ```
 
 Open `http://localhost:5173` and begin inscribing.
@@ -80,7 +80,7 @@ XSRF_SECRET=<generate with: openssl rand -base64 32>
 # Database
 PGHOST=localhost
 PGPORT=5432
-PGDATABASE=org
+PGDATABASE=sigil
 PGUSER=postgres
 PGPASSWORD=yourpassword
 
@@ -119,7 +119,7 @@ Your thoughts are precious. Back them up:
 
 Set up a cron job for automatic daily backups:
 ```bash
-0 2 * * * /path/to/sigil/scripts/backup-db.sh >> ~/org-backups/backup.log 2>&1
+0 2 * * * /path/to/sigil/scripts/backup-db.sh >> ~/sigil-backups/backup.log 2>&1
 ```
 
 ## Philosophy

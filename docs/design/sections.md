@@ -139,12 +139,12 @@ CREATE TABLE note_notebooks (
 ### Backend Implementation (Phase 1 Complete ✅)
 
 **Completed in Phase 1:**
-- ✅ `models.Section` struct (org-go/pkg/models/section.go)
-- ✅ Complete `SectionRepository` with 9 methods (org-go/pkg/db/repositories/sections.go):
+- ✅ `models.Section` struct (sigil-go/pkg/models/section.go)
+- ✅ Complete `SectionRepository` with 9 methods (sigil-go/pkg/db/repositories/sections.go):
   - `Upsert`, `FetchSection`, `FetchNotebookSections`
   - `DeleteSection`, `UpdateSectionPosition`, `UpdateSectionName`
   - `AssignNoteToSection`, `FetchSectionNotes`, `FetchUnsectionedNotes`
-- ✅ Complete `SectionHandler` with 9 handler methods (org-go/pkg/handlers/section_handler.go)
+- ✅ Complete `SectionHandler` with 9 handler methods (sigil-go/pkg/handlers/section_handler.go)
 - ✅ Full ownership verification via notebook ownership
 - ✅ Repository interfaces (`SectionRepositoryInterface`, `NotebookRepositoryInterface`)
 - ✅ All 9 API endpoints implemented and tested
@@ -863,23 +863,23 @@ func (h *SectionHandler) verifyOwnership(
 
 ### Backend (Phase 1)
 - Database schema: `db/V04__structurization.sql`
-- Models: `org-go/pkg/models/section.go`, `org-go/pkg/models/notebook.go` (added section_id field)
-- Repository: `org-go/pkg/db/repositories/sections.go`
-- Handler: `org-go/pkg/handlers/section_handler.go`
-- Tests: `org-go/pkg/handlers/section_handler_test.go` (62 test cases)
+- Models: `sigil-go/pkg/models/section.go`, `sigil-go/pkg/models/notebook.go` (added section_id field)
+- Repository: `sigil-go/pkg/db/repositories/sections.go`
+- Handler: `sigil-go/pkg/handlers/section_handler.go`
+- Tests: `sigil-go/pkg/handlers/section_handler_test.go` (62 test cases)
 
 ### Frontend (Phases 2-4)
-- API Client: `org-frontend/src/api/sections.ts`
-- Models: `org-frontend/src/api/model/notebook.ts` (added section_id), `org-frontend/src/api/model/section.ts`
+- API Client: `sigil-frontend/src/api/sections.ts`
+- Models: `sigil-frontend/src/api/model/notebook.ts` (added section_id), `sigil-frontend/src/api/model/section.ts`
 - Components:
-  - `org-frontend/src/components/ui/section-card.tsx` - Main section display
-  - `org-frontend/src/components/ui/sortable-section-card.tsx` - Drag-and-drop wrapper
-  - `org-frontend/src/components/ui/section-dialog.tsx` - Create/edit modal
-  - `org-frontend/src/components/ui/section-selector.tsx` - Section assignment dropdown
-  - `org-frontend/src/components/ui/draggable-note.tsx` - Draggable note component
-- Pages: `org-frontend/src/pages/Notebook/index.tsx` - Updated with sections support
-- Utilities: `org-frontend/src/utils/use-collapsed-sections.ts` - Collapse state hook
-- Editor: `org-frontend/src/modules/editor/Editor.tsx` - Added section selector button
+  - `sigil-frontend/src/components/ui/section-card.tsx` - Main section display
+  - `sigil-frontend/src/components/ui/sortable-section-card.tsx` - Drag-and-drop wrapper
+  - `sigil-frontend/src/components/ui/section-dialog.tsx` - Create/edit modal
+  - `sigil-frontend/src/components/ui/section-selector.tsx` - Section assignment dropdown
+  - `sigil-frontend/src/components/ui/draggable-note.tsx` - Draggable note component
+- Pages: `sigil-frontend/src/pages/Notebook/index.tsx` - Updated with sections support
+- Utilities: `sigil-frontend/src/utils/use-collapsed-sections.ts` - Collapse state hook
+- Editor: `sigil-frontend/src/modules/editor/Editor.tsx` - Added section selector button
 
 ## References
 

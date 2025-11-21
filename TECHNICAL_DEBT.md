@@ -11,32 +11,32 @@ Generated: 2025-11-19
 No index created for TSV column - full table scans on search.
 
 ### 10. No SSRF Protection on Recipe URLs
-**File**: `org-go/pkg/services/recipe_processor.go:116-142`
+**File**: `sigil-go/pkg/services/recipe_processor.go:116-142`
 
 URLs passed without validation for schemes or private IP ranges.
 
 ### 11. Console.log in Production Code
-**File**: `org-frontend/src/modules/editor/Editor.tsx:1,151,186,222-223`
+**File**: `sigil-frontend/src/modules/editor/Editor.tsx:1,151,186,222-223`
 
 Debug logs with eslint rule disabled.
 
 ### 12. Unused Dead Code
-**File**: `org-go/pkg/db/db.go:32-45`
+**File**: `sigil-go/pkg/db/db.go:32-45`
 
 Functions `mustAtoi` and `getEnv` are never called.
 
 ### 13. N+1 Query in FetchNoteWithTags
-**File**: `org-go/pkg/db/repositories/notes.go:372-388`
+**File**: `sigil-go/pkg/db/repositories/notes.go:372-388`
 
 Two separate queries when one JOIN would suffice.
 
 ### 14. Missing Memoization
-**File**: `org-frontend/src/shared/Layout/NotebookTree/NotebookTree.tsx:87-141`
+**File**: `sigil-frontend/src/shared/Layout/NotebookTree/NotebookTree.tsx:87-141`
 
 Tree transformation runs on every render without useMemo.
 
 ### 15. Poor ErrorBoundary UX
-**File**: `org-frontend/src/pages/Note/index.tsx:124-126`
+**File**: `sigil-frontend/src/pages/Note/index.tsx:124-126`
 
 Returns only `<p>500</p>` - no error details or recovery options.
 
@@ -51,22 +51,22 @@ Multiple handlers - some log errors, others don't. No structured logging.
 Only 2 handler test files found. Missing tests for most handlers, repositories, and services.
 
 ### 18. Test Mocks Use Panic
-**File**: `org-go/pkg/handlers/note_handler_test.go`
+**File**: `sigil-go/pkg/handlers/note_handler_test.go`
 
 Mock methods panic instead of returning proper errors.
 
 ### 19. Hardcoded Autosave Interval
-**File**: `org-frontend/src/modules/editor/Editor.tsx:58`
+**File**: `sigil-frontend/src/modules/editor/Editor.tsx:58`
 
 Should be configurable.
 
 ### 20. Component Naming Convention
-**File**: `org-frontend/src/pages/Note/index.tsx:21`
+**File**: `sigil-frontend/src/pages/Note/index.tsx:21`
 
 `notePage` should be `NotePage` (PascalCase).
 
 ### 21. Unused Import
-**File**: `org-frontend/src/pages/Browse/index.tsx:14`
+**File**: `sigil-frontend/src/pages/Browse/index.tsx:14`
 
 `EmptyNoteList` imported but never used.
 

@@ -1,0 +1,196 @@
+package server
+
+import (
+	"context"
+	"log"
+
+	"tofoss/sigil-go/pkg/config"
+	"tofoss/sigil-go/pkg/db/repositories"
+	"tofoss/sigil-go/pkg/handlers"
+	"tofoss/sigil-go/pkg/middleware"
+	"tofoss/sigil-go/pkg/services"
+
+	"github.com/didip/tollbooth/v8"
+	"github.com/didip/tollbooth/v8/limiter"
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type Server struct {
+	Router   *chi.Mux
+	jobQueue *services.RecipeJobQueue
+}
+
+// NewServer creates a new server with all routes and background services
+func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Server, error) {
+	jwtKey := cfg.JWTSecret
+	xsrfKey := cfg.XSRFSecret
+
+	// Initialize repositories
+	userRepository := repositories.NewUserRepository(pool)
+	refreshTokenRepository := repositories.NewRefreshTokenRepository(pool)
+	noteRepository := repositories.NewNoteRepository(pool)
+	notebookRepository := repositories.NewNotebookRepository(pool)
+	sectionRepository := repositories.NewSectionRepository(pool)
+	tagRepository := repositories.NewTagRepository(pool)
+	recipeRepository := repositories.NewRecipeRepository(pool)
+	recipeJobRepository := repositories.NewRecipeJobRepository(pool)
+	recipeCacheRepository := repositories.NewRecipeURLCacheRepository(pool)
+	fileRepository := repositories.NewFileRepository(pool)
+	treeRepository := repositories.NewTreeRepository(pool)
+	inviteCodeRepository := repositories.NewInviteCodeRepository(pool)
+
+	// Initialize services
+	recipeProcessor, err := services.NewRecipeProcessor(
+		recipeRepository,
+		recipeJobRepository,
+		noteRepository,
+		recipeCacheRepository,
+		cfg.ContentFetchTimeout,
+		cfg.AIProcessingTimeout,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	jobQueue := services.NewRecipeJobQueue(
+		recipeJobRepository,
+		recipeProcessor,
+		cfg.JobPollInterval,
+		cfg.JobBatchSize,
+		cfg.JobMaxRetries,
+		cfg.JobTimeout,
+	)
+
+	fileConfig := services.FileConfig{
+		StorageRoot: cfg.UploadPath,
+		MaxFilesize: int(cfg.MaxFileSize),
+		SupportedFiletypes: map[string]string{
+			"image/apng":    "apng",
+			"image/avif":    "avif",
+			"image/jpeg":    "jpeg",
+			"image/png":     "png",
+			"image/gif":     "gif",
+			"image/svg+xml": "svg",
+			"image/webp":    "webp",
+		},
+	}
+
+	fileService := services.NewFileService(fileRepository, fileConfig)
+
+	// Initialize handlers
+	authConfig := handlers.AuthConfig{
+		AccessTokenDuration:  cfg.AccessTokenDuration,
+		RefreshTokenDuration: cfg.RefreshTokenDuration,
+		CookieSecure:         cfg.CookieSecure,
+	}
+	userHandler := handlers.NewUserHandler(userRepository, refreshTokenRepository, inviteCodeRepository, jwtKey, xsrfKey, authConfig)
+	noteHandler := handlers.NewNoteHandler(noteRepository)
+	notebookHandler := handlers.NewNotebookHandler(notebookRepository, noteRepository)
+	sectionHandler := handlers.NewSectionHandler(sectionRepository, notebookRepository)
+	tagHandler := handlers.NewTagHandler(tagRepository)
+	recipeHandler := handlers.NewRecipeHandler(recipeRepository, recipeJobRepository, noteRepository)
+	fileHandler := handlers.NewFileHandler(fileService, fileConfig)
+	treeHandler := handlers.NewTreeHandler(treeRepository)
+
+	// Setup rate limiter for auth endpoints
+	authLimiter := tollbooth.NewLimiter(cfg.AuthRateLimit, &limiter.ExpirableOptions{
+		DefaultExpirationTTL: cfg.RateLimitWindow,
+	})
+	authLimiter.SetMessage("Rate limit exceeded. Please try again later.")
+
+	// Setup routes
+	router := chi.NewRouter()
+	router.Use(middleware.CorsMiddleware, chiMiddleware.Logger)
+
+	router.Route("/users", func(r chi.Router) {
+		// Rate-limited auth endpoints
+		r.With(tollbooth.HTTPMiddleware(authLimiter)).Post("/register", userHandler.Register)
+		r.With(tollbooth.HTTPMiddleware(authLimiter)).Post("/login", userHandler.Login)
+
+		// Non-rate-limited endpoints
+		r.Post("/logout", userHandler.Logout)
+		r.Post("/refresh", userHandler.Refresh)
+		r.Get("/status", userHandler.Status)
+	})
+
+	router.Route("/notes", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Get("/", noteHandler.FetchUsersNotes)
+		r.Get("/search", noteHandler.SearchNotes)
+		r.Get("/{id}", noteHandler.FetchNote)
+		r.Post("/", noteHandler.PostNote)
+		r.Delete("/{id}", noteHandler.DeleteNote)
+		r.Get("/{id}/tags", noteHandler.GetNoteTags)
+		r.Put("/{id}/tags", noteHandler.AssignNoteTags)
+		r.Delete("/{id}/tags/{tagId}", noteHandler.RemoveNoteTag)
+		r.Get("/{id}/notebooks", noteHandler.GetNoteNotebooks)
+		r.Put("/{noteId}/notebooks/{notebookId}/section", sectionHandler.AssignNoteToSection)
+		r.Put("/{noteId}/notebooks/{notebookId}/position", sectionHandler.UpdateNotePosition)
+	})
+
+	router.Route("/notebooks", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Get("/", notebookHandler.FetchUserNotebooks)
+		r.Get("/{id}", notebookHandler.FetchNotebook)
+		r.Post("/", notebookHandler.PostNotebook)
+		r.Delete("/{id}", notebookHandler.DeleteNotebook)
+		r.Get("/{id}/notes", notebookHandler.FetchNotebookNotes)
+		r.Put("/{id}/notes/{noteId}", notebookHandler.AddNoteToNotebook)
+		r.Delete("/{id}/notes/{noteId}", notebookHandler.RemoveNoteFromNotebook)
+		r.Get("/{id}/sections", sectionHandler.ListNotebookSections)
+		r.Get("/{id}/unsectioned", sectionHandler.GetUnsectionedNotes)
+	})
+
+	router.Route("/sections", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Get("/{id}", sectionHandler.FetchSection)
+		r.Post("/", sectionHandler.PostSection)
+		r.Delete("/{id}", sectionHandler.DeleteSection)
+		r.Put("/{id}/position", sectionHandler.UpdateSectionPosition)
+		r.Patch("/{id}", sectionHandler.UpdateSectionName)
+		r.Get("/{id}/notes", sectionHandler.GetSectionNotes)
+	})
+
+	router.Route("/tags", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Get("/{id}", tagHandler.FetchTag)
+		r.Post("/", tagHandler.PostTag)
+		r.Get("/", tagHandler.FetchAll)
+	})
+
+	router.Route("/recipes", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Post("/", recipeHandler.CreateRecipeFromURL)
+		r.Get("/jobs/{id}", recipeHandler.GetRecipeJobStatus)
+	})
+
+	router.Route("/files", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Post("/", fileHandler.UploadFile)
+		r.Get("/{id}", fileHandler.FetchFile)
+	})
+
+	router.Route("/tree", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Get("/", treeHandler.GetTree)
+	})
+
+	return &Server{
+		Router:   router,
+		jobQueue: jobQueue,
+	}, nil
+}
+
+// Start starts the server's background services
+func (s *Server) Start(ctx context.Context) {
+	log.Printf("Starting server background services")
+	s.jobQueue.Start(ctx)
+}
+
+// Stop gracefully stops the server's background services
+func (s *Server) Stop() {
+	log.Printf("Stopping server background services")
+	s.jobQueue.Stop()
+}

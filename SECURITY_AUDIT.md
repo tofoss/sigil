@@ -81,7 +81,7 @@ git log --all --full-history -- .env
 
 **Severity**: CRITICAL
 **OWASP**: A07:2021 - Identification and Authentication Failures
-**File**: `org-go/pkg/handlers/user_handler.go:129-138`
+**File**: `sigil-go/pkg/handlers/user_handler.go:129-138`
 
 **Finding:**
 JWT tokens are created without expiration (`exp` claim), meaning tokens are valid forever.
@@ -127,7 +127,7 @@ claims := jwt.MapClaims{
 
 **Severity**: CRITICAL
 **OWASP**: A05:2021 - Security Misconfiguration
-**File**: `org-go/pkg/handlers/user_handler.go:141-157`
+**File**: `sigil-go/pkg/handlers/user_handler.go:141-157`
 
 **Finding:**
 JWT and XSRF cookies missing `MaxAge`/`Expires` attributes, creating session cookies that disappear on browser close.
@@ -193,7 +193,7 @@ xsrfCookie := http.Cookie{
 
 **Severity**: CRITICAL
 **OWASP**: A07:2021 - Identification and Authentication Failures
-**File**: `org-go/pkg/handlers/user_handler.go:185`
+**File**: `sigil-go/pkg/handlers/user_handler.go:185`
 
 **Finding:**
 Login sets cookie name `"JWT-Cookie"` but logout attempts to clear `"jwt"` - **logout does not work!**
@@ -242,7 +242,7 @@ jwtCookie := http.Cookie{
 
 **Severity**: HIGH
 **OWASP**: A10:2021 - Server-Side Request Forgery
-**File**: `org-go/pkg/handlers/recipe_handler.go:144-167`
+**File**: `sigil-go/pkg/handlers/recipe_handler.go:144-167`
 
 **Finding:**
 Incomplete validation of user-provided URLs allows requests to internal services.
@@ -334,7 +334,7 @@ if port != "" && port != "80" && port != "443" {
 
 **Severity**: HIGH
 **OWASP**: A03:2021 - Injection
-**File**: `org-go/pkg/handlers/user_handler.go:62-98`
+**File**: `sigil-go/pkg/handlers/user_handler.go:62-98`
 
 **Finding:**
 No validation on username or password fields during registration.
@@ -411,7 +411,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 **Severity**: MEDIUM-HIGH
 **OWASP**: A07:2021 - Identification and Authentication Failures
-**File**: `org-go/pkg/handlers/user_handler.go:109-120`
+**File**: `sigil-go/pkg/handlers/user_handler.go:109-120`
 
 **Finding:**
 Login endpoint reveals whether usernames exist via response timing.
@@ -478,7 +478,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 **Severity**: MEDIUM
 **OWASP**: A01:2021 - Broken Access Control
-**File**: `org-go/pkg/middleware/xsrf.go:12-22`
+**File**: `sigil-go/pkg/middleware/xsrf.go:12-22`
 
 **Finding:**
 XSRF middleware only compares cookie value to header value (string comparison), not using cryptographic validation.
@@ -564,7 +564,7 @@ func XSRFProtection(next http.Handler) http.Handler {
 
 **Severity**: MEDIUM
 **OWASP**: A01:2021 - Broken Access Control
-**File**: `org-go/pkg/handlers/recipe_handler.go:126-136`
+**File**: `sigil-go/pkg/handlers/recipe_handler.go:126-136`
 
 **Finding:**
 After verifying job ownership, recipe and note are fetched without checking if user owns them.
@@ -619,7 +619,7 @@ if job.Status == "completed" && job.RecipeID != nil && job.NoteID != nil {
 
 **Severity**: MEDIUM
 **OWASP**: A07:2021 - Identification and Authentication Failures
-**File**: `org-go/pkg/server/server.go:70-75`
+**File**: `sigil-go/pkg/server/server.go:70-75`
 
 **Finding:**
 No rate limiting on `/users/login` or `/users/register` endpoints.
@@ -669,7 +669,7 @@ router.Route("/users", func(r chi.Router) {
 
 **Severity**: MEDIUM
 **OWASP**: A05:2021 - Security Misconfiguration
-**File**: `org-go/pkg/server/server.go`
+**File**: `sigil-go/pkg/server/server.go`
 
 **Finding:**
 No security headers middleware configured.
@@ -720,7 +720,7 @@ router.Use(SecurityHeadersMiddleware)
 
 **Severity**: LOW-MEDIUM
 **OWASP**: A05:2021 - Security Misconfiguration
-**File**: `org-go/pkg/middleware/cors.go:8`
+**File**: `sigil-go/pkg/middleware/cors.go:8`
 
 **Finding:**
 Hardcoded single origin, won't work in production.
@@ -760,7 +760,7 @@ func CORSMiddleware() func(next http.Handler) http.Handler {
 
 **Severity**: MEDIUM
 **OWASP**: A05:2021 - Security Misconfiguration
-**File**: `org-go/cmd/server/main.go:35-38`
+**File**: `sigil-go/cmd/server/main.go:35-38`
 
 **Finding:**
 HTTP server has no timeouts, vulnerable to slowloris attacks.
@@ -799,7 +799,7 @@ httpServer := &http.Server{
 
 **Severity**: MEDIUM
 **OWASP**: A10:2021 - Server-Side Request Forgery
-**File**: `org-go/pkg/parser/html_parser.go:25-43`
+**File**: `sigil-go/pkg/parser/html_parser.go:25-43`
 
 **Finding:**
 Chromedp navigates to user-provided URLs without validation.
@@ -841,7 +841,7 @@ func FetchAndParse(url string) (*RecipeData, error) {
 
 **Severity**: LOW
 **OWASP**: A02:2021 - Cryptographic Failures
-**File**: `org-go/pkg/genai/deepseek.go:16`
+**File**: `sigil-go/pkg/genai/deepseek.go:16`
 
 **Finding:**
 Empty API key passed to DeepSeek client.
@@ -866,7 +866,7 @@ client := deepseek.NewClient(apiKey)
 
 **Severity**: LOW
 **OWASP**: A01:2021 - Broken Access Control
-**File**: `org-frontend/src/api/client.ts`
+**File**: `sigil-frontend/src/api/client.ts`
 
 **Finding:**
 Base ky client doesn't automatically include XSRF token - developers must remember to add via `commonHeaders()`.
@@ -901,7 +901,7 @@ export const client = ky.create({
 
 **Severity**: LOW (Properly Mitigated)
 **OWASP**: A03:2021 - Injection
-**File**: `org-frontend/src/modules/markdown/MarkdownViewer.tsx`
+**File**: `sigil-frontend/src/modules/markdown/MarkdownViewer.tsx`
 
 **Finding:**
 Using `react-markdown` which is XSS-safe by default. Links properly configured with `target="_blank"` and `rel="noopener noreferrer"`.
@@ -913,7 +913,7 @@ Using `react-markdown` which is XSS-safe by default. Links properly configured w
 ### 18. SQL Injection Protection
 
 **Severity**: LOW (Properly Mitigated)
-**Files**: All `org-go/pkg/db/repositories/*.go`
+**Files**: All `sigil-go/pkg/db/repositories/*.go`
 
 **Finding:**
 All database queries use pgx with parameterized queries (`$1`, `$2`, etc.). Excellent implementation throughout the codebase.

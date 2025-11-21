@@ -6,14 +6,14 @@
 set -e
 
 # Configuration
-BACKUP_DIR="${BACKUP_DIR:-$HOME/org-backups}"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/sigil-backups}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-DB_BACKUP_FILE="$BACKUP_DIR/org_db_$TIMESTAMP.sql.gz"
-UPLOADS_BACKUP_FILE="$BACKUP_DIR/org_uploads_$TIMESTAMP.tar.gz"
+DB_BACKUP_FILE="$BACKUP_DIR/sigil_db_$TIMESTAMP.sql.gz"
+UPLOADS_BACKUP_FILE="$BACKUP_DIR/sigil_uploads_$TIMESTAMP.tar.gz"
 
 # Docker volume names (from docker-compose)
-UPLOADS_VOLUME="${UPLOADS_VOLUME:-organizer_uploads_data}"
+UPLOADS_VOLUME="${UPLOADS_VOLUME:-sigil_uploads_data}"
 
 # Load environment variables if .env exists
 ENV_FILE="$(dirname "$0")/../.env"
@@ -32,7 +32,7 @@ echo ""
 echo "Backing up database..."
 echo "  -> $DB_BACKUP_FILE"
 
-docker exec postgres_db pg_dump -U "${PGUSER:-postgres}" "${PGDATABASE:-org}" \
+docker exec postgres_db pg_dump -U "${PGUSER:-postgres}" "${PGDATABASE:-sigil}" \
     | gzip > "$DB_BACKUP_FILE"
 
 if [ -f "$DB_BACKUP_FILE" ] && [ -s "$DB_BACKUP_FILE" ]; then
@@ -51,7 +51,7 @@ echo "  -> $UPLOADS_BACKUP_FILE"
 docker run --rm \
     -v "$UPLOADS_VOLUME":/data:ro \
     -v "$BACKUP_DIR":/backup \
-    alpine tar -czf "/backup/org_uploads_$TIMESTAMP.tar.gz" -C /data .
+    alpine tar -czf "/backup/sigil_uploads_$TIMESTAMP.tar.gz" -C /data .
 
 if [ -f "$UPLOADS_BACKUP_FILE" ] && [ -s "$UPLOADS_BACKUP_FILE" ]; then
     SIZE=$(ls -lh "$UPLOADS_BACKUP_FILE" | awk '{print $5}')
@@ -63,8 +63,8 @@ fi
 # Delete old backups
 echo ""
 echo "Cleaning up backups older than $RETENTION_DAYS days..."
-find "$BACKUP_DIR" -name "org_db_*.sql.gz" -mtime +$RETENTION_DAYS -delete
-find "$BACKUP_DIR" -name "org_uploads_*.tar.gz" -mtime +$RETENTION_DAYS -delete
+find "$BACKUP_DIR" -name "sigil_db_*.sql.gz" -mtime +$RETENTION_DAYS -delete
+find "$BACKUP_DIR" -name "sigil_uploads_*.tar.gz" -mtime +$RETENTION_DAYS -delete
 
 # Summary
 echo ""
@@ -72,4 +72,4 @@ echo "========================================"
 echo "Backup completed at $(date)"
 echo ""
 echo "Current backups:"
-ls -lh "$BACKUP_DIR"/org_*.gz 2>/dev/null || echo "  (none)"
+ls -lh "$BACKUP_DIR"/sigil_*.gz 2>/dev/null || echo "  (none)"

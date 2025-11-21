@@ -11,8 +11,8 @@ if [ -f "$ENV_FILE" ]; then
     export $(grep -v '^#' "$ENV_FILE" | xargs)
 fi
 
-BACKUP_DIR="${BACKUP_DIR:-$HOME/org-backups}"
-UPLOADS_VOLUME="${UPLOADS_VOLUME:-organizer_uploads_data}"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/sigil-backups}"
+UPLOADS_VOLUME="${UPLOADS_VOLUME:-sigil_uploads_data}"
 
 show_usage() {
     echo "Usage: $0 [--db <db_backup>] [--uploads <uploads_backup>]"
@@ -24,10 +24,10 @@ show_usage() {
     echo "Available backups in $BACKUP_DIR:"
     echo ""
     echo "Database backups:"
-    ls -lh "$BACKUP_DIR"/org_db_*.sql.gz 2>/dev/null || echo "  (none)"
+    ls -lh "$BACKUP_DIR"/sigil_db_*.sql.gz 2>/dev/null || echo "  (none)"
     echo ""
     echo "Upload backups:"
-    ls -lh "$BACKUP_DIR"/org_uploads_*.tar.gz 2>/dev/null || echo "  (none)"
+    ls -lh "$BACKUP_DIR"/sigil_uploads_*.tar.gz 2>/dev/null || echo "  (none)"
 }
 
 resolve_path() {
@@ -91,12 +91,12 @@ if [ -n "$DB_BACKUP" ]; then
 
     # Drop and recreate database via Docker
     docker exec postgres_db psql -U "${PGUSER:-postgres}" -d postgres \
-        -c "DROP DATABASE IF EXISTS ${PGDATABASE:-org};"
+        -c "DROP DATABASE IF EXISTS ${PGDATABASE:-sigil};"
 
     docker exec postgres_db psql -U "${PGUSER:-postgres}" -d postgres \
-        -c "CREATE DATABASE ${PGDATABASE:-org};"
+        -c "CREATE DATABASE ${PGDATABASE:-sigil};"
 
-    gunzip -c "$DB_FILE" | docker exec -i postgres_db psql -U "${PGUSER:-postgres}" -d "${PGDATABASE:-org}" > /dev/null
+    gunzip -c "$DB_FILE" | docker exec -i postgres_db psql -U "${PGUSER:-postgres}" -d "${PGDATABASE:-sigil}" > /dev/null
 
     echo "Database restored successfully!"
 fi

@@ -9,7 +9,7 @@ server {
 
     # Serve frontend static files
     location / {
-        root /path/to/org-frontend/dist;
+        root /path/to/sigil-frontend/dist;
         try_files $uri $uri/ /index.html;
     }
 

@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a full-stack note organization application with a Go backend and React frontend:
 
-- **Backend (org-go/)**: Go server using Chi router, PostgreSQL with pgx, JWT authentication
-- **Frontend (org-frontend/)**: React 18 + TypeScript, Vite, Chakra UI, TanStack Query
+- **Backend (sigil-go/)**: Go server using Chi router, PostgreSQL with pgx, JWT authentication
+- **Frontend (sigil-frontend/)**: React 18 + TypeScript, Vite, Chakra UI, TanStack Query
 - **Database**: PostgreSQL with versioned migrations in `db/`
 - **Package Manager**: pnpm for frontend, Go modules for backend
 
@@ -25,10 +25,10 @@ export $(grep -v '^#' .env | xargs)
 docker-compose up -d
 
 # Install frontend dependencies
-cd org-frontend && pnpm install
+cd sigil-frontend && pnpm install
 ```
 
-### Frontend Development (org-frontend/)
+### Frontend Development (sigil-frontend/)
 ```bash
 # Development server
 pnpm dev
@@ -46,7 +46,7 @@ pnpm storybook  # Component development environment
 pnpm test-storybook  # Storybook component tests
 ```
 
-### Backend Development (org-go/)
+### Backend Development (sigil-go/)
 ```bash
 # Development server
 go run cmd/server/main.go
@@ -128,7 +128,7 @@ All configuration is managed through environment variables. See `.env.example` f
 - `RATE_LIMIT_WINDOW` - Rate limit window duration (default: `1m`)
 
 ### File Storage
-- `UPLOAD_PATH` - Directory for uploaded files (default: `~/org/uploads`)
+- `UPLOAD_PATH` - Directory for uploaded files (default: `~/sigil/uploads`)
 - `MAX_FILE_SIZE` - Maximum upload size in bytes (default: `10485760` / 10MB)
 
 ### Recipe Processing

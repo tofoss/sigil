@@ -369,19 +369,19 @@ LIMIT $limit OFFSET $offset
 
 **Backend:**
 - **Migration**: `db/V08__add_full_text_search.sql`
-- **Repository**: `org-go/pkg/db/repositories/notes.go` (Upsert, AssignTagsToNote, RemoveTagFromNote, SearchNotes)
-- **Repository Interface**: `org-go/pkg/db/repositories/interfaces.go`
-- **Handler**: `org-go/pkg/handlers/note_handler.go` (SearchNotes handler)
-- **Handler Tests**: `org-go/pkg/handlers/note_handler_test.go`
-- **Router**: `org-go/pkg/server/server.go` (route registration)
+- **Repository**: `sigil-go/pkg/db/repositories/notes.go` (Upsert, AssignTagsToNote, RemoveTagFromNote, SearchNotes)
+- **Repository Interface**: `sigil-go/pkg/db/repositories/interfaces.go`
+- **Handler**: `sigil-go/pkg/handlers/note_handler.go` (SearchNotes handler)
+- **Handler Tests**: `sigil-go/pkg/handlers/note_handler_test.go`
+- **Router**: `sigil-go/pkg/server/server.go` (route registration)
 
 **Frontend:**
-- **API Client**: `org-frontend/src/api/notes.ts` (search method)
-- **Debounce Hook**: `org-frontend/src/utils/hooks/useDebounce.ts`
-- **SearchInput Component**: `org-frontend/src/components/SearchInput/SearchInput.tsx`
-- **Layout**: `org-frontend/src/shared/Layout/Layout.tsx` (navigation integration)
-- **Browse Page**: `org-frontend/src/pages/Browse/index.tsx` (search results display)
-- **useFetch Hook**: `org-frontend/src/utils/http/use-fetch.ts` (existing hook)
+- **API Client**: `sigil-frontend/src/api/notes.ts` (search method)
+- **Debounce Hook**: `sigil-frontend/src/utils/hooks/useDebounce.ts`
+- **SearchInput Component**: `sigil-frontend/src/components/SearchInput/SearchInput.tsx`
+- **Layout**: `sigil-frontend/src/shared/Layout/Layout.tsx` (navigation integration)
+- **Browse Page**: `sigil-frontend/src/pages/Browse/index.tsx` (search results display)
+- **useFetch Hook**: `sigil-frontend/src/utils/http/use-fetch.ts` (existing hook)
 
 ### Testing Strategy
 

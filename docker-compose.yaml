@@ -12,8 +12,8 @@ services:
       - "5432:5432"
 
   backend:
-    build: ./org-go
-    container_name: org_backend
+    build: ./sigil-go
+    container_name: sigil_backend
     env_file: .env
     environment:
       # Override for container path
@@ -29,10 +29,10 @@ services:
 
   frontend:
     build:
-      context: ./org-frontend
+      context: ./sigil-frontend
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8081}
-    container_name: org_frontend
+    container_name: sigil_frontend
     ports:
       - "5173:5173"
     depends_on:
