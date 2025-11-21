@@ -1,0 +1,73 @@
+/* Code block font override */
+code[class*="language-"],
+pre[class*="language-"],
+code,
+pre {
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+/* Custom scrollbar styles */
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 transparent; /* thumb track */
+}
+
+@media (prefers-color-scheme: dark) {
+  .custom-scrollbar {
+    scrollbar-color: #4a5568 transparent; /* thumb track */
+  }
+}
+
+/* Chromium browsers (Chrome, Edge, Safari, Opera) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #a0aec0; /* gray.400 */
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* gray.500 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a5568; /* gray.600 */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #718096; /* gray.500 */
+  }
+}
+
+/* Text selection styles for better contrast in dark mode */
+::selection {
+  background: #319795; /* teal.500 */
+  color: white;
+}
+
+::-moz-selection {
+  background: #319795; /* teal.500 */
+  color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::selection {
+    background: #38b2ac; /* teal.400 */
+    color: #1a202c; /* gray.900 */
+  }
+
+  ::-moz-selection {
+    background: #38b2ac; /* teal.400 */
+    color: #1a202c; /* gray.900 */
+  }
+}
