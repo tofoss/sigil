@@ -90,7 +90,7 @@ export function Layout() {
             </DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
-                <DrawerTitle>org</DrawerTitle>
+                <DrawerTitle>Sigil</DrawerTitle>
               </DrawerHeader>
               <DrawerBody>
                 <Box mb="4">
@@ -104,7 +104,7 @@ export function Layout() {
             </DrawerContent>
           </DrawerRoot>
           <Text fontSize="2xl" fontWeight="extrabold">
-            <Link to={pages.private.home.path}>org</Link>
+            <Link to={pages.private.home.path}>Sigil</Link>
           </Text>
           <Box flex="1" />
           <HStack ml="auto" gap="2">
