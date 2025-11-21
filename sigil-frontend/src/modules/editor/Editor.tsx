@@ -48,7 +48,7 @@ export function Editor(props: EditorProps) {
   const [showNotebookEditor, setShowNotebookEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
-  const { updateNoteTitle, addNoteToTree } = useTreeStore()
+  const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
 
   // Autosave refs
   const lastSavedContentRef = useRef(text)
@@ -177,8 +177,13 @@ export function Editor(props: EditorProps) {
         if (currentNoteId) {
           updateNoteTitle(updatedNote.id, updatedNote.title)
         } else {
-          // New note - add to unassigned
-          addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+          // New note - add to tree
+          // Only fetch if tree is completely empty, otherwise use optimistic update
+          if (treeData.length === 0 && unassignedNotes.length === 0) {
+            fetchTree()
+          } else {
+            addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+          }
         }
       }
     } catch (err) {
@@ -187,7 +192,7 @@ export function Editor(props: EditorProps) {
     } finally {
       isAutosavingRef.current = false
     }
-  }, [updateNoteTitle, addNoteToTree])
+  }, [updateNoteTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length])
 
   // Autosave interval
   useEffect(() => {
@@ -251,8 +256,13 @@ export function Editor(props: EditorProps) {
     if (note?.id) {
       updateNoteTitle(updatedNote.id, updatedNote.title)
     } else {
-      // New note - add to unassigned
-      addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+      // New note - add to tree
+      // Only fetch if tree is completely empty, otherwise use optimistic update
+      if (treeData.length === 0 && unassignedNotes.length === 0) {
+        fetchTree()
+      } else {
+        addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+      }
     }
   }
 

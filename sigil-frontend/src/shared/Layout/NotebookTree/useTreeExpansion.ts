@@ -103,6 +103,14 @@ export function useTreeExpansion() {
     })
   }, [])
 
+  const expandUnassigned = useCallback(() => {
+    setIsUnassignedExpanded((prev) => {
+      if (prev) return prev
+      localStorage.setItem("expanded-unassigned", JSON.stringify(true))
+      return true
+    })
+  }, [])
+
   return {
     expandedNotebooks,
     expandedSections,
@@ -116,5 +124,6 @@ export function useTreeExpansion() {
     expandAll,
     isUnassignedExpanded,
     toggleUnassigned,
+    expandUnassigned,
   }
 }

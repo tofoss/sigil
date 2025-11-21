@@ -1,10 +1,5 @@
 # TODO - Note Organization App
 
-## Highest Priority
-- [ ] Adding notes without any notebooks does not update tree-view
-- [ ] Search is too strict. If the title is "Foobar" and i search for "Foo" it does not match.
-- [ ] Search is weights are illogical, if i search for "pepper" and there is a note with the word "pepper" in its body, it shows before a note with a title containing pepper, like "Pepperkakedeig". Titles should be weighted higher for search matches than body.
-
 
 ## Critical Gaps 🔴
 

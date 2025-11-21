@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"tofoss/sigil-go/pkg/models"
 
 	"github.com/google/uuid"
@@ -315,17 +316,31 @@ func (r *NoteRepository) SearchNotes(
 	limit int,
 	offset int,
 ) ([]models.Note, error) {
+	// Transform query for prefix matching: "foo bar" -> "foo:* & bar:*"
+	tsQuery := ""
+	if query != "" {
+		words := strings.Fields(query)
+		for i, word := range words {
+			// Escape special tsquery characters and add prefix matching
+			word = strings.ReplaceAll(word, "'", "''")
+			words[i] = word + ":*"
+		}
+		tsQuery = strings.Join(words, " & ")
+	}
+
+	// Use explicit weights for ts_rank: {D, C, B, A} = {0.1, 0.2, 0.4, 1.0}
+	// This ensures title (weight A) ranks higher than content (weight B)
 	sqlQuery := `
 		SELECT id, user_id, title, content, created_at, updated_at, published_at, published,
-		       ts_rank(tsv, plainto_tsquery('english', $2)) as rank
+		       ts_rank('{0.1, 0.2, 0.4, 1.0}', tsv, to_tsquery('english', $2)) as rank
 		FROM notes
 		WHERE user_id = $1
-		  AND ($2 = '' OR tsv @@ plainto_tsquery('english', $2))
+		  AND ($2 = '' OR tsv @@ to_tsquery('english', $2))
 		ORDER BY rank DESC, updated_at DESC
 		LIMIT $3 OFFSET $4
 	`
 
-	rows, err := r.pool.Query(ctx, sqlQuery, userID, query, limit, offset)
+	rows, err := r.pool.Query(ctx, sqlQuery, userID, tsQuery, limit, offset)
 	if err != nil {
 		return nil, err
 	}

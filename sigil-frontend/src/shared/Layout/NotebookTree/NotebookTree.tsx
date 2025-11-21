@@ -66,6 +66,7 @@ export function NotebookTree() {
     expandAll,
     isUnassignedExpanded,
     toggleUnassigned,
+    expandUnassigned,
   } = useTreeExpansion()
 
   const location = useLocation()
@@ -157,6 +158,16 @@ export function NotebookTree() {
   useEffect(() => {
     fetchTree()
   }, [fetchTree])
+
+  // Track previous unassigned count to auto-expand when notes are added
+  const prevUnassignedCount = useRef(storeUnassignedNotes.length)
+  useEffect(() => {
+    // Auto-expand when unassigned notes go from 0 to > 0
+    if (prevUnassignedCount.current === 0 && storeUnassignedNotes.length > 0) {
+      expandUnassigned()
+    }
+    prevUnassignedCount.current = storeUnassignedNotes.length
+  }, [storeUnassignedNotes.length, expandUnassigned])
 
   // Auto-expand to show active note (only when ID changes)
   useEffect(() => {
