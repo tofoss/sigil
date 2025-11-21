@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./org-go
+    container_name: org_backend
+    env_file: .env
+    environment:
+      # Override for container path
+      UPLOAD_PATH: /app/uploads
+      # Database connection inside Docker network
+      PGHOST: db
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "${PORT:-8081}:${PORT:-8081}"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./org-frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8081}
+    container_name: org_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+  uploads_data:
