@@ -137,3 +137,4 @@ Sigil is built on a few core beliefs:
   <em>Every thought worth keeping deserves to be inscribed with power.</em><br>
   <strong>⚡ SIGIL ⚡</strong>
 </p>
+
