@@ -2,7 +2,6 @@
 import {
   Box,
   HStack,
-  Textarea,
   Text,
   Collapsible,
   VStack,
@@ -31,6 +30,10 @@ import { NotebookSelector } from "components/ui/notebook-selector"
 import { notebooks } from "api"
 import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { githubDark } from '@uiw/codemirror-theme-github';
+import { EditorView } from '@codemirror/view';
 
 interface EditorProps {
   note?: Note
@@ -73,72 +76,54 @@ export function Editor(props: EditorProps) {
     [note?.id]
   )
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const markdownPasteHandler = EditorView.domEventHandlers({
+    paste(event, view) {
+      const items = event.clipboardData?.items
+      if (!items) return false
 
-  const adjustHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile()
+          if (!file) continue
+          event.preventDefault();
 
-  const handlePaste = async (e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items
-    if (!items) return
+          const { from, to } = view.state.selection.main;
+          const placeholder = `![⏳](uploading image...)`;
 
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        const file = item.getAsFile()
-        if (!file) continue
+          // Insert placeholder immediately
+          view.dispatch({
+            changes: { from, to, insert: placeholder },
+          });
 
-        // Get cursor position
-        const textarea = textareaRef.current
-        const cursorPos = textarea?.selectionStart || text.length
+          (async () => {
+            const fileID = await fileClient.upload(file, note?.id)
 
-        const fileID = await fileClient.upload(file, note?.id)
-        const imageMarkdown = `![uploaded image](/files/${fileID})`
+            const doc = view.state.doc.toString();
+            const placeholderPos = doc.indexOf(placeholder);
 
-        // Insert at cursor position
-        setText((prev) => {
-          const before = prev.slice(0, cursorPos)
-          const after = prev.slice(cursorPos)
-          return before + imageMarkdown + after
-        })
+            if (placeholderPos !== -1) {
+            const imageMarkdown = `![uploaded image](/files/${fileID})`
+              view.dispatch({
+                changes: {
+                  from: placeholderPos,
+                  to: placeholderPos + placeholder.length,
+                  insert: imageMarkdown,
+                },
+              });
+            }
+          })()
 
-        // Move cursor after inserted image
-        setTimeout(() => {
-          if (textarea) {
-            const newPos = cursorPos + imageMarkdown.length
-            textarea.setSelectionRange(newPos, newPos)
-            textarea.focus()
-          }
-        }, 0)
+          return true; // We handled it
+        }
       }
-    }
-  }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab") {
-      e.preventDefault()
-
-      const textarea = e.currentTarget
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-
-      // Insert tab character at cursor position
-      const newText = text.substring(0, start) + "\t" + text.substring(end)
-      setText(newText)
-
-      // Move cursor after the inserted tab
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 1
-      }, 0)
-    }
-  }
+      return false; // Let default paste happen
+    },
+  })
 
   useEffect(() => {
-    adjustHeight()
-    adjustHeight()
+    //adjustHeight()
+    //adjustHeight()
   }, [togglePreview])
 
   useEffect(() => {
@@ -148,7 +133,6 @@ export function Editor(props: EditorProps) {
   }, [props.note])
 
   useEffect(() => {
-    console.log("noteNotebooks from backend:", noteNotebooks)
     setSelectedNotebooks(noteNotebooks || [])
   }, [noteNotebooks])
 
@@ -404,19 +388,48 @@ export function Editor(props: EditorProps) {
           <MarkdownViewer text={text} />
         </Box>
       ) : (
+        <CodeMirror
+          value={text}
+          minHeight="80vh"
+          theme={githubDark}
+          extensions={[markdown(), markdownPasteHandler]}
+          onChange={(val) => setText(val)}
+          basicSetup={{
+            lineNumbers: false,
+            highlightActiveLineGutter: false,
+            foldGutter: false,
+            dropCursor: false,
+            allowMultipleSelections: false,
+            indentOnInput: true,
+            bracketMatching: true,
+            closeBrackets: false,
+            autocompletion: true,
+            rectangularSelection: false,
+            crosshairCursor: false,
+            highlightActiveLine: false,
+            highlightSelectionMatches: false,
+            closeBracketsKeymap: false,
+            searchKeymap: false,
+            foldKeymap: false,
+            completionKeymap: false,
+            lintKeymap: false,
+          }}
+        />
+        /*
         <Textarea
           ref={textareaRef}
           value={text}
           mt="1rem"
           mb="0.5rem"
+          overflow="hidden"
+          minHeight="80vh"
           resize="none"
           onInput={adjustHeight}
           onChange={(e) => setText(e.target.value)}
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
-          overflow="hidden"
-          minHeight="80vh"
         />
+        */
       )}
     </Box>
   )
