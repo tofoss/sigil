@@ -35,9 +35,6 @@ importers:
       '@emotion/styled':
         specifier: ^11.13.0
         version: 11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@fontsource/inter':
-        specifier: ^4.5.15
-        version: 4.5.15
       '@uiw/codemirror-theme-github':
         specifier: ^4.25.3
         version: 4.25.3(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.8)
@@ -50,33 +47,21 @@ importers:
       framer-motion:
         specifier: ^9.1.7
         version: 9.1.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      intl-messageformat:
-        specifier: ^10.5.14
-        version: 10.5.14
       ky:
         specifier: ^0.33.3
         version: 0.33.3
-      lodash-es:
-        specifier: ^4.17.21
-        version: 4.17.21
       next-themes:
         specifier: ^0.4.3
         version: 0.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       prismjs:
         specifier: ^1.29.0
         version: 1.29.0
-      query-string:
-        specifier: ^8.2.0
-        version: 8.2.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
-      react-error-boundary:
-        specifier: ^3.1.4
-        version: 3.1.4(react@18.3.1)
       react-icons:
         specifier: ^5.3.0
         version: 5.3.0(react@18.3.1)
@@ -132,9 +117,6 @@ importers:
       '@trivago/prettier-plugin-sort-imports':
         specifier: 4.1.1
         version: 4.1.1(prettier@2.8.6)
-      '@types/lodash-es':
-        specifier: ^4.17.12
-        version: 4.17.12
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.3
@@ -1203,24 +1185,6 @@ packages:
   '@floating-ui/utils@0.2.8':
     resolution: {integrity: sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==}
 
-  '@fontsource/inter@4.5.15':
-    resolution: {integrity: sha512-FzleM9AxZQK2nqsTDtBiY0PMEVWvnKnuu2i09+p6DHvrHsuucoV2j0tmw+kAT3L4hvsLdAIDv6MdGehsPIdT+Q==}
-
-  '@formatjs/ecma402-abstract@2.0.0':
-    resolution: {integrity: sha512-rRqXOqdFmk7RYvj4khklyqzcfQl9vEL/usogncBHRZfZBDOwMGuSRNFl02fu5KGHXdbinju+YXyuR+Nk8xlr/g==}
-
-  '@formatjs/fast-memoize@2.2.0':
-    resolution: {integrity: sha512-hnk/nY8FyrL5YxwP9e4r9dqeM6cAbo8PeU9UjyXojZMNvVad2Z06FAVHyR3Ecw6fza+0GH7vdJgiKIVXTMbSBA==}
-
-  '@formatjs/icu-messageformat-parser@2.7.8':
-    resolution: {integrity: sha512-nBZJYmhpcSX0WeJ5SDYUkZ42AgR3xiyhNCsQweFx3cz/ULJjym8bHAzWKvG5e2+1XO98dBYC0fWeeAECAVSwLA==}
-
-  '@formatjs/icu-skeleton-parser@1.8.2':
-    resolution: {integrity: sha512-k4ERKgw7aKGWJZgTarIcNEmvyTVD9FYh0mTrrBMHZ1b8hUu6iOJ4SzsZlo3UNAvHYa+PnvntIwRPt1/vy4nA9Q==}
-
-  '@formatjs/intl-localematcher@0.5.4':
-    resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
-
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
 
@@ -1961,9 +1925,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/lodash-es@4.17.12':
-    resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
 
   '@types/lodash@4.17.7':
     resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
@@ -3197,10 +3158,6 @@ packages:
   decode-named-character-reference@1.0.2:
     resolution: {integrity: sha512-O8x12RzrUF8xyVcY0KJowWsmaJxQbmy0/EtnNtHRpsOcT7dFk5W598coHqBVpmWo1oQQfsCqfCmkZN5DJrZVdg==}
 
-  decode-uri-component@0.4.1:
-    resolution: {integrity: sha512-+8VxcR21HhTy8nOt6jf20w0c9CADrw1O8d+VZ/YzzCt4bJ3uBjw+D1q2osAB8RnpwwaeYBxy0HyKQxD5JBMuuQ==}
-    engines: {node: '>=14.16'}
-
   dedent@1.5.3:
     resolution: {integrity: sha512-NHQtfOOW68WD8lgypbLA5oT+Bt0xXJhiYvoR6SmmNXZfpzOGXwdKWmcwG8N7PwVVWV3eF/68nmD9BaJSsTBhyQ==}
     peerDependencies:
@@ -3576,10 +3533,6 @@ packages:
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
-
-  filter-obj@5.1.0:
-    resolution: {integrity: sha512-qWeTREPoT7I0bifpPUXtxkZJ1XJzxWtfoWWkdVGqa+eCr3SHW/Ocp89o8vLvbUuQnadybJpjOKu4V+RwO6sGng==}
-    engines: {node: '>=14.16'}
 
   finalhandler@1.2.0:
     resolution: {integrity: sha512-5uXcUVftlQMFnWC9qu/svkWv3GTd2PfUhK/3PLkYNAe7FbqJMt3515HaxE6eRL74GdsriiwujiawdaB1BpEISg==}
@@ -3990,9 +3943,6 @@ packages:
   internal-slot@1.0.7:
     resolution: {integrity: sha512-NGnrKwXzSms2qUUih/ILZ5JBqNTSa1+ZmP6flaIp6KmSElgE9qdndzS3cqjrDovwFdmwsGsLdeFgB6suw+1e9g==}
     engines: {node: '>= 0.4'}
-
-  intl-messageformat@10.5.14:
-    resolution: {integrity: sha512-IjC6sI0X7YRjjyVH9aUgdftcmZK7WXdHeil4KwbjDnRWjnVitKpAx3rr6t6di1joFp5188VqKcobOPA6mCLG/w==}
 
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -4504,9 +4454,6 @@ packages:
   locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
-
-  lodash-es@4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
@@ -5212,10 +5159,6 @@ packages:
     resolution: {integrity: sha512-AWJm14H1vVaO/iNZ4/hO+HyaTehuy9nRqVdkTqlJt0HWvBiBIEXFmb4C0DGeYo3Xes9rrEW+TxHsaigCbN5ICQ==}
     engines: {node: '>=0.6'}
 
-  query-string@8.2.0:
-    resolution: {integrity: sha512-tUZIw8J0CawM5wyGBiDOAp7ObdRQh4uBor/fUR9ZjmbZVvw95OD9If4w3MQxr99rg0DJZ/9CIORcpEqU5hQG7g==}
-    engines: {node: '>=14.16'}
-
   querystringify@2.2.0:
     resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
 
@@ -5261,12 +5204,6 @@ packages:
     peerDependencies:
       react: ^0.14.8 || ^15.0.1 || ^16.0.0 || ^17.0.1 || ^18.0.0
       react-dom: ^0.14.8 || ^15.0.1 || ^16.0.0 || ^17.0.1 || ^18.0.0
-
-  react-error-boundary@3.1.4:
-    resolution: {integrity: sha512-uM9uPzZJTF6wRQORmSrvOIgt4lJ9MC1sNgEOj2XGsDTRE4kmpWxg7ENK9EWNKJRMAOY9z0MuF4yIfl6gp4sotA==}
-    engines: {node: '>=10', npm: '>=6'}
-    peerDependencies:
-      react: '>=16.13.1'
 
   react-icons@5.3.0:
     resolution: {integrity: sha512-DnUk8aFbTyQPSkCfF8dbX6kQjXA9DktMeJqfjrg6cK9vwQVMxmcA3BfP4QoiztVmEHtwlTgLFsPuH2NskKT6eg==}
@@ -5601,10 +5538,6 @@ packages:
 
   spawnd@5.0.0:
     resolution: {integrity: sha512-28+AJr82moMVWolQvlAIv3JcYDkjkFTEmfDc503wxrF5l2rQ3dFz6DpbXp3kD4zmgGGldfM4xM4v1sFj/ZaIOA==}
-
-  split-on-first@3.0.0:
-    resolution: {integrity: sha512-qxQJTx2ryR0Dw0ITYyekNQWpz6f8dGd7vffGNflQQ3Iqj9NJ6qiZ7ELpZsJ/QBhIVAiDfXdag3+Gp8RvWa62AA==}
-    engines: {node: '>=12'}
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
@@ -7722,32 +7655,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.8': {}
 
-  '@fontsource/inter@4.5.15': {}
-
-  '@formatjs/ecma402-abstract@2.0.0':
-    dependencies:
-      '@formatjs/intl-localematcher': 0.5.4
-      tslib: 2.6.3
-
-  '@formatjs/fast-memoize@2.2.0':
-    dependencies:
-      tslib: 2.6.3
-
-  '@formatjs/icu-messageformat-parser@2.7.8':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.0.0
-      '@formatjs/icu-skeleton-parser': 1.8.2
-      tslib: 2.6.3
-
-  '@formatjs/icu-skeleton-parser@1.8.2':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.0.0
-      tslib: 2.6.3
-
-  '@formatjs/intl-localematcher@0.5.4':
-    dependencies:
-      tslib: 2.6.3
-
   '@hapi/hoek@9.3.0': {}
 
   '@hapi/topo@5.1.0':
@@ -8717,10 +8624,6 @@ snapshots:
   '@types/js-levenshtein@1.1.3': {}
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/lodash-es@4.17.12':
-    dependencies:
-      '@types/lodash': 4.17.7
 
   '@types/lodash@4.17.7': {}
 
@@ -10638,8 +10541,6 @@ snapshots:
     dependencies:
       character-entities: 2.0.2
 
-  decode-uri-component@0.4.1: {}
-
   dedent@1.5.3(babel-plugin-macros@3.1.0):
     optionalDependencies:
       babel-plugin-macros: 3.1.0
@@ -11169,8 +11070,6 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
 
-  filter-obj@5.1.0: {}
-
   finalhandler@1.2.0:
     dependencies:
       debug: 2.6.9
@@ -11668,13 +11567,6 @@ snapshots:
       es-errors: 1.3.0
       hasown: 2.0.2
       side-channel: 1.0.6
-
-  intl-messageformat@10.5.14:
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.0.0
-      '@formatjs/fast-memoize': 2.2.0
-      '@formatjs/icu-messageformat-parser': 2.7.8
-      tslib: 2.6.3
 
   ipaddr.js@1.9.1: {}
 
@@ -12415,8 +12307,6 @@ snapshots:
   locate-path@6.0.0:
     dependencies:
       p-locate: 5.0.0
-
-  lodash-es@4.17.21: {}
 
   lodash.debounce@4.0.8: {}
 
@@ -13329,12 +13219,6 @@ snapshots:
     dependencies:
       side-channel: 1.0.6
 
-  query-string@8.2.0:
-    dependencies:
-      decode-uri-component: 0.4.1
-      filter-obj: 5.1.0
-      split-on-first: 3.0.0
-
   querystringify@2.2.0: {}
 
   queue-microtask@1.2.3: {}
@@ -13390,11 +13274,6 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       react-is: 18.1.0
-
-  react-error-boundary@3.1.4(react@18.3.1):
-    dependencies:
-      '@babel/runtime': 7.24.8
-      react: 18.3.1
 
   react-icons@5.3.0(react@18.3.1):
     dependencies:
@@ -13817,8 +13696,6 @@ snapshots:
       wait-port: 0.2.14
     transitivePeerDependencies:
       - supports-color
-
-  split-on-first@3.0.0: {}
 
   sprintf-js@1.0.3: {}
 
