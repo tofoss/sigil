@@ -5,8 +5,8 @@ import {
   Text,
   Collapsible,
   VStack,
+  Button,
 } from "@chakra-ui/react"
-import { Button } from "components/ui/button"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -24,7 +24,7 @@ import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
 import { Tag } from "api/model/tag"
 import { Notebook } from "api/model/notebook"
-import { DataListItem, DataListRoot } from "components/ui/data-list"
+import { DataList } from "@chakra-ui/react"
 import { TagSelector } from "components/ui/tag-selector"
 import { NotebookSelector } from "components/ui/notebook-selector"
 import { notebooks } from "api"
@@ -344,28 +344,16 @@ export function Editor(props: EditorProps) {
           {note && (
             <Collapsible.Content width="100%">
               <Box paddingLeft="4">
-                <DataListRoot orientation="horizontal" size="sm">
-                  <DataListItem label="id" value={note.id} />
-                  <DataListItem label="user" value={note.userId} />
-                  <DataListItem
-                    label="created at"
-                    value={note.createdAt.toString()}
-                  />
-                  <DataListItem
-                    label="updated at"
-                    value={note.updatedAt.toString()}
-                  />
-                  <DataListItem
-                    label="published"
-                    value={note.published.toString()}
-                  />
-                  {note.publishedAt && (
-                    <DataListItem
-                      label="published at"
-                      value={note.publishedAt.toString()}
-                    />
-                  )}
-                </DataListRoot>
+                <DataList.Root orientation="horizontal" size="sm">
+                  <DataList.ItemLabel>id</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.id}</DataList.ItemValue>
+                  <DataList.ItemLabel>user</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.userId}</DataList.ItemValue>
+                  <DataList.ItemLabel>created at</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.createdAt.toString()}</DataList.ItemValue>
+                  <DataList.ItemLabel>updated at</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.updatedAt.toString()}</DataList.ItemValue>
+                </DataList.Root>
               </Box>
             </Collapsible.Content>
           )}

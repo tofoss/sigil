@@ -12,18 +12,16 @@ import {
   Stack,
   useDisclosure,
   Link as ChakraLink,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
 } from "@chakra-ui/react"
 import { notebooks } from "api"
 import { Notebook } from "api/model"
-import {
-  DialogRoot,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-  DialogCloseTrigger,
-} from "components/ui/dialog"
 import { Field } from "components/ui/field"
 import { LuPlus, LuX } from "react-icons/lu"
 import { useFetch } from "utils/http"

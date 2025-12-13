@@ -2,18 +2,6 @@ import {
   Box,
   Button,
   Card,
-  Heading,
-  HStack,
-  Icon,
-  Stack,
-  Text,
-  Link as ChakraLink,
-  useDisclosure,
-} from "@chakra-ui/react"
-import { useDroppable } from "@dnd-kit/core"
-import { sections } from "api"
-import { Note, Section } from "api/model"
-import {
   DialogBody,
   DialogCloseTrigger,
   DialogContent,
@@ -21,14 +9,20 @@ import {
   DialogHeader,
   DialogRoot,
   DialogTitle,
-} from "components/ui/dialog"
-import {
+  Heading,
+  HStack,
+  Icon,
   MenuContent,
   MenuItem,
   MenuRoot,
   MenuTrigger,
-} from "components/ui/menu"
-import { pages } from "pages/pages"
+  Stack,
+  Text,
+  useDisclosure,
+} from "@chakra-ui/react"
+import { useDroppable } from "@dnd-kit/core"
+import { sections } from "api"
+import { Note, Section } from "api/model"
 import { useState } from "react"
 import {
   LuChevronDown,
@@ -38,7 +32,6 @@ import {
   LuPencil,
   LuTrash2,
 } from "react-icons/lu"
-import { Link } from "shared/Router"
 import { useFetch } from "utils/http"
 import { useCollapsedSections } from "utils/use-collapsed-sections"
 import { DraggableNote } from "./draggable-note"
@@ -67,7 +60,6 @@ export function SectionCard({
   maxPosition = 0,
   onSuccess,
   dragHandleProps,
-  isDragging = false,
   isOver: isOverProp,
   refreshKey = 0,
 }: SectionCardProps) {

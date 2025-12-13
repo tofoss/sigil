@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
-import { Input } from "@chakra-ui/react"
+import { Input, InputGroup } from "@chakra-ui/react"
 import { LuSearch } from "react-icons/lu"
 import { useDebounce } from "utils/hooks"
-import { InputGroup } from "components/ui/input-group"
 import { useNavigate, useSearchParams, useLocation } from "shared/Router"
 
 interface SearchInputProps {

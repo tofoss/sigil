@@ -1,4 +1,5 @@
 import {
+  Blockquote,
   Box,
   Code,
   CodeProps,
@@ -24,7 +25,6 @@ import "prismjs/components/prism-lua"
 import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
-import { Blockquote } from "components/ui/blockquote"
 import React from "react"
 import { theme } from "theme"
 
@@ -68,7 +68,11 @@ export function MarkdownViewer({ text }: Props) {
             </Link>
           ),
           blockquote: ({ node, ...props }) => (
-            <Blockquote>{props.children}</Blockquote>
+            <Blockquote.Root>
+              <Blockquote.Content>
+                {props.children}
+              </Blockquote.Content>
+            </Blockquote.Root>
           ),
           ul: ({ node, ...props }) => <List.Root {...props} />,
           ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
@@ -129,7 +133,7 @@ export function MarkdownViewer({ text }: Props) {
 }
 
 function CodeViewer(props: CodeProps) {
-  const codeElement = React.Children.only(props.children) as React.ReactElement
+  const codeElement = React.Children.only(props.children) as React.ReactElement<React.HTMLAttributes<HTMLPreElement>>
 
   // Override display to block for proper rendering
   const updatedCodeElement = React.cloneElement(codeElement, {

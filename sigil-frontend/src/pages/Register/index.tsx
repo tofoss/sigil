@@ -1,9 +1,7 @@
 import React, { useState } from "react"
-import { Box, Input, Heading, VStack, Text } from "@chakra-ui/react"
+import { Box, Input, Heading, VStack, Text, Alert, Button } from "@chakra-ui/react"
 import { Field } from "components/ui/field"
 import { apiRequest } from "utils/http"
-import { Button } from "components/ui/button"
-import { Alert } from "components/ui/alert"
 import { useNavigate, Link } from "shared/Router"
 import { userClient } from "api/users"
 
@@ -12,7 +10,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("")
   const [inviteCode, setInviteCode] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
-  const { call, loading, error } = apiRequest()
+  const { call, loading } = apiRequest()
   const navigate = useNavigate()
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -51,13 +49,9 @@ const RegisterPage = () => {
         Register
       </Heading>
       {errorMessage && (
-        <Alert
-          status="error"
-          title={errorMessage}
-          mb={4}
-          closable
-          onClose={() => setErrorMessage(undefined)}
-        />
+        <Alert.Root status="error" mb={4} >
+          <Alert.Title>{errorMessage}</Alert.Title>
+        </Alert.Root>
       )}
       <form onSubmit={handleRegister}>
         <VStack>

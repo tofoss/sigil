@@ -7,12 +7,12 @@ import {
   Button,
   Badge,
   Spinner,
+  CloseButton,
 } from "@chakra-ui/react"
 import { Tag } from "api/model/tag"
 import { tagClient } from "api/tags"
-import { CloseButton } from "components/ui/close-button"
-import { useState, useEffect } from "react"
-import { LuPlus, LuX } from "react-icons/lu"
+import { useState } from "react"
+import { LuPlus } from "react-icons/lu"
 import { useFetch, apiRequest } from "utils/http"
 
 interface TagSelectorProps {

@@ -6,9 +6,9 @@ import {
   Text,
   Spinner,
   HStack,
+  Alert,
+  Button,
 } from "@chakra-ui/react"
-import { Button } from "components/ui/button"
-import { Alert } from "components/ui/alert"
 import { useState, useEffect } from "react"
 import { Field } from "components/ui/field"
 import { recipeClient } from "api"
@@ -107,9 +107,11 @@ const RecipePage = () => {
                 </Field>
 
                 {error && (
-                  <Alert status="error" title="Error">
-                    {error}
-                  </Alert>
+                  <Alert.Root status="error">
+                    <Alert.Title>
+                      {error}
+                    </Alert.Title>
+                  </Alert.Root>
                 )}
 
                 <Button
@@ -159,16 +161,20 @@ const RecipePage = () => {
 
               {jobStatus.job.status === "failed" &&
                 jobStatus.job.errorMessage && (
-                  <Alert status="error" title="Processing Failed">
+                  <Alert.Root status="error">
+                    <Alert.Title>
                     {jobStatus.job.errorMessage}
-                  </Alert>
+                  </Alert.Title>
+                  </Alert.Root>
                 )}
 
               {jobStatus.job.status === "completed" && jobStatus.recipe && (
                 <Box>
-                  <Alert status="success" title="Recipe Created Successfully!">
+                  <Alert.Root status="success">
+                    <Alert.Title>
                     {jobStatus.recipe.name} has been saved to your notes.
-                  </Alert>
+                  </Alert.Title>
+                  </Alert.Root>
 
                   <Box mt={4} p={4} bg="bg.subtle" borderRadius="md">
                     <Text fontWeight="bold" mb={2}>
