@@ -395,10 +395,6 @@ export function Editor(props: EditorProps) {
       )}
       {togglePreview ? (
         <Box
-          mt="1rem"
-          padding="1rem"
-          borderWidth="1px"
-          borderRadius="md"
           maxWidth="100%"
           width="100%"
         >
@@ -432,21 +428,6 @@ export function Editor(props: EditorProps) {
             lintKeymap: false,
           }}
         />
-        /*
-        <Textarea
-          ref={textareaRef}
-          value={text}
-          mt="1rem"
-          mb="0.5rem"
-          overflow="hidden"
-          minHeight="80vh"
-          resize="none"
-          onInput={adjustHeight}
-          onChange={(e) => setText(e.target.value)}
-          onPaste={handlePaste}
-          onKeyDown={handleKeyDown}
-        />
-        */
       )}
     </Box>
   )
