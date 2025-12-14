@@ -35,6 +35,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { EditorView } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
+import { vim } from "@replit/codemirror-vim"
 
 interface EditorProps {
   note?: Note
@@ -405,7 +406,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
+          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
           onChange={(val) => setText(val)}
           basicSetup={{
             lineNumbers: false,

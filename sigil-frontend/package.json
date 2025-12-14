@@ -24,6 +24,7 @@
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@lezer/highlight": "^1.2.3",
+    "@replit/codemirror-vim": "^6.3.0",
     "@uiw/codemirror-theme-github": "^4.25.3",
     "@uiw/react-codemirror": "^4.25.3",
     "dayjs": "^1.11.13",
