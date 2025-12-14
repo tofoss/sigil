@@ -121,10 +121,35 @@ export function Editor(props: EditorProps) {
     },
   })
 
-  useEffect(() => {
-    //adjustHeight()
-    //adjustHeight()
-  }, [togglePreview])
+  const fullHeightEditor = EditorView.theme({
+    "&": {
+      fontSize: "1.0rem",
+    },
+    ".cm-scroller": {
+      minHeight: "80vh",
+      cursor: "text",
+    },
+    ".cm-content": {
+      minHeight: "80vh",
+    },
+  })
+
+  // Click handler to focus editor when clicking in empty space
+  const clickToFocus = EditorView.domEventHandlers({
+    mousedown(event, view) {
+      const target = event.target as HTMLElement
+      // If clicking on the scroller but not on content, focus at end
+      if (target.classList.contains('cm-scroller') || target.classList.contains('cm-content')) {
+        const pos = view.state.doc.length
+        view.dispatch({
+          selection: { anchor: pos },
+        })
+        view.focus()
+        return true
+      }
+      return false
+    },
+  })
 
   useEffect(() => {
     if (props.note) {
@@ -380,7 +405,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={githubDark}
-          extensions={[markdown(), markdownPasteHandler]}
+          extensions={[markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
           onChange={(val) => setText(val)}
           basicSetup={{
             lineNumbers: false,
