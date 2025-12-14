@@ -32,8 +32,9 @@ import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
-import { githubDark } from '@uiw/codemirror-theme-github';
 import { EditorView } from '@codemirror/view';
+import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
+import { useColorModeValue } from 'components/ui/color-mode';
 
 interface EditorProps {
   note?: Note
@@ -52,6 +53,9 @@ export function Editor(props: EditorProps) {
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+
+  // Use custom theme based on color mode
+  const editorTheme = useColorModeValue(sigilLightTheme, sigilDarkTheme)
 
   // Autosave refs
   const lastSavedContentRef = useRef(text)
@@ -404,7 +408,7 @@ export function Editor(props: EditorProps) {
         <CodeMirror
           value={text}
           minHeight="80vh"
-          theme={githubDark}
+          theme={editorTheme}
           extensions={[markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
           onChange={(val) => setText(val)}
           basicSetup={{
