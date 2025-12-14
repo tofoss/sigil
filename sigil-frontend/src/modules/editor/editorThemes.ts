@@ -45,7 +45,11 @@ export const sigilDarkTheme: Extension = [
       borderLeftColor: teal[400],
     },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-      backgroundColor: teal[900],
+      backgroundColor: teal[400],
+      color: '#000000',
+    },
+    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
+      backgroundColor: teal[400],
     },
     '.cm-activeLine': {
       backgroundColor: '#161b22',
