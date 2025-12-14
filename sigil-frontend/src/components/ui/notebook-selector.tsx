@@ -7,18 +7,16 @@ import {
   useDisclosure,
   VStack,
   createListCollection,
-} from "@chakra-ui/react"
-import { notebooks, sections } from "api"
-import { Notebook } from "api/model"
-import {
   DialogRoot,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogBody,
-  DialogFooter,
   DialogCloseTrigger,
-} from "components/ui/dialog"
+  DialogFooter,
+  DialogTitle,
+} from "@chakra-ui/react"
+import { notebooks, sections } from "api"
+import { Notebook } from "api/model"
 import {
   SelectContent,
   SelectItem,

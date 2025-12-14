@@ -2,12 +2,11 @@
 import {
   Box,
   HStack,
-  Textarea,
   Text,
   Collapsible,
   VStack,
+  Button,
 } from "@chakra-ui/react"
-import { Button } from "components/ui/button"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -25,12 +24,17 @@ import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
 import { Tag } from "api/model/tag"
 import { Notebook } from "api/model/notebook"
-import { DataListItem, DataListRoot } from "components/ui/data-list"
+import { DataList } from "@chakra-ui/react"
 import { TagSelector } from "components/ui/tag-selector"
 import { NotebookSelector } from "components/ui/notebook-selector"
 import { notebooks } from "api"
 import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { EditorView } from '@codemirror/view';
+import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
+import { useColorModeValue } from 'components/ui/color-mode';
 
 interface EditorProps {
   note?: Note
@@ -49,6 +53,9 @@ export function Editor(props: EditorProps) {
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+
+  // Use custom theme based on color mode
+  const editorTheme = useColorModeValue(sigilLightTheme, sigilDarkTheme)
 
   // Autosave refs
   const lastSavedContentRef = useRef(text)
@@ -73,73 +80,80 @@ export function Editor(props: EditorProps) {
     [note?.id]
   )
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const markdownPasteHandler = EditorView.domEventHandlers({
+    paste(event, view) {
+      const items = event.clipboardData?.items
+      if (!items) return false
 
-  const adjustHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile()
+          if (!file) continue
+          event.preventDefault();
 
-  const handlePaste = async (e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items
-    if (!items) return
+          const { from, to } = view.state.selection.main;
+          const placeholder = `![⏳](uploading image...)`;
 
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        const file = item.getAsFile()
-        if (!file) continue
+          // Insert placeholder immediately
+          view.dispatch({
+            changes: { from, to, insert: placeholder },
+          });
 
-        // Get cursor position
-        const textarea = textareaRef.current
-        const cursorPos = textarea?.selectionStart || text.length
+          (async () => {
+            const fileID = await fileClient.upload(file, note?.id)
 
-        const fileID = await fileClient.upload(file, note?.id)
-        const imageMarkdown = `![uploaded image](/files/${fileID})`
+            const doc = view.state.doc.toString();
+            const placeholderPos = doc.indexOf(placeholder);
 
-        // Insert at cursor position
-        setText((prev) => {
-          const before = prev.slice(0, cursorPos)
-          const after = prev.slice(cursorPos)
-          return before + imageMarkdown + after
-        })
+            if (placeholderPos !== -1) {
+            const imageMarkdown = `![uploaded image](/files/${fileID})`
+              view.dispatch({
+                changes: {
+                  from: placeholderPos,
+                  to: placeholderPos + placeholder.length,
+                  insert: imageMarkdown,
+                },
+              });
+            }
+          })()
 
-        // Move cursor after inserted image
-        setTimeout(() => {
-          if (textarea) {
-            const newPos = cursorPos + imageMarkdown.length
-            textarea.setSelectionRange(newPos, newPos)
-            textarea.focus()
-          }
-        }, 0)
+          return true; // We handled it
+        }
       }
-    }
-  }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab") {
-      e.preventDefault()
+      return false; // Let default paste happen
+    },
+  })
 
-      const textarea = e.currentTarget
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
+  const fullHeightEditor = EditorView.theme({
+    "&": {
+      fontSize: "1.0rem",
+    },
+    ".cm-scroller": {
+      minHeight: "80vh",
+      cursor: "text",
+    },
+    ".cm-content": {
+      minHeight: "80vh",
+    },
+  })
 
-      // Insert tab character at cursor position
-      const newText = text.substring(0, start) + "\t" + text.substring(end)
-      setText(newText)
-
-      // Move cursor after the inserted tab
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 1
-      }, 0)
-    }
-  }
-
-  useEffect(() => {
-    adjustHeight()
-    adjustHeight()
-  }, [togglePreview])
+  // Click handler to focus editor when clicking in empty space
+  const clickToFocus = EditorView.domEventHandlers({
+    mousedown(event, view) {
+      const target = event.target as HTMLElement
+      // If clicking on the scroller but not on content, focus at end
+      if (target.classList.contains('cm-scroller') || target.classList.contains('cm-content')) {
+        const pos = view.state.doc.length
+        view.dispatch({
+          selection: { anchor: pos },
+        })
+        view.focus()
+        return true
+      }
+      return false
+    },
+  })
 
   useEffect(() => {
     if (props.note) {
@@ -148,7 +162,6 @@ export function Editor(props: EditorProps) {
   }, [props.note])
 
   useEffect(() => {
-    console.log("noteNotebooks from backend:", noteNotebooks)
     setSelectedNotebooks(noteNotebooks || [])
   }, [noteNotebooks])
 
@@ -360,28 +373,16 @@ export function Editor(props: EditorProps) {
           {note && (
             <Collapsible.Content width="100%">
               <Box paddingLeft="4">
-                <DataListRoot orientation="horizontal" size="sm">
-                  <DataListItem label="id" value={note.id} />
-                  <DataListItem label="user" value={note.userId} />
-                  <DataListItem
-                    label="created at"
-                    value={note.createdAt.toString()}
-                  />
-                  <DataListItem
-                    label="updated at"
-                    value={note.updatedAt.toString()}
-                  />
-                  <DataListItem
-                    label="published"
-                    value={note.published.toString()}
-                  />
-                  {note.publishedAt && (
-                    <DataListItem
-                      label="published at"
-                      value={note.publishedAt.toString()}
-                    />
-                  )}
-                </DataListRoot>
+                <DataList.Root orientation="horizontal" size="sm">
+                  <DataList.ItemLabel>id</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.id}</DataList.ItemValue>
+                  <DataList.ItemLabel>user</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.userId}</DataList.ItemValue>
+                  <DataList.ItemLabel>created at</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.createdAt.toString()}</DataList.ItemValue>
+                  <DataList.ItemLabel>updated at</DataList.ItemLabel>
+                  <DataList.ItemValue>{note.updatedAt.toString()}</DataList.ItemValue>
+                </DataList.Root>
               </Box>
             </Collapsible.Content>
           )}
@@ -394,28 +395,38 @@ export function Editor(props: EditorProps) {
       )}
       {togglePreview ? (
         <Box
-          mt="1rem"
-          padding="1rem"
-          borderWidth="1px"
-          borderRadius="md"
           maxWidth="100%"
           width="100%"
         >
           <MarkdownViewer text={text} />
         </Box>
       ) : (
-        <Textarea
-          ref={textareaRef}
+        <CodeMirror
           value={text}
-          mt="1rem"
-          mb="0.5rem"
-          resize="none"
-          onInput={adjustHeight}
-          onChange={(e) => setText(e.target.value)}
-          onPaste={handlePaste}
-          onKeyDown={handleKeyDown}
-          overflow="hidden"
           minHeight="80vh"
+          theme={editorTheme}
+          extensions={[markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
+          onChange={(val) => setText(val)}
+          basicSetup={{
+            lineNumbers: false,
+            highlightActiveLineGutter: false,
+            foldGutter: false,
+            dropCursor: false,
+            allowMultipleSelections: false,
+            indentOnInput: true,
+            bracketMatching: true,
+            closeBrackets: false,
+            autocompletion: true,
+            rectangularSelection: false,
+            crosshairCursor: false,
+            highlightActiveLine: false,
+            highlightSelectionMatches: false,
+            closeBracketsKeymap: false,
+            searchKeymap: false,
+            foldKeymap: false,
+            completionKeymap: false,
+            lintKeymap: false,
+          }}
         />
       )}
     </Box>

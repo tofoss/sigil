@@ -11,6 +11,13 @@ import {
   Text,
   useDisclosure,
   Link as ChakraLink,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
 } from "@chakra-ui/react"
 import {
   DndContext,
@@ -25,15 +32,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { notebooks, sections } from "api"
-import {
-  DialogRoot,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-  DialogCloseTrigger,
-} from "components/ui/dialog"
 import { SectionCard } from "components/ui/section-card"
 import { SectionDialog } from "components/ui/section-dialog"
 import { SortableSectionCard } from "components/ui/sortable-section-card"

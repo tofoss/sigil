@@ -7,6 +7,7 @@ import {
   Stack,
   HStack,
   Text,
+  Button,
 } from "@chakra-ui/react"
 import { noteClient } from "api"
 import { Note } from "api/model/note"
@@ -15,7 +16,6 @@ import { EmptyNoteList } from "./EmptyNoteList"
 import { MarkdownViewer } from "modules/markdown"
 import { Skeleton } from "components/ui/skeleton"
 import { Link, useSearchParams } from "shared/Router"
-import { Button } from "components/ui/button"
 import { EmptyState } from "components/ui/empty-state"
 import { LuSearch } from "react-icons/lu"
 
@@ -36,7 +36,6 @@ const BrowsePage = () => {
   const {
     data: notes,
     loading,
-    error,
   } = useFetch(
     () => noteClient.search(searchQuery, RESULTS_PER_PAGE, offset),
     [searchQuery, offset]

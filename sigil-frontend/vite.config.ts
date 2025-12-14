@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const apiUrl = env.VITE_API_URL || "http://localhost:8081"
 
   return {
-    base: '/sigil/',
+    base: "",
     plugins: [
       react(),
       tsconfigPaths(),

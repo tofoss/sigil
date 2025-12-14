@@ -1,15 +1,6 @@
-import { Box, Button, IconButton, useDisclosure } from "@chakra-ui/react"
+import { Box, Button, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTitle, IconButton, useDisclosure } from "@chakra-ui/react"
 import { LuX } from "react-icons/lu"
 import { noteClient } from "api"
-import {
-  DialogRoot,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-  DialogCloseTrigger,
-} from "components/ui/dialog"
 import { Skeleton } from "components/ui/skeleton"
 import { Editor } from "modules/editor"
 import { useState } from "react"
@@ -34,7 +25,6 @@ const notePage = () => {
   const {
     data: note,
     loading,
-    error,
   } = useFetch(() => noteClient.fetch(id), [id])
 
   const handleDeleteClick = () => {

@@ -7,8 +7,8 @@ import {
   VStack,
   Menu,
   Portal,
+  Avatar,
 } from "@chakra-ui/react"
-import { Avatar } from "components/ui/avatar"
 import { Link, Outlet, useNavigate } from "shared/Router"
 import { FiMenu } from "react-icons/fi"
 import {
@@ -153,12 +153,13 @@ export function Layout() {
             <ColorModeButton />
             <Menu.Root positioning={{ placement: "bottom-end" }}>
               <Menu.Trigger>
-                <Avatar
+                <Avatar.Root
                   colorPalette={colorPalette}
                   size="xs"
-                  name={authStatus?.username}
                   cursor="pointer"
-                />
+                >
+                  <Avatar.Fallback name={authStatus?.username} />
+                </Avatar.Root>
               </Menu.Trigger>
               <Portal>
                 <Menu.Positioner>

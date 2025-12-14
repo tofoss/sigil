@@ -1,15 +1,6 @@
-import { Button, Input, Stack } from "@chakra-ui/react"
+import { Button, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTitle, Input, Stack } from "@chakra-ui/react"
 import { sections } from "api"
 import { Section } from "api/model"
-import {
-  DialogBody,
-  DialogCloseTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
-} from "components/ui/dialog"
 import { Field } from "components/ui/field"
 import { useState } from "react"
 import { useTreeStore } from "stores/treeStore"
