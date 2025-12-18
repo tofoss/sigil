@@ -58,23 +58,6 @@ export const router = createBrowserRouter([
         path: pages.sub.notebook.path,
         lazy: () => import("./Notebook"),
       },
-      /*
-		{
-			path: "/products",
-			loader: productsPageLoader,
-			lazy: () => import("./Products"),
-		},
-		{
-			path: "/products/:productId",
-			loader: productPageLoader,
-			lazy: () => import("./Product"),
-		},
-		{
-			path: "/cart/:cartId",
-			loader: cartPageLoader,
-			lazy: () => import("./Cart"),
-		},
-		*/
     ],
   },
 ])

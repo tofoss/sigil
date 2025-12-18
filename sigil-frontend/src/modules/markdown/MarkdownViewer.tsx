@@ -25,14 +25,34 @@ import "prismjs/components/prism-lua"
 import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
-import React from "react"
+import React, { useEffect } from "react"
 import { theme } from "theme"
+import { useLocation } from "shared/Router"
 
 interface Props {
   text: string
 }
 
 export function MarkdownViewer({ text }: Props) {
+  const { hash: url } = useLocation()
+
+  useEffect(() => {
+    if (!url) return
+
+    const id = url.split("#")[1]
+    if (!id) return
+
+    const el = document.getElementById(id)
+
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [url]);
+
+  function id(str: string) {
+    return str.replaceAll(' ', '-')
+  }
+
   return (
     <Box maxWidth="100%" width="100%" minWidth="0">
       <ReactMarkdown
@@ -40,16 +60,16 @@ export function MarkdownViewer({ text }: Props) {
         rehypePlugins={[rehypePrism]}
         components={{
           h1: ({ node, ...props }) => (
-            <Heading as="h1" size="2xl" my={4} {...props} />
+            <a href={`#${id(props.children)}`}><Heading as="h1" size="2xl" my={4} id={id(props.children)} {...props} /></a>
           ),
           h2: ({ node, ...props }) => (
-            <Heading as="h2" size="xl" my={4} {...props} />
+            <a href={`#${id(props.children)}`}><Heading as="h2" size="xl" my={4} id={id(props.children)} {...props} /></a>
           ),
           h3: ({ node, ...props }) => (
-            <Heading as="h3" size="lg" my={3} {...props} />
+            <a href={`#${id(props.children)}`}><Heading as="h3" size="lg" my={3} id={id(props.children)} {...props} /></a>
           ),
           h4: ({ node, ...props }) => (
-            <Heading as="h4" size="md" my={3} {...props} />
+            <a href={`#${id(props.children)}`}><Heading as="h4" size="md" my={3} id={id(props.children)} {...props} /></a>
           ),
           p: ({ node, ...props }) => (
             <Box as="p" my={2} whiteSpace="pre-wrap" {...props} />
