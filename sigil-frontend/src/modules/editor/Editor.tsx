@@ -36,12 +36,15 @@ import { EditorView } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
 import { vim } from "@replit/codemirror-vim"
+import { historyField } from '@codemirror/commands';
 
 interface EditorProps {
   note?: Note
   mode?: "Display" | "Edit"
   onDelete?: () => void
 }
+
+const stateFields = { history: historyField };
 
 export function Editor(props: EditorProps) {
   const [note, setNote] = useState<Note | undefined>(props.note)
@@ -54,6 +57,7 @@ export function Editor(props: EditorProps) {
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+  const initialState = note?.id ? localStorage.getItem(note.id) : null
 
   // Use custom theme based on color mode
   const editorTheme = useColorModeValue(sigilLightTheme, sigilDarkTheme)
@@ -107,7 +111,7 @@ export function Editor(props: EditorProps) {
             const placeholderPos = doc.indexOf(placeholder);
 
             if (placeholderPos !== -1) {
-            const imageMarkdown = `![uploaded image](/files/${fileID})`
+              const imageMarkdown = `![uploaded image](/files/${fileID})`
               view.dispatch({
                 changes: {
                   from: placeholderPos,
@@ -406,8 +410,22 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
-          onChange={(val) => setText(val)}
+          extensions={[ vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
+          initialState={
+            initialState
+              ? {
+                json: JSON.parse(initialState),
+                fields: stateFields,
+              }
+              : undefined
+          }
+          onChange={(val, viewUpdate) => {
+            setText(val)
+            if (note?.id) {
+              const state = viewUpdate.state.toJSON(stateFields);
+              localStorage.setItem(note.id, JSON.stringify(state));
+            }
+          }}
           basicSetup={{
             lineNumbers: false,
             highlightActiveLineGutter: false,
