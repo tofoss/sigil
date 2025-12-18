@@ -41,12 +41,12 @@ export function TableOfContents({ content, isVisible }: TableOfContentsProps) {
   if (!isVisible) return null
 
   // Render heading and its children recursively
-  const renderHeading = (heading: Heading, depth: number = 0) => {
+  const renderHeading = (heading: Heading, depth: number = 0, index: number = 0) => {
     const isActive = activeHeadingId === heading.id
     const indent = depth * 12
 
     return (
-      <Box key={heading.id} width="100%">
+      <Box key={`${heading.id}-${index}`} width="100%">
         <Link
           href={`#${heading.id}`}
           fontSize="sm"
@@ -65,7 +65,7 @@ export function TableOfContents({ content, isVisible }: TableOfContentsProps) {
         >
           {heading.text}
         </Link>
-        {heading.children.map((child) => renderHeading(child, depth + 1))}
+        {heading.children.map((child, childIndex) => renderHeading(child, depth + 1, childIndex))}
       </Box>
     )
   }
@@ -83,8 +83,8 @@ export function TableOfContents({ content, isVisible }: TableOfContentsProps) {
       className="custom-scrollbar"
       p={4}
     >
-      <VStack align="start" gap={0} width="100%">
-        {headings.map((heading) => renderHeading(heading, 0))}
+      <VStack key={content.substring(0, 100)} align="start" gap={0} width="100%">
+        {headings.map((heading, index) => renderHeading(heading, 0, index))}
       </VStack>
     </Box>
   )
