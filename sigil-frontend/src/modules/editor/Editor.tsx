@@ -37,6 +37,7 @@ import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
 import { vim } from "@replit/codemirror-vim"
 import { historyField } from '@codemirror/commands';
+import { useTOC } from 'shared/Layout';
 
 interface EditorProps {
   note?: Note
@@ -58,6 +59,7 @@ export function Editor(props: EditorProps) {
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+  const { setContent: setTOCContent } = useTOC()
   const initialState = note?.id ? localStorage.getItem(note.id) : null
 
   // Use custom theme based on color mode
@@ -192,6 +194,9 @@ export function Editor(props: EditorProps) {
         setNote(updatedNote)
         lastSavedContentRef.current = currentText
 
+        // Update TOC with current content
+        setTOCContent(currentText)
+
         // Update sidebar tree via store
         if (currentNoteId) {
           updateNoteTitle(updatedNote.id, updatedNote.title)
@@ -211,7 +216,7 @@ export function Editor(props: EditorProps) {
     } finally {
       isAutosavingRef.current = false
     }
-  }, [updateNoteTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length])
+  }, [updateNoteTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length, setTOCContent])
 
   // Autosave interval
   useEffect(() => {
@@ -256,6 +261,9 @@ export function Editor(props: EditorProps) {
 
     setNote(updatedNote)
     lastSavedContentRef.current = text
+
+    // Update TOC with current content
+    setTOCContent(text)
 
     // Save tags if note has an ID and tags have changed
     if (
