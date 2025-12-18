@@ -48,13 +48,6 @@ export function Layout() {
   // TOC state management
   const [tocContent, setTocContent] = useState<string | null>(null)
 
-  const hasHeadings = useMemo(() => {
-    if (!tocContent) return false
-    return /^#{1,4}\s+.+$/m.test(tocContent)
-  }, [tocContent])
-
-  const showTOC = hasHeadings
-
   if (authStatus !== null && !authStatus.loggedIn) {
     navigate("/login")
   }
@@ -78,7 +71,7 @@ export function Layout() {
   }
 
   return (
-    <TOCContext.Provider value={{ content: tocContent, hasHeadings, setContent: setTocContent }}>
+    <TOCContext.Provider value={{ content: tocContent, setContent: setTocContent }}>
       <VStack
         bg="bg.subtle"
         height="100%"
@@ -241,32 +234,29 @@ export function Layout() {
             </Box>
           </Box>
 
-          {/* Right Sidebar - TOC (Conditional) */}
-          {showTOC && (
+          <Box
+            width="270px"
+            minWidth="270px"
+            maxWidth="270px"
+            height="calc(100vh - 3rem)"
+            position="sticky"
+            top="3rem"
+            hideBelow="lg"
+          >
             <Box
-              width="270px"
-              minWidth="270px"
-              maxWidth="270px"
-              height="calc(100vh - 3rem)"
-              position="sticky"
-              top="3rem"
-              hideBelow="lg"
+              overflowY="auto"
+              overflowX="hidden"
+              height="100%"
+              pb={4}
+              pr={2}
+              className="custom-scrollbar"
             >
-              <Box
-                overflowY="auto"
-                overflowX="hidden"
-                height="100%"
-                pb={4}
-                pr={2}
-                className="custom-scrollbar"
-              >
-                <TableOfContents
-                  content={tocContent || ""}
-                  isVisible={showTOC}
-                />
-              </Box>
+              <TableOfContents
+                content={tocContent || ""}
+                isVisible={true}
+              />
             </Box>
-          )}
+          </Box>
         </HStack>
       </VStack>
     </TOCContext.Provider>
