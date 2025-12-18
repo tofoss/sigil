@@ -93,6 +93,12 @@ export function Layout() {
           p="0.25rem"
           pl="0.5rem"
           pr="0.5rem"
+          position="sticky"
+          top="0"
+          zIndex="10"
+          bg="bg.subtle"
+          borderBottomWidth="1px"
+          borderColor="border.subtle"
         >
           <DrawerRoot placement="start">
             <DrawerBackdrop />
@@ -200,7 +206,9 @@ export function Layout() {
             width="300px"
             minWidth="300px"
             maxWidth="300px"
-            height="100vh"
+            height="calc(100vh - 3rem)"
+            position="sticky"
+            top="3rem"
             hideBelow="lg"
           >
             <Box
@@ -239,7 +247,9 @@ export function Layout() {
               width="270px"
               minWidth="270px"
               maxWidth="270px"
-              height="100vh"
+              height="calc(100vh - 3rem)"
+              position="sticky"
+              top="3rem"
               hideBelow="lg"
             >
               <Box
