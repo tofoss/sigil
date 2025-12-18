@@ -3,11 +3,12 @@ import { LuX } from "react-icons/lu"
 import { noteClient } from "api"
 import { Skeleton } from "components/ui/skeleton"
 import { Editor } from "modules/editor"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useSearchParams, useNavigate } from "shared/Router"
 import { useFetch } from "utils/http"
 import { toaster } from "components/ui/toaster"
 import { useTreeStore } from "stores/treeStore"
+import { useTOC } from "shared/Layout"
 
 const notePage = () => {
   const { id } = useParams<{ id: string }>()
@@ -15,8 +16,10 @@ const notePage = () => {
   const navigate = useNavigate()
   const shouldEdit = searchParams.get("edit") === "true"
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isPreviewMode, setIsPreviewMode] = useState(shouldEdit === false)
   const { open, onOpen, onClose } = useDisclosure()
   const { deleteNote } = useTreeStore()
+  const { setContent } = useTOC()
 
   if (!id) {
     return <ErrorBoundary />
@@ -26,6 +29,12 @@ const notePage = () => {
     data: note,
     loading,
   } = useFetch(() => noteClient.fetch(id), [id])
+
+  // Set TOC content when note loads or changes
+  useEffect(() => {
+    setContent(note?.content || null)
+    return () => setContent(null)  // Clean up when leaving page
+  }, [note?.content, setContent])
 
   const handleDeleteClick = () => {
     onOpen()
@@ -70,6 +79,7 @@ const notePage = () => {
         note={note}
         mode={shouldEdit ? "Edit" : "Display"}
         onDelete={handleDeleteClick}
+        onModeChange={setIsPreviewMode}
       />
 
       {/* Delete Confirmation Dialog */}

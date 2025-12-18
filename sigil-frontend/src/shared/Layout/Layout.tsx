@@ -1,6 +1,5 @@
 import {
   Box,
-  Flex,
   HStack,
   IconButton,
   Text,
@@ -38,10 +37,23 @@ import { SearchInput } from "components/SearchInput"
 import { useFetch } from "utils/http"
 import { userClient } from "api/users"
 import { pages } from "pages/pages"
+import { TOCContext } from "./TOCContext"
+import { TableOfContents } from "modules/markdown"
+import { useMemo, useState } from "react"
 
 export function Layout() {
   const { data: authStatus } = useFetch(async () => userClient.status())
   const navigate = useNavigate()
+
+  // TOC state management
+  const [tocContent, setTocContent] = useState<string | null>(null)
+
+  const hasHeadings = useMemo(() => {
+    if (!tocContent) return false
+    return /^#{1,4}\s+.+$/m.test(tocContent)
+  }, [tocContent])
+
+  const showTOC = hasHeadings
 
   if (authStatus !== null && !authStatus.loggedIn) {
     navigate("/login")
@@ -66,16 +78,22 @@ export function Layout() {
   }
 
   return (
-    <Flex justifyContent="center">
+    <TOCContext.Provider value={{ content: tocContent, hasHeadings, setContent: setTocContent }}>
       <VStack
         bg="bg.subtle"
         height="100%"
-        maxWidth="1080px"
-        width="100%"
+        width="100vw"
         p="0"
         alignItems="start"
+        gap={0}
       >
-        <HStack width="inherit" p="0.25rem" pl="0.5rem" pr="0.5rem">
+        {/* Top Bar - Full Width */}
+        <HStack
+          width="100%"
+          p="0.25rem"
+          pl="0.5rem"
+          pr="0.5rem"
+        >
           <DrawerRoot placement="start">
             <DrawerBackdrop />
             <DrawerTrigger asChild>
@@ -174,38 +192,61 @@ export function Layout() {
             </Menu.Root>
           </HStack>
         </HStack>
-        <HStack width="inherit" alignItems="start">
-          <Flex
-            justifyContent="start"
+
+        {/* Three-Column Layout */}
+        <HStack width="100%" alignItems="start" gap={0}>
+          {/* Left Sidebar - Flush to Edge */}
+          <Box
+            width="300px"
+            minWidth="300px"
+            maxWidth="300px"
             height="100vh"
-            width="250px"
-            minWidth="250px"
-            maxWidth="250px"
             hideBelow="lg"
-            flexDirection="column"
           >
             <Box
               overflowY="auto"
               overflowX="hidden"
-              flex={1}
+              height="100%"
               pb={4}
               pr={2}
               className="custom-scrollbar"
             >
               <NotebookTree />
             </Box>
-          </Flex>
-          <Box
-            as="main"
-            width="100%"
-            maxWidth="100%"
-            minWidth="0"
-            overflow="hidden"
-          >
-            <Outlet />
           </Box>
+
+          {/* Main Content - Centered with Max Width */}
+          <Box
+            flex="1"
+            minWidth="0"
+            display="flex"
+            justifyContent="center"
+          >
+            <Box
+              as="main"
+              width="100%"
+              maxWidth="800px"
+              px={4}
+              overflow="hidden"
+            >
+              <Outlet />
+            </Box>
+          </Box>
+
+          {/* Right Sidebar - TOC (Conditional) */}
+          {showTOC && (
+            <Box
+              width="270px"
+              hideBelow="lg"
+            >
+              <TableOfContents
+                content={tocContent || ""}
+                isVisible={showTOC}
+              />
+            </Box>
+          )}
         </HStack>
       </VStack>
-    </Flex>
+    </TOCContext.Provider>
   )
 }

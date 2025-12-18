@@ -42,6 +42,7 @@ interface EditorProps {
   note?: Note
   mode?: "Display" | "Edit"
   onDelete?: () => void
+  onModeChange?: (isPreview: boolean) => void
 }
 
 const stateFields = { history: historyField };
@@ -238,6 +239,13 @@ export function Editor(props: EditorProps) {
     }
     prevTogglePreviewRef.current = togglePreview
   }, [togglePreview, performAutosave])
+
+  // Notify parent component when mode changes
+  useEffect(() => {
+    if (props.onModeChange) {
+      props.onModeChange(togglePreview)
+    }
+  }, [togglePreview, props.onModeChange])
 
   const onSave = async () => {
     const updatedNote = await call(() => noteClient.upsert(text, note?.id))
