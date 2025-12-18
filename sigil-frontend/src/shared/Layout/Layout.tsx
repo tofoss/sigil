@@ -237,12 +237,24 @@ export function Layout() {
           {showTOC && (
             <Box
               width="270px"
+              minWidth="270px"
+              maxWidth="270px"
+              height="100vh"
               hideBelow="lg"
             >
-              <TableOfContents
-                content={tocContent || ""}
-                isVisible={showTOC}
-              />
+              <Box
+                overflowY="auto"
+                overflowX="hidden"
+                height="100%"
+                pb={4}
+                pr={2}
+                className="custom-scrollbar"
+              >
+                <TableOfContents
+                  content={tocContent || ""}
+                  isVisible={showTOC}
+                />
+              </Box>
             </Box>
           )}
         </HStack>

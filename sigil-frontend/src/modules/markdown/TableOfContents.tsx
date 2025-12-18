@@ -72,9 +72,9 @@ export function TableOfContents({ content, isVisible }: TableOfContentsProps) {
 
   return (
     <Box
-      width="220px"
-      minWidth="220px"
-      maxWidth="220px"
+      width="260px"
+      minWidth="260px"
+      maxWidth="260px"
       height="100vh"
       position="sticky"
       top="0"
