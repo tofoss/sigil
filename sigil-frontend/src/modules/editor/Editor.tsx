@@ -35,11 +35,12 @@ import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
 import CodeMirror, { basicSetup } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
 import { vim } from "@replit/codemirror-vim"
 import { historyField } from '@codemirror/commands';
+import { Prec } from '@codemirror/state';
 import { useTOC } from 'shared/Layout';
 
 interface EditorProps {
@@ -74,6 +75,7 @@ export function Editor(props: EditorProps) {
   const textRef = useRef(text)
   const noteIdRef = useRef(note?.id)
   const AUTOSAVE_INTERVAL = 10000 // 10 seconds
+
 
   // Keep refs updated
   useEffect(() => {
@@ -165,6 +167,7 @@ export function Editor(props: EditorProps) {
       return false
     },
   })
+
 
   useEffect(() => {
     if (props.note) {
@@ -381,7 +384,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping,]}
+          extensions={[Prec.highest(vim()), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping,]}
           initialState={
             initialState
               ? {
@@ -406,7 +409,7 @@ export function Editor(props: EditorProps) {
             indentOnInput: true,
             bracketMatching: true,
             closeBrackets: false,
-            defaultKeymap: false,
+            defaultKeymap: true,
             autocompletion: true,
             rectangularSelection: false,
             crosshairCursor: false,
