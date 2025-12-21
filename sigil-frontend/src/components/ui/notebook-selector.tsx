@@ -1,7 +1,9 @@
 import {
   Box,
   Button,
+  DialogBackdrop,
   HStack,
+  Portal,
   Text,
   Stack,
   useDisclosure,
@@ -13,6 +15,7 @@ import {
   DialogBody,
   DialogCloseTrigger,
   DialogFooter,
+  DialogPositioner,
   DialogTitle,
 } from "@chakra-ui/react"
 import { notebooks, sections } from "api"
@@ -220,51 +223,56 @@ export function NotebookSelector({
       )}
 
       <DialogRoot open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Note to Notebook</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            {availableNotebooks.length === 0 ? (
-              <Text color="gray.500">
-                All available notebooks already contain this note, or no
-                notebooks exist.
-              </Text>
-            ) : (
-              <Stack gap={2}>
-                {availableNotebooks.map((notebook) => (
-                  <Button
-                    key={notebook.id}
-                    variant="outline"
-                    width="100%"
-                    onClick={() => {
-                      handleAddNotebook(notebook)
-                      onClose()
-                    }}
-                    disabled={working}
-                  >
-                    <HStack>
-                      <LuBookOpen />
-                      <Box textAlign="left">
-                        <Text fontWeight="semibold">{notebook.name}</Text>
-                        {notebook.description && (
-                          <Text fontSize="sm" color="gray.600">
-                            {notebook.description}
-                          </Text>
-                        )}
-                      </Box>
-                    </HStack>
-                  </Button>
-                ))}
-              </Stack>
-            )}
-          </DialogBody>
-          <DialogFooter>
-            <DialogCloseTrigger asChild>
-              <Button variant="outline">Close</Button>
-            </DialogCloseTrigger>
-          </DialogFooter>
-        </DialogContent>
+        <Portal>
+          <DialogBackdrop />
+          <DialogPositioner>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Note to Notebook</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                {availableNotebooks.length === 0 ? (
+                  <Text color="gray.500">
+                    All available notebooks already contain this note, or no
+                    notebooks exist.
+                  </Text>
+                ) : (
+                  <Stack gap={2}>
+                    {availableNotebooks.map((notebook) => (
+                      <Button
+                        key={notebook.id}
+                        variant="outline"
+                        width="100%"
+                        onClick={() => {
+                          handleAddNotebook(notebook)
+                          onClose()
+                        }}
+                        disabled={working}
+                      >
+                        <HStack>
+                          <LuBookOpen />
+                          <Box textAlign="left">
+                            <Text fontWeight="semibold">{notebook.name}</Text>
+                            {notebook.description && (
+                              <Text fontSize="sm" color="gray.600">
+                                {notebook.description}
+                              </Text>
+                            )}
+                          </Box>
+                        </HStack>
+                      </Button>
+                    ))}
+                  </Stack>
+                )}
+              </DialogBody>
+              <DialogFooter>
+                <DialogCloseTrigger asChild>
+                  <Button variant="outline">Close</Button>
+                </DialogCloseTrigger>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPositioner>
+        </Portal>
       </DialogRoot>
     </Box>
   )

@@ -1,4 +1,4 @@
-import { Button, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTitle, Input, Stack } from "@chakra-ui/react"
+import { Button, DialogBackdrop, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogPositioner, DialogRoot, DialogTitle, Input, Portal, Stack } from "@chakra-ui/react"
 import { sections } from "api"
 import { Section } from "api/model"
 import { Field } from "components/ui/field"
@@ -64,37 +64,42 @@ export function SectionDialog({
 
   return (
     <DialogRoot open={open} onOpenChange={handleClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {section ? "Edit Section" : "Create New Section"}
-          </DialogTitle>
-        </DialogHeader>
-        <DialogBody>
-          <Stack gap={4}>
-            <Field label="Name" required>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter section name"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSave()
-                  }
-                }}
-              />
-            </Field>
-          </Stack>
-        </DialogBody>
-        <DialogFooter>
-          <DialogCloseTrigger asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogCloseTrigger>
-          <Button onClick={handleSave} disabled={saving || !name.trim()}>
-            {saving ? "Saving..." : section ? "Save" : "Create"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      <Portal>
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {section ? "Edit Section" : "Create New Section"}
+              </DialogTitle>
+            </DialogHeader>
+            <DialogBody>
+              <Stack gap={4}>
+                <Field label="Name" required>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter section name"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSave()
+                      }
+                    }}
+                  />
+                </Field>
+              </Stack>
+            </DialogBody>
+            <DialogFooter>
+              <DialogCloseTrigger asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogCloseTrigger>
+              <Button onClick={handleSave} disabled={saving || !name.trim()}>
+                {saving ? "Saving..." : section ? "Save" : "Create"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPositioner>
+      </Portal>
     </DialogRoot>
   )
 }

@@ -2,11 +2,13 @@ import {
   Box,
   Button,
   Container,
+  DialogBackdrop,
   Heading,
   HStack,
   Icon,
   IconButton,
   Input,
+  Portal,
   Stack,
   Text,
   useDisclosure,
@@ -16,6 +18,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogPositioner,
   DialogRoot,
   DialogTitle,
 } from "@chakra-ui/react"
@@ -590,30 +593,35 @@ export function Component() {
       />
 
       <DialogRoot open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Notebook</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <Text>
-              Are you sure you want to delete "{notebook.name}"? This action
-              cannot be undone. The notes will not be deleted, but they will be
-              removed from this notebook.
-            </Text>
-          </DialogBody>
-          <DialogFooter>
-            <DialogCloseTrigger asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogCloseTrigger>
-            <Button
-              colorScheme="red"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        <Portal>
+          <DialogBackdrop />
+          <DialogPositioner>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Notebook</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                <Text>
+                  Are you sure you want to delete "{notebook.name}"? This action
+                  cannot be undone. The notes will not be deleted, but they will be
+                  removed from this notebook.
+                </Text>
+              </DialogBody>
+              <DialogFooter>
+                <DialogCloseTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogCloseTrigger>
+                <Button
+                  colorScheme="red"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPositioner>
+        </Portal>
       </DialogRoot>
       <Toaster />
     </Container>

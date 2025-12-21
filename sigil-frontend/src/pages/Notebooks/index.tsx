@@ -3,11 +3,13 @@ import {
   Button,
   Card,
   Container,
+  DialogBackdrop,
   Grid,
   Heading,
   HStack,
   IconButton,
   Input,
+  Portal,
   Text,
   Stack,
   useDisclosure,
@@ -17,6 +19,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogPositioner,
   DialogRoot,
   DialogTitle,
 } from "@chakra-ui/react"
@@ -93,56 +96,61 @@ export function Component() {
       </Stack>
 
       <DialogRoot open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Notebook</DialogTitle>
-            <DialogCloseTrigger asChild>
-              <IconButton
-                variant="ghost"
-                size="sm"
-                aria-label="Close"
-                position="absolute"
-                top={2}
-                right={2}
-              >
-                <LuX />
-              </IconButton>
-            </DialogCloseTrigger>
-          </DialogHeader>
-          <DialogBody>
-            <Stack gap={4}>
-              <Field label="Name" required>
-                <Input
-                  value={newNotebook.name}
-                  onChange={(e) =>
-                    setNewNotebook({ ...newNotebook, name: e.target.value })
-                  }
-                  placeholder="Enter notebook name"
-                />
-              </Field>
-              <Field label="Description">
-                <Input
-                  value={newNotebook.description}
-                  onChange={(e) =>
-                    setNewNotebook({
-                      ...newNotebook,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Enter notebook description (optional)"
-                />
-              </Field>
-            </Stack>
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              onClick={handleCreate}
-              disabled={!newNotebook.name.trim() || creating}
-            >
-              {creating ? "Creating..." : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        <Portal>
+          <DialogBackdrop />
+          <DialogPositioner>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Notebook</DialogTitle>
+                <DialogCloseTrigger asChild>
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Close"
+                    position="absolute"
+                    top={2}
+                    right={2}
+                  >
+                    <LuX />
+                  </IconButton>
+                </DialogCloseTrigger>
+              </DialogHeader>
+              <DialogBody>
+                <Stack gap={4}>
+                  <Field label="Name" required>
+                    <Input
+                      value={newNotebook.name}
+                      onChange={(e) =>
+                        setNewNotebook({ ...newNotebook, name: e.target.value })
+                      }
+                      placeholder="Enter notebook name"
+                    />
+                  </Field>
+                  <Field label="Description">
+                    <Input
+                      value={newNotebook.description}
+                      onChange={(e) =>
+                        setNewNotebook({
+                          ...newNotebook,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="Enter notebook description (optional)"
+                    />
+                  </Field>
+                </Stack>
+              </DialogBody>
+              <DialogFooter>
+                <Button
+                  onClick={handleCreate}
+                  disabled={!newNotebook.name.trim() || creating}
+                >
+                  {creating ? "Creating..." : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPositioner>
+        </Portal>
       </DialogRoot>
     </Container>
   )

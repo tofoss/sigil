@@ -2,11 +2,13 @@ import {
   Box,
   Button,
   Card,
+  DialogBackdrop,
   DialogBody,
   DialogCloseTrigger,
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogPositioner,
   DialogRoot,
   DialogTitle,
   Heading,
@@ -16,6 +18,7 @@ import {
   MenuItem,
   MenuRoot,
   MenuTrigger,
+  Portal,
   Stack,
   Text,
   useDisclosure,
@@ -246,36 +249,41 @@ export function SectionCard({
 
       {/* Delete Confirmation Dialog */}
       <DialogRoot open={deleteOpen} onOpenChange={onDeleteClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Section</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <Text>
-              Are you sure you want to delete "{sectionName}"?
-              {noteCount > 0 && (
-                <>
-                  {" "}
-                  This section contains {noteCount}{" "}
-                  {noteCount === 1 ? "note" : "notes"}. These notes will remain
-                  in the notebook but become unsectioned.
-                </>
-              )}
-            </Text>
-          </DialogBody>
-          <DialogFooter>
-            <DialogCloseTrigger asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogCloseTrigger>
-            <Button
-              colorScheme="red"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        <Portal>
+          <DialogBackdrop />
+          <DialogPositioner>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Section</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                <Text>
+                  Are you sure you want to delete "{sectionName}"?
+                  {noteCount > 0 && (
+                    <>
+                      {" "}
+                      This section contains {noteCount}{" "}
+                      {noteCount === 1 ? "note" : "notes"}. These notes will remain
+                      in the notebook but become unsectioned.
+                    </>
+                  )}
+                </Text>
+              </DialogBody>
+              <DialogFooter>
+                <DialogCloseTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogCloseTrigger>
+                <Button
+                  colorScheme="red"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </DialogPositioner>
+        </Portal>
       </DialogRoot>
     </>
   )

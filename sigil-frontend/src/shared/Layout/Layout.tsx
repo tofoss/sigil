@@ -228,7 +228,7 @@ export function Layout() {
               width="100%"
               maxWidth="800px"
               px={4}
-              overflow="hidden"
+              overflowX="hidden"
             >
               <Outlet />
             </Box>
