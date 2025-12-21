@@ -299,15 +299,35 @@ export function Editor(props: EditorProps) {
       }
     }
   }
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const scrollTimeout = useRef<number | null>(null)
+  const handleScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+
+    el.classList.add("scrolling")
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    scrollTimeout.current = window.setTimeout(() => {
+      el.classList.remove("scrolling")
+    }, 300)
+  }
 
   return (
     <Box
-      minHeight="100vh"
+      ref={scrollRef}
+      height="90vh"
       pl="0.5rem"
       pr="0.5rem"
       width="100%"
       maxWidth="100%"
       minWidth="0"
+      overflow="auto"
+      className="scrollbox"
+      onScroll={handleScroll}
     >
       <Collapsible.Root>
         <VStack width="100%" maxWidth="100%" minWidth="0">
@@ -426,7 +446,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[ vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
+          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
           initialState={
             initialState
               ? {
