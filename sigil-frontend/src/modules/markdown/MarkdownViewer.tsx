@@ -50,6 +50,7 @@ export function MarkdownViewer({ text }: Props) {
   }, [url]);
 
   function id(str: string) {
+    if (!str) return
     return str.replaceAll(' ', '-')
   }
 
