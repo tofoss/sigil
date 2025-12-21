@@ -426,7 +426,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[ vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus]}
+          extensions={[ vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
           initialState={
             initialState
               ? {
