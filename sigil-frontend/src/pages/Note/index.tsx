@@ -82,9 +82,9 @@ const notePage = () => {
         onModeChange={setIsPreviewMode}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - Only mount when open */}
       {open && (
-        <DialogRoot open={open} onOpenChange={onClose}>
+        <DialogRoot open={true} onOpenChange={onClose}>
           <Portal>
             <DialogBackdrop />
             <DialogPositioner>

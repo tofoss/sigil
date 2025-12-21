@@ -1,41 +1,26 @@
 /* eslint-disable no-console */
 import {
   Box,
-  HStack,
   Text,
-  Collapsible,
-  VStack,
   Button,
-  ActionBar,
-  Portal,
 } from "@chakra-ui/react"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   LuFileEdit,
-  LuInfo,
   LuPresentation,
   LuSave,
-  LuTag,
-  LuBookOpen,
   LuTrash2,
-  LuShare,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
 import { Tag } from "api/model/tag"
-import { Notebook } from "api/model/notebook"
-import { DataList } from "@chakra-ui/react"
-import { TagSelector } from "components/ui/tag-selector"
-import { NotebookSelector } from "components/ui/notebook-selector"
-import { notebooks } from "api"
-import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
-import CodeMirror, { basicSetup } from '@uiw/react-codemirror';
+import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
 import { vim } from "@replit/codemirror-vim"
@@ -56,10 +41,7 @@ export function Editor(props: EditorProps) {
   const [note, setNote] = useState<Note | undefined>(props.note)
   const [text, setText] = useState(note?.content ?? "")
   const [selectedTags, setSelectedTags] = useState<Tag[]>(note?.tags || [])
-  const [selectedNotebooks, setSelectedNotebooks] = useState<Notebook[]>([])
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
-  const [showTagEditor, setShowTagEditor] = useState(false)
-  const [showNotebookEditor, setShowNotebookEditor] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
@@ -86,12 +68,6 @@ export function Editor(props: EditorProps) {
     noteIdRef.current = note?.id
   }, [note?.id])
 
-  // Fetch notebooks for this note
-  const { data: noteNotebooks = [] } = useFetch(
-    () =>
-      note?.id ? notebooks.getNotebooksForNote(note.id) : Promise.resolve([]),
-    [note?.id]
-  )
 
   const markdownPasteHandler = EditorView.domEventHandlers({
     paste(event, view) {
@@ -174,10 +150,6 @@ export function Editor(props: EditorProps) {
       setSelectedTags(props.note.tags || [])
     }
   }, [props.note])
-
-  useEffect(() => {
-    setSelectedNotebooks(noteNotebooks || [])
-  }, [noteNotebooks])
 
   // Autosave function
   const performAutosave = useCallback(async () => {
@@ -335,38 +307,60 @@ export function Editor(props: EditorProps) {
       className="scrollbox"
       onScroll={handleScroll}
     >
-      <ActionBar.Root open={true}>
-        <Portal>
-          <ActionBar.Positioner>
-            <ActionBar.Content>
-              <Button variant="ghost" onClick={() => setTogglePreview(false)}>
-                <LuFileEdit />
-              </Button>
-              <Button variant="ghost" onClick={() => setTogglePreview(true)}>
-                <LuPresentation />
-              </Button>
-              <ActionBar.Separator />
-              <Button
-                variant="ghost"
-                colorPalette="red"
-                ml="auto"
-                onClick={props.onDelete}
-                disabled={!props.onDelete}
-              >
-                <LuTrash2 />
-              </Button>
-              <Button
-                variant="ghost"
-                colorPalette={colorPalette}
-                onClick={onSave}
-                loading={loading || assigningTags}
-              >
-                <LuSave />
-              </Button>
-            </ActionBar.Content>
-          </ActionBar.Positioner>
-        </Portal>
-      </ActionBar.Root>
+      {/* Custom floating toolbar - no Portal, no Chakra UI event magic */}
+      <Box
+        position="fixed"
+        bottom="4"
+        left="50%"
+        transform="translateX(-50%)"
+        display="flex"
+        gap="2"
+        bg="bg.panel"
+        borderWidth="1px"
+        borderRadius="md"
+        p="2"
+        shadow="lg"
+        zIndex="sticky"
+        opacity="0.95"
+      >
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setTogglePreview(false)}
+          aria-label="Edit mode"
+        >
+          <LuFileEdit />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setTogglePreview(true)}
+          aria-label="Preview mode"
+        >
+          <LuPresentation />
+        </Button>
+        <Box borderLeftWidth="1px" height="auto" />
+        <Button
+          size="sm"
+          variant="ghost"
+          colorPalette="red"
+          onClick={props.onDelete}
+          disabled={!props.onDelete}
+          aria-label="Delete note"
+        >
+          <LuTrash2 />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          colorPalette={colorPalette}
+          onClick={onSave}
+          loading={loading || assigningTags}
+          aria-label="Save note"
+        >
+          <LuSave />
+        </Button>
+      </Box>
       {error && (
         <Text color="red.500" mb={4} textAlign="center">
           {error.message}
@@ -384,7 +378,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[Prec.highest(vim()), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping,]}
+          extensions={[Prec.highest(vim()), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
           initialState={
             initialState
               ? {
@@ -409,7 +403,7 @@ export function Editor(props: EditorProps) {
             indentOnInput: true,
             bracketMatching: true,
             closeBrackets: false,
-            defaultKeymap: true,
+            defaultKeymap: false,
             autocompletion: true,
             rectangularSelection: false,
             crosshairCursor: false,
