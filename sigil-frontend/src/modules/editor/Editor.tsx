@@ -6,6 +6,8 @@ import {
   Collapsible,
   VStack,
   Button,
+  ActionBar,
+  Portal,
 } from "@chakra-ui/react"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
@@ -18,6 +20,7 @@ import {
   LuTag,
   LuBookOpen,
   LuTrash2,
+  LuShare,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
@@ -30,7 +33,7 @@ import { NotebookSelector } from "components/ui/notebook-selector"
 import { notebooks } from "api"
 import { useFetch } from "utils/http"
 import { useTreeStore } from "stores/treeStore"
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, { basicSetup } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorView } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
@@ -313,13 +316,13 @@ export function Editor(props: EditorProps) {
 
     scrollTimeout.current = window.setTimeout(() => {
       el.classList.remove("scrolling")
-    }, 300)
+    }, 500)
   }
 
   return (
     <Box
       ref={scrollRef}
-      height="90vh"
+      height="87vh"
       pl="0.5rem"
       pr="0.5rem"
       width="100%"
@@ -329,106 +332,38 @@ export function Editor(props: EditorProps) {
       className="scrollbox"
       onScroll={handleScroll}
     >
-      <Collapsible.Root>
-        <VStack width="100%" maxWidth="100%" minWidth="0">
-          <HStack width="100%">
-            <Button variant="ghost" onClick={() => setTogglePreview(false)}>
-              <LuFileEdit />
-            </Button>
-            <Button variant="ghost" onClick={() => setTogglePreview(true)}>
-              <LuPresentation />
-            </Button>
-            {import.meta.env.VITE_ENABLE_TAGS === "true" && (
+      <ActionBar.Root open={true}>
+        <Portal>
+          <ActionBar.Positioner>
+            <ActionBar.Content>
+              <Button variant="ghost" onClick={() => setTogglePreview(false)}>
+                <LuFileEdit />
+              </Button>
+              <Button variant="ghost" onClick={() => setTogglePreview(true)}>
+                <LuPresentation />
+              </Button>
+              <ActionBar.Separator />
               <Button
                 variant="ghost"
-                onClick={() => setShowTagEditor(!showTagEditor)}
-                colorPalette={showTagEditor ? "teal" : undefined}
+                colorPalette="red"
+                ml="auto"
+                onClick={props.onDelete}
+                disabled={!props.onDelete}
               >
-                <LuTag />
+                <LuTrash2 />
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              onClick={() => setShowNotebookEditor(!showNotebookEditor)}
-              colorPalette={showNotebookEditor ? "teal" : undefined}
-            >
-              <LuBookOpen />
-            </Button>
-            {note && (
-              <Collapsible.Trigger paddingY="3">
-                <Button variant="ghost">
-                  <LuInfo />
-                </Button>
-              </Collapsible.Trigger>
-            )}
-            <Button
-              variant="ghost"
-              colorPalette="red"
-              ml="auto"
-              onClick={props.onDelete}
-              disabled={!props.onDelete}
-            >
-              <LuTrash2 />
-            </Button>
-            <Button
-              variant="ghost"
-              colorPalette={colorPalette}
-              onClick={onSave}
-              loading={loading || assigningTags}
-            >
-              <LuSave />
-            </Button>
-          </HStack>
-
-          {/* Tag Editor */}
-          {showTagEditor && (
-            <Box
-              width="100%"
-              paddingY="4"
-              borderTopWidth="1px"
-              borderColor="gray.200"
-            >
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
-            </Box>
-          )}
-
-          {/* Notebook Editor */}
-          {showNotebookEditor && (
-            <Box
-              width="100%"
-              paddingY="4"
-              borderTopWidth="1px"
-              borderColor="gray.200"
-            >
-              <NotebookSelector
-                selectedNotebooks={selectedNotebooks}
-                onNotebooksChange={setSelectedNotebooks}
-                noteId={note?.id}
-              />
-            </Box>
-          )}
-
-          {note && (
-            <Collapsible.Content width="100%">
-              <Box paddingLeft="4">
-                <DataList.Root orientation="horizontal" size="sm">
-                  <DataList.ItemLabel>id</DataList.ItemLabel>
-                  <DataList.ItemValue>{note.id}</DataList.ItemValue>
-                  <DataList.ItemLabel>user</DataList.ItemLabel>
-                  <DataList.ItemValue>{note.userId}</DataList.ItemValue>
-                  <DataList.ItemLabel>created at</DataList.ItemLabel>
-                  <DataList.ItemValue>{note.createdAt.toString()}</DataList.ItemValue>
-                  <DataList.ItemLabel>updated at</DataList.ItemLabel>
-                  <DataList.ItemValue>{note.updatedAt.toString()}</DataList.ItemValue>
-                </DataList.Root>
-              </Box>
-            </Collapsible.Content>
-          )}
-        </VStack>
-      </Collapsible.Root>
+              <Button
+                variant="ghost"
+                colorPalette={colorPalette}
+                onClick={onSave}
+                loading={loading || assigningTags}
+              >
+                <LuSave />
+              </Button>
+            </ActionBar.Content>
+          </ActionBar.Positioner>
+        </Portal>
+      </ActionBar.Root>
       {error && (
         <Text color="red.500" mb={4} textAlign="center">
           {error.message}
@@ -446,7 +381,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
+          extensions={[vim(), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping,]}
           initialState={
             initialState
               ? {
@@ -471,6 +406,7 @@ export function Editor(props: EditorProps) {
             indentOnInput: true,
             bracketMatching: true,
             closeBrackets: false,
+            defaultKeymap: false,
             autocompletion: true,
             rectangularSelection: false,
             crosshairCursor: false,
