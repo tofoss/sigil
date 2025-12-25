@@ -3,6 +3,14 @@ import { createBrowserRouter, ScrollRestoration } from "react-router-dom"
 import { Layout, PublicLayout } from "shared/Layout"
 import { pages } from "./pages"
 
+// Normalize base route: ensure leading slash, remove trailing slash
+const getBasename = () => {
+  const base = import.meta.env.VITE_BASE_ROUTE || "/"
+  if (!base || base === "/") return undefined // undefined means root path
+  const normalized = base.startsWith("/") ? base : `/${base}`
+  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized
+}
+
 export const router = createBrowserRouter([
   {
     element: (
@@ -60,4 +68,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+], {
+  basename: getBasename(),
+})

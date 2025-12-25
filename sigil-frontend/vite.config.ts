@@ -8,9 +8,11 @@ import tsconfigPaths from "vite-tsconfig-paths"
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
   const apiUrl = env.VITE_API_URL || "http://localhost:8081"
+  const baseRoute = env.VITE_BASE_ROUTE || "/"
+  const normalizedBase = baseRoute.startsWith("/") ? baseRoute : `/${baseRoute}`
 
   return {
-    base: "",
+    base: normalizedBase,
     plugins: [
       react(),
       tsconfigPaths(),

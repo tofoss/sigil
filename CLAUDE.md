@@ -144,6 +144,10 @@ All configuration is managed through environment variables. See `.env.example` f
 
 ### Frontend
 - `VITE_API_URL` - Backend API URL (default: `http://localhost:8081`)
+- `VITE_BASE_ROUTE` - Base path for application deployment (default: `/`)
+  - Use `/` for root deployment (e.g., `https://example.com/`)
+  - Use `/app` for subdirectory deployment (e.g., `https://example.com/app/`)
+  - The base route affects both asset URLs and application routing
 
 ## Testing Strategy
 
