@@ -86,7 +86,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		CookieSecure:         cfg.CookieSecure,
 	}
 	userHandler := handlers.NewUserHandler(userRepository, refreshTokenRepository, inviteCodeRepository, jwtKey, xsrfKey, authConfig)
-	noteHandler := handlers.NewNoteHandler(noteRepository)
+	noteHandler := handlers.NewNoteHandler(noteRepository, fileService)
 	notebookHandler := handlers.NewNotebookHandler(notebookRepository, noteRepository)
 	sectionHandler := handlers.NewSectionHandler(sectionRepository, notebookRepository)
 	tagHandler := handlers.NewTagHandler(tagRepository)

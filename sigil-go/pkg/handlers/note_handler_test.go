@@ -20,6 +20,13 @@ type mockNoteRepository struct {
 	searchNotesFunc func(ctx context.Context, userID uuid.UUID, query string, limit int, offset int) ([]models.Note, error)
 }
 
+// mockFileService is a mock implementation of FileServiceInterface for testing
+type mockFileService struct{}
+
+func (m *mockFileService) DeleteFilesForNote(ctx context.Context, noteID uuid.UUID) error {
+	return nil
+}
+
 // DeleteNote implements repositories.NoteRepositoryInterface.
 func (m *mockNoteRepository) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
 	panic("unimplemented")
@@ -260,7 +267,7 @@ func TestSearchNotes(t *testing.T) {
 			}
 
 			// Create handler with mock
-			handler := NewNoteHandler(mockRepo)
+			handler := NewNoteHandler(mockRepo, &mockFileService{})
 
 			// Create request
 			req := httptest.NewRequest(http.MethodGet, "/notes/search"+tt.queryParams, nil)
@@ -308,7 +315,7 @@ func TestSearchNotes(t *testing.T) {
 
 func TestSearchNotesWithoutAuth(t *testing.T) {
 	mockRepo := &mockNoteRepository{}
-	handler := NewNoteHandler(mockRepo)
+	handler := NewNoteHandler(mockRepo, &mockFileService{})
 
 	req := httptest.NewRequest(http.MethodGet, "/notes/search?q=test", nil)
 	// No user context added - simulating missing auth
