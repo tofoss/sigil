@@ -1,5 +1,12 @@
 # TODO - Note Organization App
 
+## Backup and restore db
+```
+pg_dump > bu.sql
+# start new volume
+psql < bu.sql
+```
+
 
 ## Critical Gaps 🔴
 

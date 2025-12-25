@@ -6,8 +6,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    user: "${PUID}:${PGID}"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ${DB_PATH}:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -15,13 +16,11 @@ services:
     build: ./sigil-go
     container_name: sigil_backend
     env_file: .env
+    user: "${PUID}:${PGID}"
     environment:
-      # Override for container path
-      UPLOAD_PATH: /app/uploads
-      # Database connection inside Docker network
       PGHOST: db
     volumes:
-      - uploads_data:/app/uploads
+      - ${UPLOAD_PATH}/:/app/uploads
     ports:
       - "${PORT:-8081}:${PORT:-8081}"
     depends_on:
@@ -37,7 +36,3 @@ services:
       - "5173:5173"
     depends_on:
       - backend
-
-volumes:
-  db_data:
-  uploads_data:
