@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"tofoss/sigil-go/pkg/models"
 
@@ -652,7 +653,25 @@ func (r *NoteRepository) unmarshalRecipeJSON(recipe *models.Recipe, ingredientsJ
 
 // DeleteNote deletes a note by ID
 func (r *NoteRepository) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	query := `DELETE FROM notes WHERE id = $1`
-	_, err := r.pool.Exec(ctx, query, noteID)
-	return err
+	commandTag, err := tx.Exec(ctx, query, noteID)
+	if err != nil {
+		return fmt.Errorf("failed to delete note: %w", err)
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("note not found: %s", noteID)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

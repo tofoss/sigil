@@ -20,14 +20,23 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+type FileServiceInterface interface {
+	DeleteFilesForNote(ctx context.Context, noteID uuid.UUID) error
+}
+
 type NoteHandler struct {
-	repo repositories.NoteRepositoryInterface
+	repo        repositories.NoteRepositoryInterface
+	fileService FileServiceInterface
 }
 
 func NewNoteHandler(
 	repo repositories.NoteRepositoryInterface,
+	fileService FileServiceInterface,
 ) NoteHandler {
-	return NoteHandler{repo}
+	return NoteHandler{
+		repo:        repo,
+		fileService: fileService,
+	}
 }
 
 func (h *NoteHandler) FetchNote(w http.ResponseWriter, r *http.Request) {
@@ -481,7 +490,14 @@ func (h *NoteHandler) DeleteNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Delete the note
+	// Delete files from disk before deleting the note
+	err = h.fileService.DeleteFilesForNote(r.Context(), noteID)
+	if err != nil {
+		// Log warning but continue - don't fail deletion due to disk issues
+		log.Printf("WARNING: failed to delete some files from disk for note %s: %v", noteID, err)
+	}
+
+	// Delete the note (CASCADE will delete file records)
 	err = h.repo.DeleteNote(r.Context(), noteID)
 	if err != nil {
 		log.Printf("failed to delete note %s: %v", noteID, err)

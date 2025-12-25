@@ -67,6 +67,8 @@ var _ NotebookRepositoryInterface = (*NotebookRepository)(nil)
 type FileRepositoryInterface interface {
 	Insert(ctx context.Context, file models.FileMetadata) (models.FileMetadata, error)
 	FetchFileForUser(ctx context.Context, id, userID uuid.UUID) (models.FileMetadata, error)
+	FetchFilesForNote(ctx context.Context, noteID uuid.UUID) ([]models.FileMetadata, error)
+	Delete(ctx context.Context, fileID uuid.UUID) error
 }
 
 var _ FileRepositoryInterface = (*FileRepository)(nil)

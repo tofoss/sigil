@@ -81,6 +81,35 @@ func (r *FileRepository) Insert(ctx context.Context, file models.FileMetadata) (
 	return pgx.CollectOneRow(rows, pgx.RowToStructByName[models.FileMetadata])
 }
 
+// FetchFilesForNote implements FileRepositoryInterface.
+func (r *FileRepository) FetchFilesForNote(ctx context.Context, noteID uuid.UUID) ([]models.FileMetadata, error) {
+	query := `
+	SELECT
+		id,
+		user_id,
+		note_id,
+		filetype,
+		filesize,
+		extension
+	FROM files
+	WHERE note_id = $1
+	`
+	rows, err := r.pool.Query(ctx, query, noteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return pgx.CollectRows(rows, pgx.RowToStructByName[models.FileMetadata])
+}
+
+// Delete implements FileRepositoryInterface.
+func (r *FileRepository) Delete(ctx context.Context, fileID uuid.UUID) error {
+	query := `DELETE FROM files WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, fileID)
+	return err
+}
+
 func NewFileRepository(pool *pgxpool.Pool) *FileRepository {
 	return &FileRepository{pool: pool}
 }

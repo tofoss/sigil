@@ -137,3 +137,41 @@ func (s *FileService) checkSupportedFiletype(data []byte) (string, error) {
 	}
 	return mimeType, nil
 }
+
+func (s *FileService) DeleteFileFromDisk(file models.FileMetadata) error {
+	filepath := file.Filepath(s.config.StorageRoot)
+	filename := path.Join(filepath, file.Filename())
+
+	err := os.Remove(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("file already deleted or doesn't exist: %s", filename)
+			return nil
+		}
+		return fmt.Errorf("failed to delete file from disk: %w", err)
+	}
+
+	log.Printf("deleted file from disk: %s", filename)
+	return nil
+}
+
+func (s *FileService) DeleteFilesForNote(ctx context.Context, noteID uuid.UUID) error {
+	files, err := s.repo.FetchFilesForNote(ctx, noteID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch files for note: %w", err)
+	}
+
+	var diskErrors []error
+	for _, file := range files {
+		if err := s.DeleteFileFromDisk(file); err != nil {
+			diskErrors = append(diskErrors, err)
+			log.Printf("error deleting file %s: %v", file.ID, err)
+		}
+	}
+
+	if len(diskErrors) > 0 {
+		return fmt.Errorf("failed to delete %d file(s) from disk", len(diskErrors))
+	}
+
+	return nil
+}
