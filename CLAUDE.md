@@ -72,10 +72,10 @@ go run cmd/parser/main.go    # HTML parser tool
 - **API Client**: Centralized HTTP client using ky in `src/api/`
 - **Page Routing**: Route-based code splitting in `src/pages/`
 - **Component Library**: Chakra UI components in `src/components/ui/`
-- **State Management**: Zustand + TanStack Query for server state
+- **State Management**: Zustand 
 
 ### Database Schema
-Core entities: Users → Notebooks → Sections → Notes, with Tags for cross-cutting organization.
+Core entities: Users → Notebooks → Sections → Notes.
 
 ## Development Workflow
 
