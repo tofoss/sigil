@@ -51,7 +51,7 @@ func RecipeToMarkdown(recipe models.Recipe) string {
 
 		// Format quantity if present
 		if ingredient.Quantity != nil {
-			quantityStr := formatQuantity(*ingredient.Quantity)
+			quantityStr := FormatQuantity(*ingredient.Quantity)
 			if quantityStr != "" {
 				md.WriteString(quantityStr)
 				md.WriteString(" ")
@@ -89,8 +89,8 @@ func RecipeToMarkdown(recipe models.Recipe) string {
 	return md.String()
 }
 
-// formatQuantity formats a Quantity struct into a readable string
-func formatQuantity(q models.Quantity) string {
+// FormatQuantity formats a Quantity struct into a readable string
+func FormatQuantity(q models.Quantity) string {
 	if q.Min == nil && q.Max == nil {
 		return ""
 	}

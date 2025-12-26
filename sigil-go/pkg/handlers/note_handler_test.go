@@ -267,7 +267,7 @@ func TestSearchNotes(t *testing.T) {
 			}
 
 			// Create handler with mock
-			handler := NewNoteHandler(mockRepo, &mockFileService{})
+			handler := NewNoteHandler(mockRepo, &mockFileService{}, nil)
 
 			// Create request
 			req := httptest.NewRequest(http.MethodGet, "/notes/search"+tt.queryParams, nil)
@@ -315,7 +315,7 @@ func TestSearchNotes(t *testing.T) {
 
 func TestSearchNotesWithoutAuth(t *testing.T) {
 	mockRepo := &mockNoteRepository{}
-	handler := NewNoteHandler(mockRepo, &mockFileService{})
+	handler := NewNoteHandler(mockRepo, &mockFileService{}, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/notes/search?q=test", nil)
 	// No user context added - simulating missing auth

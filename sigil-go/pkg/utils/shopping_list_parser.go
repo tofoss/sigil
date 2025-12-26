@@ -320,7 +320,12 @@ func isLikelyQuantity(numStr string, remaining string) bool {
 	return num >= 10
 }
 
-// normalizeItemName converts item name to lowercase and trims whitespace
-func normalizeItemName(name string) string {
+// NormalizeItemName converts item name to lowercase and trims whitespace
+func NormalizeItemName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
+}
+
+// Keep private version for internal use
+func normalizeItemName(name string) string {
+	return NormalizeItemName(name)
 }

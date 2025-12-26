@@ -25,3 +25,7 @@ func Unauthenticated(w http.ResponseWriter) {
 func NotFound(w http.ResponseWriter, msg string) {
 	http.Error(w, msg, http.StatusNotFound)
 }
+
+func Forbidden(w http.ResponseWriter) {
+	http.Error(w, "Forbidden", http.StatusForbidden)
+}

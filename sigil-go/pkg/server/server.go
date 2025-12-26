@@ -37,6 +37,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 	recipeRepository := repositories.NewRecipeRepository(pool)
 	recipeJobRepository := repositories.NewRecipeJobRepository(pool)
 	recipeCacheRepository := repositories.NewRecipeURLCacheRepository(pool)
+	shoppingListRepository := repositories.NewShoppingListRepository(pool)
 	fileRepository := repositories.NewFileRepository(pool)
 	treeRepository := repositories.NewTreeRepository(pool)
 	inviteCodeRepository := repositories.NewInviteCodeRepository(pool)
@@ -86,11 +87,12 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		CookieSecure:         cfg.CookieSecure,
 	}
 	userHandler := handlers.NewUserHandler(userRepository, refreshTokenRepository, inviteCodeRepository, jwtKey, xsrfKey, authConfig)
-	noteHandler := handlers.NewNoteHandler(noteRepository, fileService)
+	noteHandler := handlers.NewNoteHandler(noteRepository, fileService, shoppingListRepository)
 	notebookHandler := handlers.NewNotebookHandler(notebookRepository, noteRepository)
 	sectionHandler := handlers.NewSectionHandler(sectionRepository, notebookRepository)
 	tagHandler := handlers.NewTagHandler(tagRepository)
 	recipeHandler := handlers.NewRecipeHandler(recipeRepository, recipeJobRepository, noteRepository)
+	shoppingListHandler := handlers.NewShoppingListHandler(shoppingListRepository, noteRepository, recipeRepository)
 	fileHandler := handlers.NewFileHandler(fileService, fileConfig)
 	treeHandler := handlers.NewTreeHandler(treeRepository)
 
@@ -128,6 +130,9 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		r.Get("/{id}/notebooks", noteHandler.GetNoteNotebooks)
 		r.Put("/{noteId}/notebooks/{notebookId}/section", sectionHandler.AssignNoteToSection)
 		r.Put("/{noteId}/notebooks/{notebookId}/position", sectionHandler.UpdateNotePosition)
+		r.Get("/{id}/shopping-list", shoppingListHandler.GetShoppingList)
+		r.Put("/{id}/shopping-list", shoppingListHandler.EnableShoppingList)
+		r.Delete("/{id}/shopping-list", shoppingListHandler.DisableShoppingList)
 	})
 
 	router.Route("/notebooks", func(r chi.Router) {
@@ -164,6 +169,13 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
 		r.Post("/", recipeHandler.CreateRecipeFromURL)
 		r.Get("/jobs/{id}", recipeHandler.GetRecipeJobStatus)
+	})
+
+	router.Route("/shopping-list", func(r chi.Router) {
+		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+		r.Patch("/items/{id}/check", shoppingListHandler.ToggleItemCheck)
+		r.Get("/vocabulary", shoppingListHandler.GetVocabularySuggestions)
+		r.Post("/{id}/merge-recipe", shoppingListHandler.MergeRecipeIngredients)
 	})
 
 	router.Route("/files", func(r chi.Router) {

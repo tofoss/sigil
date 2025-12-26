@@ -25,17 +25,20 @@ type FileServiceInterface interface {
 }
 
 type NoteHandler struct {
-	repo        repositories.NoteRepositoryInterface
-	fileService FileServiceInterface
+	repo             repositories.NoteRepositoryInterface
+	fileService      FileServiceInterface
+	shoppingListRepo repositories.ShoppingListRepositoryInterface
 }
 
 func NewNoteHandler(
 	repo repositories.NoteRepositoryInterface,
 	fileService FileServiceInterface,
+	shoppingListRepo repositories.ShoppingListRepositoryInterface,
 ) NoteHandler {
 	return NoteHandler{
-		repo:        repo,
-		fileService: fileService,
+		repo:             repo,
+		fileService:      fileService,
+		shoppingListRepo: shoppingListRepo,
 	}
 }
 
@@ -232,6 +235,9 @@ func (h *NoteHandler) createNote(
 		return nil, err
 	}
 
+	// Update shopping list if this note has shopping list mode enabled
+	h.updateShoppingListIfEnabled(ctx, result.ID, userID, result.Content)
+
 	return &result, nil
 }
 
@@ -273,6 +279,9 @@ func (h *NoteHandler) updateNote(
 	if err != nil {
 		return nil, err
 	}
+
+	// Update shopping list if this note has shopping list mode enabled
+	h.updateShoppingListIfEnabled(ctx, result.ID, userID, result.Content)
 
 	return &result, nil
 }
@@ -506,4 +515,57 @@ func (h *NoteHandler) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// updateShoppingListIfEnabled updates the shopping list if this note has shopping list mode enabled
+func (h *NoteHandler) updateShoppingListIfEnabled(ctx context.Context, noteID uuid.UUID, userID uuid.UUID, content string) {
+	if h.shoppingListRepo == nil {
+		// Shopping list repository not initialized (shouldn't happen in production)
+		return
+	}
+
+	// Check if this note has shopping list mode enabled
+	existing, err := h.shoppingListRepo.GetByNoteID(ctx, noteID)
+	if err != nil || existing == nil {
+		// Not a shopping list note, skip
+		return
+	}
+
+	// Note has shopping list mode enabled - update it
+	newHash := h.shoppingListRepo.HashContent(content)
+	if existing.ContentHash == newHash {
+		// Content hasn't changed, skip re-parsing
+		return
+	}
+
+	// Parse the shopping list from markdown
+	items, err := utils.ParseShoppingList(content)
+	if err != nil {
+		log.Printf("warning: failed to parse shopping list for note %s: %v", noteID, err)
+		return
+	}
+
+	// Update shopping list
+	existing.Items = items
+	existing.ContentHash = newHash
+	existing.UpdatedAt = time.Now()
+
+	// Set shopping list IDs for all items
+	for i := range existing.Items {
+		existing.Items[i].ShoppingListID = existing.ID
+	}
+
+	_, err = h.shoppingListRepo.Update(ctx, *existing)
+	if err != nil {
+		log.Printf("warning: failed to update shopping list for note %s: %v", noteID, err)
+		return
+	}
+
+	// Update vocabulary with new items
+	for _, item := range items {
+		err := h.shoppingListRepo.AddToVocabulary(ctx, userID, item.ItemName)
+		if err != nil {
+			log.Printf("warning: failed to add item to vocabulary: %v", err)
+		}
+	}
 }
