@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/react"
 import { fileClient, noteClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   LuFileEdit,
   LuPresentation,
@@ -27,6 +27,7 @@ import { vim } from "@replit/codemirror-vim"
 import { historyField } from '@codemirror/commands';
 import { Prec } from '@codemirror/state';
 import { useTOC } from 'shared/Layout';
+import { useShouldEnableVimMode } from "./useShouldEnableVimMode"
 
 interface EditorProps {
   note?: Note
@@ -50,6 +51,7 @@ export function Editor(props: EditorProps) {
 
   // Use custom theme based on color mode
   const editorTheme = useColorModeValue(sigilLightTheme, sigilDarkTheme)
+  const vimMode = useShouldEnableVimMode()
 
   // Autosave refs
   const lastSavedContentRef = useRef(text)
@@ -294,6 +296,24 @@ export function Editor(props: EditorProps) {
     }, 500)
   }
 
+  const extensions = useMemo(() => {
+    const exts = [];
+
+    if (vimMode) {
+      exts.push(Prec.highest(vim()));
+    }
+
+    exts.push(
+      markdown(),
+      markdownPasteHandler,
+      fullHeightEditor,
+      clickToFocus,
+      EditorView.lineWrapping
+    );
+
+    return exts;
+  }, [vimMode]);
+
   return (
     <Box
       ref={scrollRef}
@@ -378,7 +398,7 @@ export function Editor(props: EditorProps) {
           value={text}
           minHeight="80vh"
           theme={editorTheme}
-          extensions={[Prec.highest(vim()), markdown(), markdownPasteHandler, fullHeightEditor, clickToFocus, EditorView.lineWrapping]}
+          extensions={extensions}
           initialState={
             initialState
               ? {
