@@ -49,9 +49,39 @@ export function MarkdownViewer({ text }: Props) {
     }
   }, [url]);
 
-  function id(str: string) {
-    if (!str) return
-    return str.replaceAll(' ', '-')
+  function extractText(children: React.ReactNode): string {
+    if (!children) return ''
+
+    if (typeof children === 'string') {
+      return children
+    }
+
+    if (typeof children === 'number') {
+      return String(children)
+    }
+
+    if (Array.isArray(children)) {
+      return children.map(extractText).join('')
+    }
+
+    if (React.isValidElement(children)) {
+      const props = children.props as { children?: React.ReactNode };
+      if (props.children) {
+        return extractText(props.children);
+      }
+    }
+
+    return ''
+  }
+
+  function id(children: React.ReactNode): string {
+    const text = extractText(children);
+    return text
+      .toLowerCase()
+      .replaceAll(/[^\w\s-]/g, '') // remove special chars
+      .replaceAll(/\s+/g, '-')      // spaces to hyphens
+      .replaceAll(/-+/g, '-')       // collapse multiple hyphens
+      .replace(/^-|-$/g, '');       // trim hyphens from ends
   }
 
   return (
