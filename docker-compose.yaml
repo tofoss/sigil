@@ -19,7 +19,7 @@ services:
     environment:
       PGHOST: db
     volumes:
-      - ${UPLOAD_PATH}/:/app/uploads
+      - ${UPLOAD_VOLUME_MOUNT}/:/app/uploads
     ports:
       - "${PORT:-8081}:${PORT:-8081}"
     depends_on:

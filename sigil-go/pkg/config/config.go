@@ -27,12 +27,12 @@ type Config struct {
 	CookieSecure         bool
 
 	// Storage settings
-	UploadPath   string
-	MaxFileSize  int64
+	UploadPath  string
+	MaxFileSize int64
 
 	// Rate limiting
-	AuthRateLimit     float64
-	RateLimitWindow   time.Duration
+	AuthRateLimit   float64
+	RateLimitWindow time.Duration
 
 	// Job queue settings
 	JobPollInterval time.Duration
