@@ -14,7 +14,7 @@ FROM ghcr.io/static-web-server/static-web-server:2-alpine AS sws
 
 FROM gcr.io/distroless/cc:nonroot
 COPY --from=sws /usr/local/bin/static-web-server /
-COPY --from=builder /app/dist /public${VITE_BASE_PATH}
+COPY --from=builder /app/dist /public
 USER nonroot:nonroot
 EXPOSE 5173
 ENTRYPOINT ["/static-web-server", "--port", "5173", "--root", "/public", "--page-fallback", "/public/index.html"]
