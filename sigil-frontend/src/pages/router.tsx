@@ -5,10 +5,8 @@ import { pages } from "./pages"
 
 // Normalize base route: ensure leading slash, remove trailing slash
 const getBasename = () => {
-  const base = import.meta.env.VITE_BASE_ROUTE || "/"
-  if (!base || base === "/") return undefined // undefined means root path
-  const normalized = base.startsWith("/") ? base : `/${base}`
-  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized
+  const base = import.meta.env.BASE_URL
+  return base === "/" ? undefined : base
 }
 
 export const router = createBrowserRouter([

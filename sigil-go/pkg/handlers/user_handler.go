@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"tofoss/sigil-go/pkg/db/repositories"
 	"tofoss/sigil-go/pkg/handlers/errors"
 	"tofoss/sigil-go/pkg/handlers/requests"
@@ -124,26 +123,27 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	usernameTaken, err := h.repo.CheckUserExists(r.Context(), req.Username)
 	if err != nil {
-		log.Printf("could not check if user exists, %v", err)
+		log.Printf("could not check if user exists, %v\n", err)
 		errors.InternalServerError(w)
 		return
 	}
 
 	if usernameTaken {
+		log.Printf("Username already exists\n")
 		errors.Conflict(w, "Username already exists")
 		return
 	}
 
 	pw, err := hashPassword(req.Password)
 	if err != nil {
-		log.Printf("could not hash password, %v", err)
+		log.Printf("could not hash password, %v\n", err)
 		errors.InternalServerError(w)
 		return
 	}
 
 	err = h.repo.Insert(r.Context(), req.Username, pw)
 	if err != nil {
-		log.Printf("could not insert user, %v", err)
+		log.Printf("could not insert user, %v\n", err)
 		errors.InternalServerError(w)
 		return
 	}
@@ -151,14 +151,14 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	// Mark invite code as used
 	user, err := h.repo.FetchUser(r.Context(), req.Username)
 	if err != nil || user == nil {
-		log.Printf("could not fetch newly created user, %v", err)
+		log.Printf("could not fetch newly created user, %v\n", err)
 		errors.InternalServerError(w)
 		return
 	}
 
 	err = h.inviteCodeRepo.MarkUsed(r.Context(), inviteCodeUUID, user.ID)
 	if err != nil {
-		log.Printf("could not mark invite code as used, %v", err)
+		log.Printf("could not mark invite code as used, %v\n", err)
 		// User was created, so we don't fail the request
 	}
 

@@ -1,15 +1,14 @@
 /// <reference types="vitest" />
 import react from "@vitejs/plugin-react-swc"
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig } from "vite"
 import checker from "vite-plugin-checker"
 import tsconfigPaths from "vite-tsconfig-paths"
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "")
-  const apiUrl = env.VITE_API_URL || "http://localhost:8081"
-  const baseRoute = env.VITE_BASE_ROUTE || "/"
-  const normalizedBase = baseRoute.startsWith("/") ? baseRoute : `/${baseRoute}`
+export default defineConfig(() => {
+  const apiUrl = process.env.VITE_API_URL || "http://localhost:8081"
+  const basePath = process.env.VITE_BASE_PATH || "/"
+  const normalizedBase = basePath.startsWith("/") ? basePath : `/${basePath}`
 
   return {
     base: normalizedBase,
