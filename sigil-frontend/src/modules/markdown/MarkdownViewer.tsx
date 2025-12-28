@@ -76,12 +76,7 @@ export function MarkdownViewer({ text }: Props) {
 
   function id(children: React.ReactNode): string {
     const text = extractText(children);
-    return text
-      .toLowerCase()
-      .replaceAll(/[^\w\s-]/g, '') // remove special chars
-      .replaceAll(/\s+/g, '-')      // spaces to hyphens
-      .replaceAll(/-+/g, '-')       // collapse multiple hyphens
-      .replace(/^-|-$/g, '');       // trim hyphens from ends
+    return normalizeHeadingID(text)
   }
 
   return (
@@ -213,4 +208,13 @@ function CodeViewer(props: CodeProps) {
       {updatedCodeElement}
     </Code>
   )
+}
+
+export function normalizeHeadingID(text: string) {
+    return text
+      .toLowerCase()
+      .replaceAll(/[^\w\s-]/g, '') // remove special chars
+      .replaceAll(/\s+/g, '-')      // spaces to hyphens
+      .replaceAll(/-+/g, '-')       // collapse multiple hyphens
+      .replace(/^-|-$/g, '');       // trim hyphens from ends
 }

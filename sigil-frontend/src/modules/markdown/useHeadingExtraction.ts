@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { normalizeHeadingID } from "./MarkdownViewer"
 
 export interface Heading {
   id: string
@@ -10,7 +11,7 @@ export interface Heading {
 /**
  * Strip markdown formatting from text to generate clean IDs
  */
-function stripMarkdown(text: string): string {
+export function stripMarkdown(text: string): string {
   return text
     .replace(/`[^`]+`/g, (match) => match.slice(1, -1)) // Remove inline code backticks but keep content
     .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold
@@ -25,7 +26,7 @@ function stripMarkdown(text: string): string {
  * Generate heading ID from text (matches MarkdownViewer implementation)
  */
 export function id(str: string): string {
-  return stripMarkdown(str).replaceAll(" ", "-")
+  return normalizeHeadingID(str.replaceAll(" ", "-"))
 }
 
 /**
@@ -46,7 +47,7 @@ export function useHeadingExtraction(content: string): Heading[] {
 
       flatHeadings.push({
         id: id(text),
-        text,
+        text: stripMarkdown(text),
         level,
         children: [],
       })
