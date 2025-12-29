@@ -15,18 +15,18 @@ jobs:
         with:
           clean: false 
 
-    - name: Setup environment files
-      run: |
-        
-        ln -sf ~/dev/sigil/.env .env
-        
-        ln -sf ~/dev/sigil/sigil-frontend/.env sigil-frontend/.env
-        
-        # Verify both exist
-        echo "✓ Root .env linked:"
-        ls -la .env
-        echo "✓ sigil-frontend/.env linked:"
-        ls -la sigil-frontend/.env
+      - name: Setup environment files
+        run: |
+          
+          ln -sf ~/dev/sigil/.env .env
+          
+          ln -sf ~/dev/sigil/sigil-frontend/.env sigil-frontend/.env
+          
+          # Verify both exist
+          echo "✓ Root .env linked:"
+          ls -la .env
+          echo "✓ sigil-frontend/.env linked:"
+          ls -la sigil-frontend/.env
       
       - name: Build and deploy
         run: |
