@@ -15,19 +15,36 @@ jobs:
         with:
           clean: false 
 
-      - name: Setup environment files
+      - name: Create .env files
         run: |
+          # Create root .env
+          cat > .env << 'EOF'
+          ${{ vars.ROOT_ENV }}
+
+          POSTGRES_USER=${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB=${{ secrets.DB_NAME }}
+
+          PGHOST=${{ secrets.DB_HOST }}
+          PGPORT=${{ secrets.DB_PORT }}
+          PGDATABASE=${{ secrets.DB_NAME }}
+          PGUSER=${{ secrets.DB_USER }}
+          PGPASSWORD=${{ secrets.DB_PASSWORD }}
+
+          UPLOAD_PATH=${{ secrets.UPLOAD_PATH }}
+          UPLOAD_VOLUME_MOUNT=${{ secrets.UPLOAD_VOLUME_MOUNT }}
+          DB_PATH=${{ secrets.DB_VOLUME_MOUNT }}
+
+          DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+          XSRF_SECRET=${{ secrets.XSRF_SECRET }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EOF
           
-          ln -sf ~/dev/sigil/.env .env
-          
-          ln -sf ~/dev/sigil/sigil-frontend/.env sigil-frontend/.env
-          
-          # Verify both exist
-          echo "✓ Root .env linked:"
-          ls -la .env
-          echo "✓ sigil-frontend/.env linked:"
-          ls -la sigil-frontend/.env
-      
+          # foo/.env
+          cat > sigil-frontend/.env << EOF
+          ${{ vars.FRONTEND_ENV }}
+          EOF
+
       - name: Build and deploy
         run: |
           docker compose up -d --build
