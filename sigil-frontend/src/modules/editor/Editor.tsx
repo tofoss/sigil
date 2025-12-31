@@ -4,13 +4,14 @@ import {
   Text,
   Button,
 } from "@chakra-ui/react"
-import { fileClient, noteClient } from "api"
+import { fileClient, noteClient, shoppingListClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   LuFileEdit,
   LuPresentation,
   LuSave,
+  LuShoppingCart,
   LuTrash2,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
@@ -30,6 +31,7 @@ import { keymap } from '@codemirror/view';
 import { completionStatus } from '@codemirror/autocomplete';
 import { useTOC } from 'shared/Layout';
 import { useShouldEnableVimMode } from "./useShouldEnableVimMode"
+import { shoppingListExtension, toggleShoppingListModeEffect } from './shoppingListExtensions';
 
 interface EditorProps {
   note?: Note
@@ -45,11 +47,13 @@ export function Editor(props: EditorProps) {
   const [text, setText] = useState(note?.content ?? "")
   const [selectedTags, setSelectedTags] = useState<Tag[]>(note?.tags || [])
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
+  const [isShoppingListMode, setIsShoppingListMode] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
   const { setContent: setTOCContent } = useTOC()
   const initialState = note?.id ? localStorage.getItem(note.id) : null
+  const editorViewRef = useRef<EditorView | null>(null)
 
   // Use custom theme based on color mode
   const editorTheme = useColorModeValue(sigilLightTheme, sigilDarkTheme)
@@ -152,8 +156,47 @@ export function Editor(props: EditorProps) {
   useEffect(() => {
     if (props.note) {
       setSelectedTags(props.note.tags || [])
+
+      // Check if this note has shopping list mode enabled
+      if (props.note.id) {
+        shoppingListClient
+          .get(props.note.id)
+          .then(() => {
+            setIsShoppingListMode(true)
+          })
+          .catch(() => {
+            // Shopping list doesn't exist, mode is disabled
+            setIsShoppingListMode(false)
+          })
+      }
     }
   }, [props.note])
+
+  // Toggle shopping list mode
+  const toggleShoppingListMode = useCallback(async () => {
+    if (!note?.id) return
+
+    try {
+      if (isShoppingListMode) {
+        // Disable shopping list mode
+        await shoppingListClient.disable(note.id)
+        setIsShoppingListMode(false)
+      } else {
+        // Enable shopping list mode
+        await shoppingListClient.enable(note.id)
+        setIsShoppingListMode(true)
+      }
+
+      // Update the editor state
+      if (editorViewRef.current) {
+        editorViewRef.current.dispatch({
+          effects: toggleShoppingListModeEffect.of(!isShoppingListMode),
+        })
+      }
+    } catch (error) {
+      console.error("Failed to toggle shopping list mode:", error)
+    }
+  }, [note?.id, isShoppingListMode])
 
   // Autosave function
   const performAutosave = useCallback(async () => {
@@ -331,20 +374,21 @@ export function Editor(props: EditorProps) {
 
     if (vimMode) {
       // Add Enter key fix with higher precedence than vim mode
-      exts.push(Prec.high(enterKeyFix));
       exts.push(Prec.highest(vim()));
     }
 
     exts.push(
+      Prec.high(enterKeyFix),
       markdown(),
       markdownPasteHandler,
       fullHeightEditor,
       clickToFocus,
-      EditorView.lineWrapping
+      EditorView.lineWrapping,
+      shoppingListExtension(), // Always include, mode is toggled via state
     );
 
     return exts;
-  }, [vimMode, enterKeyFix]);
+  }, [vimMode, enterKeyFix, markdownPasteHandler, fullHeightEditor, clickToFocus]);
 
   return (
     <Box
@@ -394,6 +438,17 @@ export function Editor(props: EditorProps) {
         <Box borderLeftWidth="1px" height="auto" />
         <Button
           size="sm"
+          variant={isShoppingListMode ? "solid" : "ghost"}
+          colorPalette={isShoppingListMode ? colorPalette : undefined}
+          onClick={toggleShoppingListMode}
+          disabled={!note?.id}
+          aria-label="Shopping list mode"
+        >
+          <LuShoppingCart />
+        </Button>
+        <Box borderLeftWidth="1px" height="auto" />
+        <Button
+          size="sm"
           variant="ghost"
           colorPalette="red"
           onClick={props.onDelete}
@@ -431,6 +486,15 @@ export function Editor(props: EditorProps) {
           minHeight="80vh"
           theme={editorTheme}
           extensions={extensions}
+          onCreateEditor={(view) => {
+            editorViewRef.current = view
+            // Set initial shopping list mode state
+            if (isShoppingListMode) {
+              view.dispatch({
+                effects: toggleShoppingListModeEffect.of(true),
+              })
+            }
+          }}
           initialState={
             initialState
               ? {
