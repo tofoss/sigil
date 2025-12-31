@@ -10,36 +10,64 @@ import {
 import { commonHeaders } from "./utils"
 
 export const shoppingListClient = {
-  // Get shopping list for a note
-  get: (noteId: string) =>
+  // List all shopping lists for current user
+  list: () =>
     client
-      .get(`notes/${noteId}/shopping-list`, {
+      .get("shopping-lists", {
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<ShoppingList[]>()
+      .then((lists: ShoppingList[]) => lists.map(fromShoppingListJson)),
+
+  // Get single shopping list by ID
+  get: (id: string) =>
+    client
+      .get(`shopping-lists/${id}`, {
         headers: commonHeaders(),
         credentials: "include",
       })
       .json<ShoppingList>()
       .then(fromShoppingListJson),
 
-  // Enable shopping list mode for a note
-  enable: (noteId: string) =>
+  // Create new shopping list
+  create: (content: string, title?: string) =>
     client
-      .put(`notes/${noteId}/shopping-list`, {
+      .post("shopping-lists", {
+        json: {
+          content,
+          title,
+        },
         headers: commonHeaders(),
         credentials: "include",
       })
       .json<ShoppingList>()
       .then(fromShoppingListJson),
 
-  // Disable shopping list mode for a note
-  disable: (noteId: string) =>
-    client.delete(`notes/${noteId}/shopping-list`, {
+  // Update shopping list
+  update: (id: string, content: string, title?: string) =>
+    client
+      .put(`shopping-lists/${id}`, {
+        json: {
+          content,
+          title,
+        },
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<ShoppingList>()
+      .then(fromShoppingListJson),
+
+  // Delete shopping list
+  delete: (id: string) =>
+    client.delete(`shopping-lists/${id}`, {
       headers: commonHeaders(),
       credentials: "include",
     }),
 
   // Toggle item check status
   toggleItem: (itemId: string, checked: boolean) =>
-    client.patch(`shopping-list/items/${itemId}/check`, {
+    client.patch(`shopping-lists/items/${itemId}/check`, {
       json: {
         checked,
       } as ToggleItemRequest,
@@ -50,7 +78,7 @@ export const shoppingListClient = {
   // Get vocabulary suggestions for autocomplete
   getVocabulary: (query: string) =>
     client
-      .get("shopping-list/vocabulary", {
+      .get("shopping-lists/vocabulary", {
         searchParams: {
           q: query,
         },
@@ -63,7 +91,7 @@ export const shoppingListClient = {
   // Merge recipe ingredients into shopping list
   mergeRecipe: (shoppingListId: string, recipeId: string) =>
     client
-      .post(`shopping-list/${shoppingListId}/merge-recipe`, {
+      .post(`shopping-lists/${shoppingListId}/merge-recipe`, {
         json: {
           recipeId,
         } as MergeRecipeRequest,

@@ -4,8 +4,9 @@ import { Quantity } from "./recipe"
 
 export interface ShoppingList {
   id: string
-  noteId: string
   userId: string
+  title: string
+  content: string
   contentHash: string
   items: ShoppingListEntry[]
   createdAt: Dayjs

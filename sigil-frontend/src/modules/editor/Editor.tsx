@@ -3,6 +3,8 @@ import {
   Box,
   Text,
   Button,
+  Menu,
+  Portal,
 } from "@chakra-ui/react"
 import { fileClient, noteClient, shoppingListClient } from "api"
 import { MarkdownViewer } from "modules/markdown"
@@ -11,14 +13,16 @@ import {
   LuFileEdit,
   LuPresentation,
   LuSave,
-  LuShoppingCart,
   LuTrash2,
+  LuShoppingCart,
 } from "react-icons/lu"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
 import { Note } from "api/model/note"
 import { Tag } from "api/model/tag"
+import { ShoppingList } from "api/model/shopping-list"
 import { useTreeStore } from "stores/treeStore"
+import { useShoppingListStore } from "stores/shoppingListStore"
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorView } from '@codemirror/view';
@@ -32,27 +36,38 @@ import { completionStatus } from '@codemirror/autocomplete';
 import { useTOC } from 'shared/Layout';
 import { useShouldEnableVimMode } from "./useShouldEnableVimMode"
 import { shoppingListExtension, toggleShoppingListModeEffect } from './shoppingListExtensions';
+import { hasChecklistItems } from './utils';
 
 interface EditorProps {
   note?: Note
+  shoppingList?: ShoppingList
   mode?: "Display" | "Edit"
   onDelete?: () => void
   onModeChange?: (isPreview: boolean) => void
+  onSave?: (content: string) => void | Promise<void>
+  onConvert?: (mode: "new" | "merge") => void
+  hasLastShoppingList?: boolean
+  isConverting?: boolean
 }
 
 const stateFields = { history: historyField };
 
 export function Editor(props: EditorProps) {
+  // Auto-detect if this is a shopping list
+  const isShoppingList = !!props.shoppingList
+
   const [note, setNote] = useState<Note | undefined>(props.note)
-  const [text, setText] = useState(note?.content ?? "")
+  const [shoppingList, setShoppingList] = useState<ShoppingList | undefined>(props.shoppingList)
+  const [text, setText] = useState((props.note?.content ?? props.shoppingList?.content) ?? "")
   const [selectedTags, setSelectedTags] = useState<Tag[]>(note?.tags || [])
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
-  const [isShoppingListMode, setIsShoppingListMode] = useState(false)
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
   const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+  const { updateShoppingListTitle } = useShoppingListStore()
   const { setContent: setTOCContent } = useTOC()
-  const initialState = note?.id ? localStorage.getItem(note.id) : null
+  const documentId = note?.id ?? shoppingList?.id
+  const initialState = documentId ? localStorage.getItem(documentId) : null
   const editorViewRef = useRef<EditorView | null>(null)
 
   // Use custom theme based on color mode
@@ -63,7 +78,7 @@ export function Editor(props: EditorProps) {
   const lastSavedContentRef = useRef(text)
   const isAutosavingRef = useRef(false)
   const textRef = useRef(text)
-  const noteIdRef = useRef(note?.id)
+  const documentIdRef = useRef(documentId)
   const AUTOSAVE_INTERVAL = 10000 // 10 seconds
 
 
@@ -73,8 +88,8 @@ export function Editor(props: EditorProps) {
   }, [text])
 
   useEffect(() => {
-    noteIdRef.current = note?.id
-  }, [note?.id])
+    documentIdRef.current = documentId
+  }, [documentId])
 
 
   const markdownPasteHandler = EditorView.domEventHandlers({
@@ -156,52 +171,13 @@ export function Editor(props: EditorProps) {
   useEffect(() => {
     if (props.note) {
       setSelectedTags(props.note.tags || [])
-
-      // Check if this note has shopping list mode enabled
-      if (props.note.id) {
-        shoppingListClient
-          .get(props.note.id)
-          .then(() => {
-            setIsShoppingListMode(true)
-          })
-          .catch(() => {
-            // Shopping list doesn't exist, mode is disabled
-            setIsShoppingListMode(false)
-          })
-      }
     }
   }, [props.note])
-
-  // Toggle shopping list mode
-  const toggleShoppingListMode = useCallback(async () => {
-    if (!note?.id) return
-
-    try {
-      if (isShoppingListMode) {
-        // Disable shopping list mode
-        await shoppingListClient.disable(note.id)
-        setIsShoppingListMode(false)
-      } else {
-        // Enable shopping list mode
-        await shoppingListClient.enable(note.id)
-        setIsShoppingListMode(true)
-      }
-
-      // Update the editor state
-      if (editorViewRef.current) {
-        editorViewRef.current.dispatch({
-          effects: toggleShoppingListModeEffect.of(!isShoppingListMode),
-        })
-      }
-    } catch (error) {
-      console.error("Failed to toggle shopping list mode:", error)
-    }
-  }, [note?.id, isShoppingListMode])
 
   // Autosave function
   const performAutosave = useCallback(async () => {
     const currentText = textRef.current
-    const currentNoteId = noteIdRef.current
+    const currentDocumentId = documentIdRef.current
 
     // Don't autosave if already saving or content hasn't changed
     if (
@@ -214,24 +190,39 @@ export function Editor(props: EditorProps) {
     isAutosavingRef.current = true
 
     try {
-      const updatedNote = await noteClient.upsert(currentText, currentNoteId)
-      if (updatedNote) {
-        setNote(updatedNote)
-        lastSavedContentRef.current = currentText
-
-        // Update TOC with current content
-        setTOCContent(currentText)
-
-        // Update sidebar tree via store
-        if (currentNoteId) {
-          updateNoteTitle(updatedNote.id, updatedNote.title)
+      if (isShoppingList) {
+        // Autosave shopping list
+        if (currentDocumentId) {
+          const updatedList = await shoppingListClient.update(currentDocumentId, currentText)
+          setShoppingList(updatedList)
+          lastSavedContentRef.current = currentText
+          // Update sidebar tree via store
+          updateShoppingListTitle(updatedList.id, updatedList.title)
         } else {
-          // New note - add to tree
-          // Only fetch if tree is completely empty, otherwise use optimistic update
-          if (treeData.length === 0 && unassignedNotes.length === 0) {
-            fetchTree()
+          // Creating new shopping list - this shouldn't happen in autosave
+          console.warn("Cannot autosave new shopping list without ID")
+        }
+      } else {
+        // Autosave note
+        const updatedNote = await noteClient.upsert(currentText, currentDocumentId)
+        if (updatedNote) {
+          setNote(updatedNote)
+          lastSavedContentRef.current = currentText
+
+          // Update TOC with current content
+          setTOCContent(currentText)
+
+          // Update sidebar tree via store
+          if (currentDocumentId) {
+            updateNoteTitle(updatedNote.id, updatedNote.title)
           } else {
-            addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+            // New note - add to tree
+            // Only fetch if tree is completely empty, otherwise use optimistic update
+            if (treeData.length === 0 && unassignedNotes.length === 0) {
+              fetchTree()
+            } else {
+              addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+            }
           }
         }
       }
@@ -241,7 +232,7 @@ export function Editor(props: EditorProps) {
     } finally {
       isAutosavingRef.current = false
     }
-  }, [updateNoteTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length, setTOCContent])
+  }, [isShoppingList, updateNoteTitle, updateShoppingListTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length, setTOCContent])
 
   // Autosave interval
   useEffect(() => {
@@ -253,12 +244,13 @@ export function Editor(props: EditorProps) {
     return () => clearInterval(intervalId)
   }, [togglePreview, performAutosave])
 
-  // Initialize lastSavedContentRef when note is loaded
+  // Initialize lastSavedContentRef when document is loaded
   useEffect(() => {
-    if (note?.content) {
-      lastSavedContentRef.current = note.content
+    const content = note?.content ?? shoppingList?.content
+    if (content) {
+      lastSavedContentRef.current = content
     }
-  }, [note?.id])
+  }, [documentId])
 
   // Auto-save when switching to preview mode
   const prevTogglePreviewRef = useRef(togglePreview)
@@ -278,49 +270,70 @@ export function Editor(props: EditorProps) {
   }, [togglePreview, props.onModeChange])
 
   const onSave = async () => {
-    const updatedNote = await call(() => noteClient.upsert(text, note?.id))
-    if (updatedNote === undefined) {
-      console.error("Note is undefined")
+    // If external onSave callback provided, use it
+    if (props.onSave) {
+      await props.onSave(text)
       return
     }
 
-    setNote(updatedNote)
-    lastSavedContentRef.current = text
-
-    // Update TOC with current content
-    setTOCContent(text)
-
-    // Save tags if note has an ID and tags have changed
-    if (
-      updatedNote.id &&
-      (note?.tags?.length !== selectedTags.length ||
-        !note?.tags?.every((tag) =>
-          selectedTags.some((selected) => selected.id === tag.id)
-        ))
-    ) {
-      try {
-        const tagIds = selectedTags.map((tag) => tag.id)
-        const updatedTags = await assignTags(() =>
-          noteClient.assignTagsToNote(updatedNote.id, tagIds)
-        )
-        if (updatedTags) {
-          setNote((prev) => (prev ? { ...prev, tags: updatedTags } : prev))
-        }
-      } catch (error) {
-        console.error("Failed to assign tags:", error)
-      }
-    }
-
-    // Update sidebar tree via store
-    if (note?.id) {
-      updateNoteTitle(updatedNote.id, updatedNote.title)
-    } else {
-      // New note - add to tree
-      // Only fetch if tree is completely empty, otherwise use optimistic update
-      if (treeData.length === 0 && unassignedNotes.length === 0) {
-        fetchTree()
+    // Otherwise, use existing internal save logic
+    if (isShoppingList) {
+      // Save shopping list
+      if (shoppingList?.id) {
+        const updatedList = await shoppingListClient.update(shoppingList.id, text)
+        setShoppingList(updatedList)
+        lastSavedContentRef.current = text
+        // Update sidebar tree via store
+        updateShoppingListTitle(updatedList.id, updatedList.title)
       } else {
-        addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+        console.error("Shopping list ID is undefined")
+      }
+    } else {
+      // Save note
+      const updatedNote = await call(() => noteClient.upsert(text, note?.id))
+      if (updatedNote === undefined) {
+        console.error("Note is undefined")
+        return
+      }
+
+      setNote(updatedNote)
+      lastSavedContentRef.current = text
+
+      // Update TOC with current content
+      setTOCContent(text)
+
+      // Save tags if note has an ID and tags have changed
+      if (
+        updatedNote.id &&
+        (note?.tags?.length !== selectedTags.length ||
+          !note?.tags?.every((tag) =>
+            selectedTags.some((selected) => selected.id === tag.id)
+          ))
+      ) {
+        try {
+          const tagIds = selectedTags.map((tag) => tag.id)
+          const updatedTags = await assignTags(() =>
+            noteClient.assignTagsToNote(updatedNote.id, tagIds)
+          )
+          if (updatedTags) {
+            setNote((prev) => (prev ? { ...prev, tags: updatedTags } : prev))
+          }
+        } catch (error) {
+          console.error("Failed to assign tags:", error)
+        }
+      }
+
+      // Update sidebar tree via store
+      if (note?.id) {
+        updateNoteTitle(updatedNote.id, updatedNote.title)
+      } else {
+        // New note - add to tree
+        // Only fetch if tree is completely empty, otherwise use optimistic update
+        if (treeData.length === 0 && unassignedNotes.length === 0) {
+          fetchTree()
+        } else {
+          addNoteToTree({ id: updatedNote.id, title: updatedNote.title })
+        }
       }
     }
   }
@@ -435,17 +448,38 @@ export function Editor(props: EditorProps) {
         >
           <LuPresentation />
         </Button>
-        <Box borderLeftWidth="1px" height="auto" />
-        <Button
-          size="sm"
-          variant={isShoppingListMode ? "solid" : "ghost"}
-          colorPalette={isShoppingListMode ? colorPalette : undefined}
-          onClick={toggleShoppingListMode}
-          disabled={!note?.id}
-          aria-label="Shopping list mode"
-        >
-          <LuShoppingCart />
-        </Button>
+        {/* Show convert button only for notes with checklists */}
+        {!isShoppingList && note && hasChecklistItems(text) && (
+          <>
+            <Box borderLeftWidth="1px" height="auto" />
+            <Menu.Root positioning={{ placement: "top" }}>
+              <Menu.Trigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={props.isConverting}
+                  aria-label="Convert to shopping list"
+                >
+                  <LuShoppingCart />
+                </Button>
+              </Menu.Trigger>
+              <Portal>
+                <Menu.Positioner>
+                  <Menu.Content>
+                    <Menu.Item value="new" onClick={() => props.onConvert?.("new")}>
+                      Create new shopping list
+                    </Menu.Item>
+                    {props.hasLastShoppingList && (
+                      <Menu.Item value="merge" onClick={() => props.onConvert?.("merge")}>
+                        Add to previous shopping list
+                      </Menu.Item>
+                    )}
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
+          </>
+        )}
         <Box borderLeftWidth="1px" height="auto" />
         <Button
           size="sm"
@@ -488,8 +522,8 @@ export function Editor(props: EditorProps) {
           extensions={extensions}
           onCreateEditor={(view) => {
             editorViewRef.current = view
-            // Set initial shopping list mode state
-            if (isShoppingListMode) {
+            // Auto-enable shopping list mode if this is a shopping list
+            if (isShoppingList) {
               view.dispatch({
                 effects: toggleShoppingListModeEffect.of(true),
               })
@@ -505,9 +539,9 @@ export function Editor(props: EditorProps) {
           }
           onChange={(val, viewUpdate) => {
             setText(val)
-            if (note?.id) {
+            if (documentId) {
               const state = viewUpdate.state.toJSON(stateFields);
-              localStorage.setItem(note.id, JSON.stringify(state));
+              localStorage.setItem(documentId, JSON.stringify(state));
             }
           }}
           basicSetup={{

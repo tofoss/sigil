@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-
 	"tofoss/sigil-go/pkg/models"
 
 	"github.com/google/uuid"
@@ -103,8 +102,8 @@ var _ RecipeRepositoryInterface = (*RecipeRepository)(nil)
 // ShoppingListRepositoryInterface defines the contract for shopping list data access
 type ShoppingListRepositoryInterface interface {
 	HashContent(content string) string
-	ExistsByNoteID(ctx context.Context, noteID uuid.UUID) (bool, error)
-	GetByNoteID(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]models.ShoppingList, error)
+	GetLastCreatedByUser(ctx context.Context, userID uuid.UUID) (*models.ShoppingList, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error)
 	Create(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)
 	Update(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"tofoss/sigil-go/pkg/db/repositories"
 	"tofoss/sigil-go/pkg/handlers/errors"
@@ -557,7 +558,8 @@ func (h *NoteHandler) ConvertNoteToShoppingList(w http.ResponseWriter, r *http.R
 	}
 
 	if len(items) == 0 {
-		errors.BadRequest(w, "No list items found in note")
+		log.Printf("no list items found in note")
+		errors.BadRequest(w)
 		return
 	}
 
