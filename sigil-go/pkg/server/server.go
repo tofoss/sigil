@@ -130,9 +130,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		r.Get("/{id}/notebooks", noteHandler.GetNoteNotebooks)
 		r.Put("/{noteId}/notebooks/{notebookId}/section", sectionHandler.AssignNoteToSection)
 		r.Put("/{noteId}/notebooks/{notebookId}/position", sectionHandler.UpdateNotePosition)
-		r.Get("/{id}/shopping-list", shoppingListHandler.GetShoppingList)
-		r.Put("/{id}/shopping-list", shoppingListHandler.EnableShoppingList)
-		r.Delete("/{id}/shopping-list", shoppingListHandler.DisableShoppingList)
+		r.Post("/{id}/convert-to-shopping-list", noteHandler.ConvertNoteToShoppingList)
 	})
 
 	router.Route("/notebooks", func(r chi.Router) {
@@ -171,10 +169,23 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		r.Get("/jobs/{id}", recipeHandler.GetRecipeJobStatus)
 	})
 
-	router.Route("/shopping-list", func(r chi.Router) {
+	router.Route("/shopping-lists", func(r chi.Router) {
 		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
+
+		// CRUD operations
+		r.Get("/", shoppingListHandler.ListShoppingLists)
+		r.Post("/", shoppingListHandler.CreateShoppingList)
+		r.Get("/{id}", shoppingListHandler.GetShoppingList)
+		r.Put("/{id}", shoppingListHandler.UpdateShoppingList)
+		r.Delete("/{id}", shoppingListHandler.DeleteShoppingList)
+
+		// Item operations
 		r.Patch("/items/{id}/check", shoppingListHandler.ToggleItemCheck)
+
+		// Vocabulary
 		r.Get("/vocabulary", shoppingListHandler.GetVocabularySuggestions)
+
+		// Recipe merge
 		r.Post("/{id}/merge-recipe", shoppingListHandler.MergeRecipeIngredients)
 	})
 

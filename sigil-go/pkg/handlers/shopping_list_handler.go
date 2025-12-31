@@ -31,7 +31,29 @@ func NewShoppingListHandler(
 	return ShoppingListHandler{shoppingListRepo, noteRepo, recipeRepo}
 }
 
-// GetShoppingList retrieves the parsed shopping list for a note
+// ListShoppingLists retrieves all shopping lists for the user
+func (h *ShoppingListHandler) ListShoppingLists(w http.ResponseWriter, r *http.Request) {
+	userID, _, err := utils.UserContext(r)
+	if err != nil {
+		log.Printf("unable to list shopping lists, user not logged in: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	// Get all shopping lists for user (limit to 100)
+	lists, err := h.shoppingListRepo.GetByUserID(r.Context(), userID, 100)
+	if err != nil {
+		log.Printf("failed to get shopping lists: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(lists)
+}
+
+// GetShoppingList retrieves a single shopping list by ID
 func (h *ShoppingListHandler) GetShoppingList(w http.ResponseWriter, r *http.Request) {
 	userID, _, err := utils.UserContext(r)
 	if err != nil {
@@ -40,27 +62,26 @@ func (h *ShoppingListHandler) GetShoppingList(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	noteIDStr := chi.URLParam(r, "id")
-	noteID, err := uuid.Parse(noteIDStr)
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
 	if err != nil {
-		log.Printf("invalid note ID: %s", noteIDStr)
+		log.Printf("invalid shopping list ID: %s", idStr)
 		errors.BadRequest(w)
 		return
 	}
 
-	// Verify user owns the note
-	_, err = h.noteRepo.FetchUsersNote(r.Context(), noteID, userID)
+	// Get shopping list
+	shoppingList, err := h.shoppingListRepo.GetByID(r.Context(), id)
 	if err != nil {
-		log.Printf("note not found or access denied: %v", err)
-		errors.NotFound(w, "Note not found")
+		log.Printf("shopping list not found: %v", err)
+		errors.NotFound(w, "Shopping list not found")
 		return
 	}
 
-	// Get shopping list
-	shoppingList, err := h.shoppingListRepo.GetByNoteID(r.Context(), noteID)
-	if err != nil {
-		log.Printf("shopping list not found for note %s: %v", noteID, err)
-		errors.NotFound(w, "Shopping list not found")
+	// Verify user owns the shopping list
+	if shoppingList.UserID != userID {
+		log.Printf("user %s does not own shopping list %s", userID, id)
+		errors.Forbidden(w)
 		return
 	}
 
@@ -69,56 +90,45 @@ func (h *ShoppingListHandler) GetShoppingList(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(shoppingList)
 }
 
-// EnableShoppingList enables shopping list mode for a note
-func (h *ShoppingListHandler) EnableShoppingList(w http.ResponseWriter, r *http.Request) {
+// CreateShoppingList creates a new standalone shopping list
+func (h *ShoppingListHandler) CreateShoppingList(w http.ResponseWriter, r *http.Request) {
 	userID, _, err := utils.UserContext(r)
 	if err != nil {
-		log.Printf("unable to enable shopping list, user not logged in: %v", err)
+		log.Printf("unable to create shopping list, user not logged in: %v", err)
 		errors.InternalServerError(w)
 		return
 	}
 
-	noteIDStr := chi.URLParam(r, "id")
-	noteID, err := uuid.Parse(noteIDStr)
+	var req requests.CreateShoppingList
+	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Printf("invalid note ID: %s", noteIDStr)
+		log.Printf("could not decode create shopping list request: %v", err)
 		errors.BadRequest(w)
 		return
 	}
 
-	// Verify user owns the note
-	note, err := h.noteRepo.FetchUsersNote(r.Context(), noteID, userID)
-	if err != nil {
-		log.Printf("note not found or access denied: %v", err)
-		errors.NotFound(w, "Note not found")
-		return
+	// Extract title from content if not provided
+	title := req.Title
+	if title == "" {
+		title = utils.GenerateTitleFromContent(req.Content)
 	}
 
-	// Check if shopping list already exists
-	existing, _ := h.shoppingListRepo.GetByNoteID(r.Context(), noteID)
-	if existing != nil {
-		// Already enabled, return existing
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(existing)
-		return
-	}
-
-	// Parse the note content and create shopping list
-	items, err := utils.ParseShoppingList(note.Content)
+	// Parse shopping list items from content
+	items, err := utils.ParseShoppingList(req.Content)
 	if err != nil {
-		log.Printf("failed to parse shopping list from note content: %v", err)
+		log.Printf("failed to parse shopping list: %v", err)
 		errors.InternalServerError(w)
 		return
 	}
 
 	now := time.Now()
-	contentHash := h.shoppingListRepo.HashContent(note.Content)
+	contentHash := h.shoppingListRepo.HashContent(req.Content)
 
 	shoppingList := models.ShoppingList{
 		ID:          uuid.New(),
-		NoteID:      noteID,
 		UserID:      userID,
+		Title:       title,
+		Content:     req.Content,
 		ContentHash: contentHash,
 		Items:       items,
 		CreatedAt:   now,
@@ -142,7 +152,6 @@ func (h *ShoppingListHandler) EnableShoppingList(w http.ResponseWriter, r *http.
 		err := h.shoppingListRepo.AddToVocabulary(r.Context(), userID, item.ItemName)
 		if err != nil {
 			log.Printf("warning: failed to add item to vocabulary: %v", err)
-			// Don't fail the request, just log
 		}
 	}
 
@@ -151,33 +160,151 @@ func (h *ShoppingListHandler) EnableShoppingList(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(created)
 }
 
-// DisableShoppingList disables shopping list mode for a note
-func (h *ShoppingListHandler) DisableShoppingList(w http.ResponseWriter, r *http.Request) {
+// UpdateShoppingList updates an existing shopping list
+func (h *ShoppingListHandler) UpdateShoppingList(w http.ResponseWriter, r *http.Request) {
 	userID, _, err := utils.UserContext(r)
 	if err != nil {
-		log.Printf("unable to disable shopping list, user not logged in: %v", err)
+		log.Printf("unable to update shopping list, user not logged in: %v", err)
 		errors.InternalServerError(w)
 		return
 	}
 
-	noteIDStr := chi.URLParam(r, "id")
-	noteID, err := uuid.Parse(noteIDStr)
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
 	if err != nil {
-		log.Printf("invalid note ID: %s", noteIDStr)
+		log.Printf("invalid shopping list ID: %s", idStr)
 		errors.BadRequest(w)
 		return
 	}
 
-	// Verify user owns the note
-	_, err = h.noteRepo.FetchUsersNote(r.Context(), noteID, userID)
+	// Get existing shopping list
+	existing, err := h.shoppingListRepo.GetByID(r.Context(), id)
 	if err != nil {
-		log.Printf("note not found or access denied: %v", err)
-		errors.NotFound(w, "Note not found")
+		log.Printf("shopping list not found: %v", err)
+		errors.NotFound(w, "Shopping list not found")
+		return
+	}
+
+	// Verify ownership
+	if existing.UserID != userID {
+		log.Printf("user %s does not own shopping list %s", userID, id)
+		errors.Forbidden(w)
+		return
+	}
+
+	var req requests.UpdateShoppingList
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Printf("could not decode update shopping list request: %v", err)
+		errors.BadRequest(w)
+		return
+	}
+
+	// Extract title from content if not provided
+	title := req.Title
+	if title == "" {
+		title = utils.GenerateTitleFromContent(req.Content)
+	}
+
+	// Check if content has changed
+	newContentHash := h.shoppingListRepo.HashContent(req.Content)
+	if newContentHash == existing.ContentHash {
+		// Content unchanged, just update title if different
+		if title != existing.Title {
+			existing.Title = title
+			existing.UpdatedAt = time.Now()
+			updated, err := h.shoppingListRepo.Update(r.Context(), *existing)
+			if err != nil {
+				log.Printf("failed to update shopping list: %v", err)
+				errors.InternalServerError(w)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(updated)
+			return
+		}
+		// Nothing changed, return existing
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(existing)
+		return
+	}
+
+	// Parse new items
+	items, err := utils.ParseShoppingList(req.Content)
+	if err != nil {
+		log.Printf("failed to parse shopping list: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	// Update shopping list
+	existing.Title = title
+	existing.Content = req.Content
+	existing.ContentHash = newContentHash
+	existing.Items = items
+	existing.UpdatedAt = time.Now()
+
+	// Set shopping list IDs
+	for i := range existing.Items {
+		existing.Items[i].ShoppingListID = existing.ID
+	}
+
+	updated, err := h.shoppingListRepo.Update(r.Context(), *existing)
+	if err != nil {
+		log.Printf("failed to update shopping list: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	// Update vocabulary
+	for _, item := range items {
+		err := h.shoppingListRepo.AddToVocabulary(r.Context(), userID, item.ItemName)
+		if err != nil {
+			log.Printf("warning: failed to add item to vocabulary: %v", err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updated)
+}
+
+// DeleteShoppingList deletes a shopping list
+func (h *ShoppingListHandler) DeleteShoppingList(w http.ResponseWriter, r *http.Request) {
+	userID, _, err := utils.UserContext(r)
+	if err != nil {
+		log.Printf("unable to delete shopping list, user not logged in: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Printf("invalid shopping list ID: %s", idStr)
+		errors.BadRequest(w)
+		return
+	}
+
+	// Get shopping list to verify ownership
+	shoppingList, err := h.shoppingListRepo.GetByID(r.Context(), id)
+	if err != nil {
+		log.Printf("shopping list not found: %v", err)
+		errors.NotFound(w, "Shopping list not found")
+		return
+	}
+
+	// Verify ownership
+	if shoppingList.UserID != userID {
+		log.Printf("user %s does not own shopping list %s", userID, id)
+		errors.Forbidden(w)
 		return
 	}
 
 	// Delete shopping list
-	err = h.shoppingListRepo.Delete(r.Context(), noteID)
+	err = h.shoppingListRepo.Delete(r.Context(), id)
 	if err != nil {
 		log.Printf("failed to delete shopping list: %v", err)
 		errors.InternalServerError(w)
@@ -311,26 +438,8 @@ func (h *ShoppingListHandler) MergeRecipeIngredients(w http.ResponseWriter, r *h
 		return
 	}
 
-	// Get the note to update its content
-	note, err := h.noteRepo.FetchUsersNote(r.Context(), shoppingList.NoteID, userID)
-	if err != nil {
-		log.Printf("note not found: %v", err)
-		errors.NotFound(w, "Note not found")
-		return
-	}
-
-	// Merge recipe ingredients into shopping list
-	updatedContent := h.mergeRecipeIntoMarkdown(note.Content, recipe.Ingredients, shoppingList.Items)
-
-	// Update the note content
-	note.Content = updatedContent
-	note.UpdatedAt = time.Now()
-	_, err = h.noteRepo.Upsert(r.Context(), note)
-	if err != nil {
-		log.Printf("failed to update note: %v", err)
-		errors.InternalServerError(w)
-		return
-	}
+	// Merge recipe ingredients into shopping list content
+	updatedContent := h.mergeRecipeIntoMarkdown(shoppingList.Content, recipe.Ingredients, shoppingList.Items)
 
 	// Re-parse the shopping list
 	items, err := utils.ParseShoppingList(updatedContent)
@@ -341,8 +450,9 @@ func (h *ShoppingListHandler) MergeRecipeIngredients(w http.ResponseWriter, r *h
 	}
 
 	// Update shopping list
-	shoppingList.Items = items
+	shoppingList.Content = updatedContent
 	shoppingList.ContentHash = h.shoppingListRepo.HashContent(updatedContent)
+	shoppingList.Items = items
 	shoppingList.UpdatedAt = time.Now()
 
 	// Set shopping list IDs

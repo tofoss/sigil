@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"regexp"
 	"slices"
 	"strconv"
@@ -328,4 +329,52 @@ func NormalizeItemName(name string) string {
 // Keep private version for internal use
 func normalizeItemName(name string) string {
 	return NormalizeItemName(name)
+}
+
+// NormalizeToShoppingList converts plain markdown lists to shopping list format
+// - Converts `- item` to `- [ ] item`
+// - Preserves checked state from `[x]` items
+// - Flattens nested lists by removing indentation
+// - Preserves links and parenthetical notes
+func NormalizeToShoppingList(content string) string {
+	if content == "" {
+		return ""
+	}
+
+	lines := strings.Split(content, "\n")
+	var normalized []string
+
+	// Regex patterns
+	plainListRegex := regexp.MustCompile(`^(\s*)-\s+(.+)$`)        // Matches plain list items
+	checkboxListRegex := regexp.MustCompile(`^(\s*)-\s*\[([ xX])\]\s*(.+)$`) // Matches checkbox items
+
+	for _, line := range lines {
+		// Skip empty lines
+		if strings.TrimSpace(line) == "" {
+			normalized = append(normalized, "")
+			continue
+		}
+
+		// If it's already a checkbox item, preserve it (flatten indentation)
+		if checkboxMatch := checkboxListRegex.FindStringSubmatch(line); checkboxMatch != nil {
+			checkState := checkboxMatch[2]
+			itemText := checkboxMatch[3]
+			// Flatten: remove indentation
+			normalized = append(normalized, fmt.Sprintf("- [%s] %s", checkState, itemText))
+			continue
+		}
+
+		// If it's a plain list item, convert to checkbox (flatten indentation)
+		if plainMatch := plainListRegex.FindStringSubmatch(line); plainMatch != nil {
+			itemText := plainMatch[2]
+			// Convert to unchecked checkbox
+			normalized = append(normalized, fmt.Sprintf("- [ ] %s", itemText))
+			continue
+		}
+
+		// Not a list item, keep as-is (headers, paragraphs, etc.)
+		normalized = append(normalized, line)
+	}
+
+	return strings.Join(normalized, "\n")
 }

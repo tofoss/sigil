@@ -26,27 +26,69 @@ func (r *ShoppingListRepository) HashContent(content string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// ExistsByNoteID checks if a shopping list exists for a given note
-func (r *ShoppingListRepository) ExistsByNoteID(ctx context.Context, noteID uuid.UUID) (bool, error) {
-	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM shopping_lists WHERE note_id = $1)`
-	err := r.pool.QueryRow(ctx, query, noteID).Scan(&exists)
-	return exists, err
+// GetByUserID retrieves all shopping lists for a user, ordered by created_at DESC
+func (r *ShoppingListRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]models.ShoppingList, error) {
+	query := `
+		SELECT id, user_id, title, content, content_hash, created_at, updated_at
+		FROM shopping_lists
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+		LIMIT $2`
+
+	rows, err := r.pool.Query(ctx, query, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lists []models.ShoppingList
+	for rows.Next() {
+		var list models.ShoppingList
+		err := rows.Scan(
+			&list.ID,
+			&list.UserID,
+			&list.Title,
+			&list.Content,
+			&list.ContentHash,
+			&list.CreatedAt,
+			&list.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get items for this list
+		items, err := r.getItemsByListID(ctx, list.ID)
+		if err != nil {
+			return nil, err
+		}
+		list.Items = items
+
+		lists = append(lists, list)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lists, nil
 }
 
-// GetByNoteID retrieves a shopping list by note ID with all its items
-func (r *ShoppingListRepository) GetByNoteID(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error) {
-	// Get the shopping list
+// GetLastCreatedByUser retrieves the most recently created shopping list for a user
+func (r *ShoppingListRepository) GetLastCreatedByUser(ctx context.Context, userID uuid.UUID) (*models.ShoppingList, error) {
 	var list models.ShoppingList
 	query := `
-		SELECT id, note_id, user_id, content_hash, created_at, updated_at
+		SELECT id, user_id, title, content, content_hash, created_at, updated_at
 		FROM shopping_lists
-		WHERE note_id = $1`
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1`
 
-	err := r.pool.QueryRow(ctx, query, noteID).Scan(
+	err := r.pool.QueryRow(ctx, query, userID).Scan(
 		&list.ID,
-		&list.NoteID,
 		&list.UserID,
+		&list.Title,
+		&list.Content,
 		&list.ContentHash,
 		&list.CreatedAt,
 		&list.UpdatedAt,
@@ -54,7 +96,7 @@ func (r *ShoppingListRepository) GetByNoteID(ctx context.Context, noteID uuid.UU
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("shopping list not found for note %s", noteID)
+			return nil, nil // No shopping lists exist for this user
 		}
 		return nil, err
 	}
@@ -73,14 +115,15 @@ func (r *ShoppingListRepository) GetByNoteID(ctx context.Context, noteID uuid.UU
 func (r *ShoppingListRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error) {
 	var list models.ShoppingList
 	query := `
-		SELECT id, note_id, user_id, content_hash, created_at, updated_at
+		SELECT id, user_id, title, content, content_hash, created_at, updated_at
 		FROM shopping_lists
 		WHERE id = $1`
 
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&list.ID,
-		&list.NoteID,
 		&list.UserID,
+		&list.Title,
+		&list.Content,
 		&list.ContentHash,
 		&list.CreatedAt,
 		&list.UpdatedAt,
@@ -169,21 +212,23 @@ func (r *ShoppingListRepository) getItemsByListID(ctx context.Context, listID uu
 // Create creates a new shopping list
 func (r *ShoppingListRepository) Create(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error) {
 	query := `
-		INSERT INTO shopping_lists (id, note_id, user_id, content_hash, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, note_id, user_id, content_hash, created_at, updated_at`
+		INSERT INTO shopping_lists (id, user_id, title, content, content_hash, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, user_id, title, content, content_hash, created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
 		list.ID,
-		list.NoteID,
 		list.UserID,
+		list.Title,
+		list.Content,
 		list.ContentHash,
 		list.CreatedAt,
 		list.UpdatedAt,
 	).Scan(
 		&list.ID,
-		&list.NoteID,
 		&list.UserID,
+		&list.Title,
+		&list.Content,
 		&list.ContentHash,
 		&list.CreatedAt,
 		&list.UpdatedAt,
@@ -208,18 +253,21 @@ func (r *ShoppingListRepository) Create(ctx context.Context, list models.Shoppin
 func (r *ShoppingListRepository) Update(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error) {
 	query := `
 		UPDATE shopping_lists
-		SET content_hash = $2, updated_at = $3
+		SET title = $2, content = $3, content_hash = $4, updated_at = $5
 		WHERE id = $1
-		RETURNING id, note_id, user_id, content_hash, created_at, updated_at`
+		RETURNING id, user_id, title, content, content_hash, created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
 		list.ID,
+		list.Title,
+		list.Content,
 		list.ContentHash,
 		list.UpdatedAt,
 	).Scan(
 		&list.ID,
-		&list.NoteID,
 		&list.UserID,
+		&list.Title,
+		&list.Content,
 		&list.ContentHash,
 		&list.CreatedAt,
 		&list.UpdatedAt,
@@ -298,10 +346,10 @@ func (r *ShoppingListRepository) replaceItems(ctx context.Context, listID uuid.U
 	return nil
 }
 
-// Delete deletes a shopping list and all its items
-func (r *ShoppingListRepository) Delete(ctx context.Context, noteID uuid.UUID) error {
-	query := `DELETE FROM shopping_lists WHERE note_id = $1`
-	_, err := r.pool.Exec(ctx, query, noteID)
+// Delete deletes a shopping list by its ID (cascade deletes items via foreign key)
+func (r *ShoppingListRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM shopping_lists WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, id)
 	return err
 }
 

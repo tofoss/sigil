@@ -6,11 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// ShoppingList represents a shopping list associated with a note
+// ShoppingList represents a standalone shopping list
 type ShoppingList struct {
 	ID          uuid.UUID           `json:"id" db:"id"`
-	NoteID      uuid.UUID           `json:"noteId" db:"note_id"`
 	UserID      uuid.UUID           `json:"userId" db:"user_id"`
+	Title       string              `json:"title" db:"title"`
+	Content     string              `json:"content" db:"content"`
 	ContentHash string              `json:"contentHash" db:"content_hash"`
 	Items       []ShoppingListEntry `json:"items" db:"-"` // Not stored in shopping_lists table
 	CreatedAt   time.Time           `json:"createdAt" db:"created_at"`

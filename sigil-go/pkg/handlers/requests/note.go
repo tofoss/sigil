@@ -8,3 +8,7 @@ type Note struct {
 	Content   string    `json:"content"`
 	Published bool      `json:"published"`
 }
+
+type ConvertNoteToShoppingList struct {
+	Mode string `json:"mode"` // "new" or "merge"
+}
