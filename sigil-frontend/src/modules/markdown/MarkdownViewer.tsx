@@ -8,6 +8,7 @@ import {
   Link,
   List,
   Table,
+  Checkbox,
 } from "@chakra-ui/react"
 import ReactMarkdown from "react-markdown"
 import { LuExternalLink } from "react-icons/lu"
@@ -31,9 +32,10 @@ import { useLocation } from "shared/Router"
 
 interface Props {
   text: string
+  isShoppingList?: boolean
 }
 
-export function MarkdownViewer({ text }: Props) {
+export function MarkdownViewer({ text, isShoppingList = false }: Props) {
   const { hash: url } = useLocation()
 
   useEffect(() => {
@@ -122,7 +124,61 @@ export function MarkdownViewer({ text }: Props) {
           ),
           ul: ({ node, ...props }) => <List.Root {...props} />,
           ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
-          li: ({ node, ...props }) => <List.Item ml="1rem" {...props} />,
+          li: ({ node, ...props }) => {
+            // Check if this is a task list item (has a checkbox)
+            const children = props.children
+            if (Array.isArray(children) && children.length > 0) {
+              const firstChild = children[0]
+              // remarkGfm creates task lists with an input checkbox
+              if (React.isValidElement(firstChild) && firstChild.type === 'input' &&
+                  (firstChild.props as { type?: string }).type === 'checkbox') {
+                const checked = (firstChild.props as { checked?: boolean }).checked || false
+                const restChildren = children.slice(1)
+
+                // For shopping lists, use larger, more touch-friendly checkboxes
+                if (isShoppingList) {
+                  return (
+                    <List.Item
+                      ml="0"
+                      py={3}
+                      display="flex"
+                      alignItems="center"
+                      fontSize="lg"
+                      {...props}
+                    >
+                      <Checkbox.Root
+                        size="lg"
+                        defaultChecked={checked}
+                        colorPalette="teal"
+                        variant="outline"
+                      >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label fontWeight="600" fontSize="1.125rem" ml={1}>
+                          {restChildren}
+                        </Checkbox.Label>
+                      </Checkbox.Root>
+                    </List.Item>
+                  )
+                } else {
+                  // Regular task list item
+                  return (
+                    <List.Item ml="1rem" display="flex" alignItems="center" {...props}>
+                      <Checkbox.Root size="sm" mr={2} defaultChecked={checked}>
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label>
+                          {restChildren}
+                        </Checkbox.Label>
+                      </Checkbox.Root>
+                    </List.Item>
+                  )
+                }
+              }
+            }
+            // Regular list item
+            return <List.Item ml="1rem" {...props} />
+          },
           strong: ({ node, ...props }) => (
             <Box as="strong" fontWeight="bold" {...props} />
           ),

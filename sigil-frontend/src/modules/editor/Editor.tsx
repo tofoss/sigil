@@ -526,7 +526,7 @@ export function Editor(props: EditorProps) {
           maxWidth="100%"
           width="100%"
         >
-          <MarkdownViewer text={text} />
+          <MarkdownViewer text={text} isShoppingList={isShoppingList} />
         </Box>
       ) : (
         <CodeMirror
