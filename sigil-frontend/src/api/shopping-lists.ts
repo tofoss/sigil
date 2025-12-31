@@ -11,9 +11,10 @@ import { commonHeaders } from "./utils"
 
 export const shoppingListClient = {
   // List all shopping lists for current user
-  list: () =>
+  list: (limit?: number) =>
     client
       .get("shopping-lists", {
+        searchParams: limit ? { limit: limit.toString() } : {},
         headers: commonHeaders(),
         credentials: "include",
       })

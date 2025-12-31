@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,8 +41,18 @@ func (h *ShoppingListHandler) ListShoppingLists(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// Get all shopping lists for user (limit to 100)
-	lists, err := h.shoppingListRepo.GetByUserID(r.Context(), userID, 100)
+	// Get limit from query parameter, default to 100
+	limit := 100
+	limitStr := r.URL.Query().Get("limit")
+	if limitStr != "" {
+		parsedLimit, err := strconv.Atoi(limitStr)
+		if err == nil && parsedLimit > 0 && parsedLimit <= 100 {
+			limit = parsedLimit
+		}
+	}
+
+	// Get shopping lists for user
+	lists, err := h.shoppingListRepo.GetByUserID(r.Context(), userID, limit)
 	if err != nil {
 		log.Printf("failed to get shopping lists: %v", err)
 		errors.InternalServerError(w)

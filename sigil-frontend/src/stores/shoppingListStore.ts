@@ -25,11 +25,11 @@ export const useShoppingListStore = create<ShoppingListState>((set) => ({
   isLoading: false,
   error: null,
 
-  // Fetch shopping lists from API
+  // Fetch shopping lists from API (limit to 5 most recent)
   fetchShoppingLists: async () => {
     set({ isLoading: true, error: null })
     try {
-      const lists = await shoppingListClient.list()
+      const lists = await shoppingListClient.list(5)
       set({
         shoppingLists: lists.map(list => ({ id: list.id, title: list.title })),
         isLoading: false,
@@ -49,10 +49,10 @@ export const useShoppingListStore = create<ShoppingListState>((set) => ({
     }))
   },
 
-  // Add a new shopping list
+  // Add a new shopping list (maintain limit of 5)
   addShoppingList: (list: ShoppingListItem) => {
     set((state) => ({
-      shoppingLists: [list, ...state.shoppingLists],
+      shoppingLists: [list, ...state.shoppingLists].slice(0, 5),
     }))
   },
 
