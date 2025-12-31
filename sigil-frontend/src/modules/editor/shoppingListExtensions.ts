@@ -66,6 +66,28 @@ function debounce(
   }
 }
 
+// Helper function to apply user's casing pattern to vocabulary word
+function applyCasing(userWord: string, vocabWord: string): string {
+  // If user typed all lowercase, return lowercase
+  if (userWord === userWord.toLowerCase()) {
+    return vocabWord.toLowerCase()
+  }
+  // If user typed all uppercase, return uppercase
+  if (userWord === userWord.toUpperCase()) {
+    return vocabWord.toUpperCase()
+  }
+  // If user typed title case (first char upper, rest lower)
+  if (
+    userWord.length > 0 &&
+    userWord[0] === userWord[0].toUpperCase() &&
+    userWord.slice(1) === userWord.slice(1).toLowerCase()
+  ) {
+    return vocabWord[0].toUpperCase() + vocabWord.slice(1).toLowerCase()
+  }
+  // Otherwise, return vocabulary word as-is
+  return vocabWord
+}
+
 // Autocomplete function for shopping list items
 export function shoppingListAutocomplete(): Extension {
   const debouncedFetch = debounce(
@@ -116,9 +138,9 @@ export function shoppingListAutocomplete(): Extension {
 
         const wordStart = pos - word.length
 
-        // Fetch suggestions
+        // Fetch suggestions - use lowercase for case-insensitive search
         return new Promise((resolve) => {
-          debouncedFetch(word, (items: VocabularyItem[]) => {
+          debouncedFetch(word.toLowerCase(), (items: VocabularyItem[]) => {
             if (items.length === 0) {
               resolve(null)
               return
@@ -126,11 +148,16 @@ export function shoppingListAutocomplete(): Extension {
 
             resolve({
               from: wordStart,
-              options: items.map((item) => ({
-                label: item.itemName,
-                type: "text",
-                boost: item.frequency, // Higher frequency items appear first
-              })),
+              options: items.map((item) => {
+                // Apply user's casing pattern to the vocabulary word
+                const casedLabel = applyCasing(word, item.itemName)
+                return {
+                  label: casedLabel,
+                  apply: casedLabel, // Use the cased version when inserting
+                  type: "text",
+                  boost: item.frequency, // Higher frequency items appear first
+                }
+              }),
             })
           })
         })

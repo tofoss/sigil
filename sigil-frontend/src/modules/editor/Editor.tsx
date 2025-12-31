@@ -367,6 +367,16 @@ export function Editor(props: EditorProps) {
             return false; // Let autocomplete handle it
           }
 
+          // Don't intercept if we're in shopping list mode on a checkbox line
+          // Let the shopping list keymap handle it instead
+          if (isShoppingList) {
+            const { from } = view.state.selection.main;
+            const line = view.state.doc.lineAt(from);
+            if (/^\s*-\s*\[([ xX])\]/.test(line.text)) {
+              return false; // Let shopping list extension handle it
+            }
+          }
+
           const { state } = view;
           const { from, to } = state.selection.main;
 
@@ -380,7 +390,7 @@ export function Editor(props: EditorProps) {
         },
       },
     ]);
-  }, []);
+  }, [isShoppingList]);
 
   const extensions = useMemo(() => {
     const exts = [];
@@ -397,11 +407,15 @@ export function Editor(props: EditorProps) {
       fullHeightEditor,
       clickToFocus,
       EditorView.lineWrapping,
-      shoppingListExtension(), // Always include, mode is toggled via state
     );
 
+    // Only add shopping list extension when editing a shopping list
+    if (isShoppingList) {
+      exts.push(shoppingListExtension());
+    }
+
     return exts;
-  }, [vimMode, enterKeyFix, markdownPasteHandler, fullHeightEditor, clickToFocus]);
+  }, [vimMode, enterKeyFix, markdownPasteHandler, fullHeightEditor, clickToFocus, isShoppingList]);
 
   return (
     <Box
