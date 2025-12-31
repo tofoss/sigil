@@ -8,6 +8,7 @@ import { useParams, useSearchParams, useNavigate } from "shared/Router"
 import { useFetch } from "utils/http"
 import { toaster } from "components/ui/toaster"
 import { useTreeStore } from "stores/treeStore"
+import { useShoppingListStore } from "stores/shoppingListStore"
 import { useTOC } from "shared/Layout"
 
 const notePage = () => {
@@ -20,6 +21,7 @@ const notePage = () => {
   const [isPreviewMode, setIsPreviewMode] = useState(shouldEdit === false)
   const { open: deleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const { deleteNote } = useTreeStore()
+  const { addShoppingList } = useShoppingListStore()
   const { setContent } = useTOC()
 
   if (!id) {
@@ -80,13 +82,17 @@ const notePage = () => {
     try {
       const shoppingList = await noteClient.convertToShoppingList(id, mode)
 
+      // Add to sidebar tree via store
+      addShoppingList({ id: shoppingList.id, title: shoppingList.title })
+
       toaster.create({
         title: mode === "new"
           ? "Shopping list created successfully"
           : "Items added to shopping list",
         type: "success",
       })
-      navigate(`/shopping-lists/${shoppingList.id}`)
+      // Navigate to the shopping list in edit mode
+      navigate(`/shopping-lists/${shoppingList.id}?edit=true`)
     } catch (err) {
       console.error("Failed to convert note:", err)
       toaster.create({
