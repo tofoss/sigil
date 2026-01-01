@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   Blockquote,
   Box,
@@ -9,6 +10,7 @@ import {
   List,
   Table,
   Checkbox,
+  CheckboxCheckedChangeDetails,
 } from "@chakra-ui/react"
 import ReactMarkdown from "react-markdown"
 import { LuExternalLink } from "react-icons/lu"
@@ -33,9 +35,10 @@ import { useLocation } from "shared/Router"
 interface Props {
   text: string
   isShoppingList?: boolean
+  onCheckboxClick?: (idx: number, checked: boolean) => void
 }
 
-export function MarkdownViewer({ text, isShoppingList = false }: Props) {
+export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }: Props) {
   const { hash: url } = useLocation()
   const listItemCounter = React.useRef(0);
   const listItemIds = React.useRef(new Map<ReactNode, number>());
@@ -165,6 +168,12 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
                         defaultChecked={checked}
                         colorPalette="teal"
                         variant="outline"
+                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                          if (d.checked === "indeterminate" || !onCheckboxClick) {
+                            return
+                          }
+                          onCheckboxClick(itemId!, d.checked)
+                        }}
                       >
                         <Checkbox.HiddenInput />
                         <Checkbox.Control />
@@ -184,6 +193,12 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
                         defaultChecked={checked}
                         colorPalette="teal"
                         variant="outline"
+                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                          if (d.checked === "indeterminate" || !onCheckboxClick) {
+                            return
+                          }
+                          onCheckboxClick(itemId!, d.checked)
+                        }}
                       >
 
                         <Checkbox.HiddenInput />

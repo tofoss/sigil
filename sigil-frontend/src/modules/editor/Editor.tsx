@@ -25,6 +25,7 @@ import { useTreeStore } from "stores/treeStore"
 import { useShoppingListStore } from "stores/shoppingListStore"
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
+import { RegExpCursor } from '@codemirror/search';
 import { EditorView } from '@codemirror/view';
 import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
 import { useColorModeValue } from 'components/ui/color-mode';
@@ -167,6 +168,38 @@ export function Editor(props: EditorProps) {
     },
   })
 
+  const onCheckboxClick = (idx: number, checked: boolean) => {
+    if (!editorViewRef.current) return;
+    const doc = editorViewRef.current.state.doc;
+    const cursor = new RegExpCursor(doc, "- \\[[ x]\\]");
+
+    let count = 0;
+
+    const replacement = checked ? "- [x]" : "- [ ]"
+
+    // Iterate through all matches
+    while (!cursor.next().done) {
+      if (count === idx) {
+        editorViewRef.current.dispatch({
+          changes: {
+            from: cursor.value.from,
+            to: cursor.value.to,
+            insert: replacement
+          },
+          userEvent: 'input.type'
+        });
+
+        const newText = editorViewRef.current.state.doc.toString();
+        setText(newText);
+        onSave(newText)
+
+        return true; // Found and replaced
+      }
+      count++;
+    }
+
+    return false; // Not enough occurrences
+  }
 
   useEffect(() => {
     if (props.note) {
@@ -269,10 +302,11 @@ export function Editor(props: EditorProps) {
     }
   }, [togglePreview, props.onModeChange])
 
-  const onSave = async () => {
+  const onSave = async (content?: string) => {
+    const newText = content || text
     // If external onSave callback provided, use it
     if (props.onSave) {
-      await props.onSave(text)
+      await props.onSave(newText)
       return
     }
 
@@ -280,9 +314,10 @@ export function Editor(props: EditorProps) {
     if (isShoppingList) {
       // Save shopping list
       if (shoppingList?.id) {
-        const updatedList = await shoppingListClient.update(shoppingList.id, text)
+        const updatedList = await shoppingListClient.update(shoppingList.id, newText)
+
         setShoppingList(updatedList)
-        lastSavedContentRef.current = text
+        lastSavedContentRef.current = newText
         // Update sidebar tree via store
         updateShoppingListTitle(updatedList.id, updatedList.title)
       } else {
@@ -290,17 +325,17 @@ export function Editor(props: EditorProps) {
       }
     } else {
       // Save note
-      const updatedNote = await call(() => noteClient.upsert(text, note?.id))
+      const updatedNote = await call(() => noteClient.upsert(newText, note?.id))
       if (updatedNote === undefined) {
         console.error("Note is undefined")
         return
       }
 
       setNote(updatedNote)
-      lastSavedContentRef.current = text
+      lastSavedContentRef.current = newText
 
       // Update TOC with current content
-      setTOCContent(text)
+      setTOCContent(newText)
 
       // Save tags if note has an ID and tags have changed
       if (
@@ -509,7 +544,7 @@ export function Editor(props: EditorProps) {
           size="sm"
           variant="ghost"
           colorPalette={colorPalette}
-          onClick={onSave}
+          onClick={() => onSave()}
           loading={loading || assigningTags}
           aria-label="Save note"
         >
@@ -521,66 +556,66 @@ export function Editor(props: EditorProps) {
           {error.message}
         </Text>
       )}
-      {togglePreview ? (
+      {togglePreview && (
         <Box
           maxWidth="100%"
           width="100%"
         >
-          <MarkdownViewer text={text} isShoppingList={isShoppingList} />
+          <MarkdownViewer text={text} isShoppingList={isShoppingList} onCheckboxClick={onCheckboxClick} />
         </Box>
-      ) : (
-        <CodeMirror
-          value={text}
-          minHeight="80vh"
-          theme={editorTheme}
-          extensions={extensions}
-          onCreateEditor={(view) => {
-            editorViewRef.current = view
-            // Auto-enable shopping list mode if this is a shopping list
-            if (isShoppingList) {
-              view.dispatch({
-                effects: toggleShoppingListModeEffect.of(true),
-              })
-            }
-          }}
-          initialState={
-            initialState
-              ? {
-                json: JSON.parse(initialState),
-                fields: stateFields,
-              }
-              : undefined
-          }
-          onChange={(val, viewUpdate) => {
-            setText(val)
-            if (documentId) {
-              const state = viewUpdate.state.toJSON(stateFields);
-              localStorage.setItem(documentId, JSON.stringify(state));
-            }
-          }}
-          basicSetup={{
-            lineNumbers: false,
-            highlightActiveLineGutter: false,
-            foldGutter: false,
-            dropCursor: false,
-            allowMultipleSelections: false,
-            indentOnInput: true,
-            bracketMatching: true,
-            closeBrackets: false,
-            defaultKeymap: false,
-            autocompletion: true,
-            rectangularSelection: false,
-            crosshairCursor: false,
-            highlightActiveLine: false,
-            highlightSelectionMatches: false,
-            closeBracketsKeymap: false,
-            searchKeymap: false,
-            foldKeymap: false,
-            completionKeymap: false,
-            lintKeymap: false,
-          }}
-        />
       )}
+      <CodeMirror
+        style={{ display: togglePreview ? 'none' : 'block' }}
+        value={text}
+        minHeight="80vh"
+        theme={editorTheme}
+        extensions={extensions}
+        onCreateEditor={(view) => {
+          editorViewRef.current = view
+          // Auto-enable shopping list mode if this is a shopping list
+          if (isShoppingList) {
+            view.dispatch({
+              effects: toggleShoppingListModeEffect.of(true),
+            })
+          }
+        }}
+        initialState={
+          initialState
+            ? {
+              json: JSON.parse(initialState),
+              fields: stateFields,
+            }
+            : undefined
+        }
+        onChange={(val, viewUpdate) => {
+          setText(val)
+          if (documentId) {
+            const state = viewUpdate.state.toJSON(stateFields);
+            localStorage.setItem(documentId, JSON.stringify(state));
+          }
+        }}
+        basicSetup={{
+          lineNumbers: false,
+          highlightActiveLineGutter: false,
+          foldGutter: false,
+          dropCursor: false,
+          allowMultipleSelections: false,
+          indentOnInput: true,
+          bracketMatching: true,
+          closeBrackets: false,
+          defaultKeymap: false,
+          autocompletion: true,
+          rectangularSelection: false,
+          crosshairCursor: false,
+          highlightActiveLine: false,
+          highlightSelectionMatches: false,
+          closeBracketsKeymap: false,
+          searchKeymap: false,
+          foldKeymap: false,
+          completionKeymap: false,
+          lintKeymap: false,
+        }}
+      />
     </Box>
   )
 }
