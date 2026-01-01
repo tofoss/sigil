@@ -13,10 +13,11 @@ import { notebooks, sections } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
-import { LuChevronDown, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
+import { LuChevronDown, LuChevronRight, LuPlus, LuX, LuShoppingCart } from "react-icons/lu"
 import { Link, useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { NoteTreeItem } from "./NoteTreeItem"
+import { ShoppingListTreeItem } from "./ShoppingListTreeItem"
 import { useTreeExpansion } from "./useTreeExpansion"
 import { pages } from "pages/pages"
 import {
@@ -28,6 +29,7 @@ import {
   useSensors,
 } from "@dnd-kit/core"
 import { useTreeStore } from "stores/treeStore"
+import { useShoppingListStore } from "stores/shoppingListStore"
 // eslint-disable-next-line no-restricted-imports
 import dayjs from "dayjs"
 
@@ -50,6 +52,12 @@ export function NotebookTree() {
     fetchTree,
   } = useTreeStore()
 
+  const {
+    shoppingLists,
+    isLoading: shoppingListsLoading,
+    fetchShoppingLists,
+  } = useShoppingListStore()
+
   const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
   const [newNotebookName, setNewNotebookName] = useState("")
 
@@ -67,6 +75,8 @@ export function NotebookTree() {
     isUnassignedExpanded,
     toggleUnassigned,
     expandUnassigned,
+    isShoppingListsExpanded,
+    toggleShoppingLists,
   } = useTreeExpansion()
 
   const location = useLocation()
@@ -157,7 +167,8 @@ export function NotebookTree() {
 
   useEffect(() => {
     fetchTree()
-  }, [fetchTree])
+    fetchShoppingLists()
+  }, [fetchTree, fetchShoppingLists])
 
   // Track previous unassigned count to auto-expand when notes are added
   const prevUnassignedCount = useRef(storeUnassignedNotes.length)
@@ -538,6 +549,52 @@ export function NotebookTree() {
               <Stack gap={0.5}>
                 {unassignedNotes.map((note) => (
                   <NoteTreeItem key={note.id} note={note} paddingLeft={8} />
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
+
+        {/* Shopping Lists Section */}
+        {shoppingLists && shoppingLists.length > 0 && (
+          <Box mt={4}>
+            <HStack
+              mb={isShoppingListsExpanded ? 3 : 0}
+              px={2}
+              cursor="pointer"
+              onClick={toggleShoppingLists}
+              _hover={{ bg: "gray.subtle" }}
+              borderRadius="md"
+              py={1.5}
+            >
+              <Icon
+                fontSize="sm"
+                color="fg.muted"
+                flexShrink={0}
+                transform={isShoppingListsExpanded ? "rotate(90deg)" : undefined}
+                transition="transform 0.15s"
+              >
+                <LuChevronRight />
+              </Icon>
+              <Icon fontSize="sm" color="fg.muted" flexShrink={0}>
+                <LuShoppingCart />
+              </Icon>
+              <Heading size="xs" color="fg.muted" flex={1}>
+                Shopping Lists
+              </Heading>
+              <Text fontSize="xs" color="fg.muted">
+                ({shoppingLists.length})
+              </Text>
+            </HStack>
+
+            {isShoppingListsExpanded && (
+              <Stack gap={0.5}>
+                {shoppingLists.map((list) => (
+                  <ShoppingListTreeItem
+                    key={list.id}
+                    shoppingList={list}
+                    paddingLeft={8}
+                  />
                 ))}
               </Stack>
             )}

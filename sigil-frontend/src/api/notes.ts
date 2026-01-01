@@ -1,6 +1,7 @@
 import { client } from "./client"
 import { Note, fromJson } from "./model/note"
 import { Tag } from "./model/tag"
+import { ShoppingList, fromShoppingListJson } from "./model/shopping-list"
 import { commonHeaders } from "./utils"
 
 export const noteClient = {
@@ -81,4 +82,17 @@ export const noteClient = {
       headers: commonHeaders(),
       credentials: "include",
     }),
+
+  // Convert note to shopping list
+  convertToShoppingList: (noteId: string, mode: "new" | "merge") =>
+    client
+      .post(`notes/${noteId}/convert-to-shopping-list`, {
+        json: {
+          mode,
+        },
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<ShoppingList>()
+      .then(fromShoppingListJson),
 }

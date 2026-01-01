@@ -30,6 +30,17 @@ export function useTreeExpansion() {
     }
   )
 
+  const [isShoppingListsExpanded, setIsShoppingListsExpanded] = useState<boolean>(
+    () => {
+      try {
+        const stored = localStorage.getItem("expanded-shopping-lists")
+        return stored ? JSON.parse(stored) : false
+      } catch {
+        return false
+      }
+    }
+  )
+
   const toggleNotebook = useCallback((id: string) => {
     setExpandedNotebooks((prev) => {
       const updated = prev.includes(id)
@@ -111,6 +122,14 @@ export function useTreeExpansion() {
     })
   }, [])
 
+  const toggleShoppingLists = useCallback(() => {
+    setIsShoppingListsExpanded((prev) => {
+      const updated = !prev
+      localStorage.setItem("expanded-shopping-lists", JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
   return {
     expandedNotebooks,
     expandedSections,
@@ -125,5 +144,7 @@ export function useTreeExpansion() {
     isUnassignedExpanded,
     toggleUnassigned,
     expandUnassigned,
+    isShoppingListsExpanded,
+    toggleShoppingLists,
   }
 }

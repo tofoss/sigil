@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   Blockquote,
   Box,
@@ -8,6 +9,8 @@ import {
   Link,
   List,
   Table,
+  Checkbox,
+  CheckboxCheckedChangeDetails,
 } from "@chakra-ui/react"
 import ReactMarkdown from "react-markdown"
 import { LuExternalLink } from "react-icons/lu"
@@ -25,16 +28,20 @@ import "prismjs/components/prism-lua"
 import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
-import React, { useEffect } from "react"
+import React, { ReactNode, useEffect } from "react"
 import { theme } from "theme"
 import { useLocation } from "shared/Router"
 
 interface Props {
   text: string
+  isShoppingList?: boolean
+  onCheckboxClick?: (idx: number, checked: boolean) => void
 }
 
-export function MarkdownViewer({ text }: Props) {
+export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }: Props) {
   const { hash: url } = useLocation()
+  const listItemCounter = React.useRef(0);
+  const listItemIds = React.useRef(new Map<ReactNode, number>());
 
   useEffect(() => {
     if (!url) return
@@ -79,6 +86,10 @@ export function MarkdownViewer({ text }: Props) {
     return normalizeHeadingID(text)
   }
 
+  // Reset counter at start of each render for consistent IDs
+  listItemCounter.current = 0;
+  listItemIds.current.clear();
+
   return (
     <Box maxWidth="100%" width="100%" minWidth="0">
       <ReactMarkdown
@@ -122,7 +133,88 @@ export function MarkdownViewer({ text }: Props) {
           ),
           ul: ({ node, ...props }) => <List.Root {...props} />,
           ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
-          li: ({ node, ...props }) => <List.Item ml="1rem" {...props} />,
+          li: ({ node, ...props }) => {
+            // Get or assign ID for this list item (handles React double-rendering)
+            let itemId = listItemIds.current.get(node);
+            if (itemId === undefined) {
+              itemId = listItemCounter.current++;
+              listItemIds.current.set(node, itemId);
+            }
+
+            // Check if this is a task list item (has a checkbox)
+            const children = props.children
+            if (Array.isArray(children) && children.length > 0) {
+              const firstChild = children[0]
+              // remarkGfm creates task lists with an input checkbox
+              if (React.isValidElement(firstChild) && firstChild.type === 'input' &&
+                (firstChild.props as { type?: string }).type === 'checkbox') {
+                const checked = (firstChild.props as { checked?: boolean }).checked || false
+                const restChildren = children.slice(1)
+
+                // For shopping lists, use larger, more touch-friendly checkboxes
+                if (isShoppingList) {
+                  return (
+                    <List.Item
+                      id={String(itemId)}
+                      ml="0"
+                      py={3}
+                      display="flex"
+                      alignItems="center"
+                      fontSize="lg"
+                      {...props}
+                    >
+                      <Checkbox.Root
+                        size="lg"
+                        defaultChecked={checked}
+                        colorPalette="teal"
+                        variant="outline"
+                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                          if (d.checked === "indeterminate" || !onCheckboxClick) {
+                            return
+                          }
+                          onCheckboxClick(itemId!, d.checked)
+                        }}
+                      >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label fontWeight="600" fontSize="1.125rem" ml={1}>
+                          {restChildren}
+                        </Checkbox.Label>
+                      </Checkbox.Root>
+                    </List.Item>
+                  )
+                } else {
+                  // Regular task list item
+                  return (
+                    <List.Item id={String(itemId)} ml="1rem" display="flex" alignItems="center" {...props}>
+                      <Checkbox.Root
+                        size="md"
+                        mt={1}
+                        defaultChecked={checked}
+                        colorPalette="teal"
+                        variant="outline"
+                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                          if (d.checked === "indeterminate" || !onCheckboxClick) {
+                            return
+                          }
+                          onCheckboxClick(itemId!, d.checked)
+                        }}
+                      >
+
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label>
+                          {restChildren}
+                        </Checkbox.Label>
+                      </Checkbox.Root>
+                    </List.Item>
+                  )
+                }
+              }
+            }
+            // Regular list item
+            return <List.Item id={String(itemId)} ml="1rem" {...props} />
+          },
           strong: ({ node, ...props }) => (
             <Box as="strong" fontWeight="bold" {...props} />
           ),
@@ -211,10 +303,10 @@ function CodeViewer(props: CodeProps) {
 }
 
 export function normalizeHeadingID(text: string) {
-    return text
-      .toLowerCase()
-      .replaceAll(/[^\w\s-]/g, '') // remove special chars
-      .replaceAll(/\s+/g, '-')      // spaces to hyphens
-      .replaceAll(/-+/g, '-')       // collapse multiple hyphens
-      .replace(/^-|-$/g, '');       // trim hyphens from ends
+  return text
+    .toLowerCase()
+    .replaceAll(/[^\w\s-]/g, '') // remove special chars
+    .replaceAll(/\s+/g, '-')      // spaces to hyphens
+    .replaceAll(/-+/g, '-')       // collapse multiple hyphens
+    .replace(/^-|-$/g, '');       // trim hyphens from ends
 }

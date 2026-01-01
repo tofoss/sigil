@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"tofoss/sigil-go/pkg/db/repositories"
 	"tofoss/sigil-go/pkg/handlers/errors"
@@ -25,17 +26,20 @@ type FileServiceInterface interface {
 }
 
 type NoteHandler struct {
-	repo        repositories.NoteRepositoryInterface
-	fileService FileServiceInterface
+	repo             repositories.NoteRepositoryInterface
+	fileService      FileServiceInterface
+	shoppingListRepo repositories.ShoppingListRepositoryInterface
 }
 
 func NewNoteHandler(
 	repo repositories.NoteRepositoryInterface,
 	fileService FileServiceInterface,
+	shoppingListRepo repositories.ShoppingListRepositoryInterface,
 ) NoteHandler {
 	return NoteHandler{
-		repo:        repo,
-		fileService: fileService,
+		repo:             repo,
+		fileService:      fileService,
+		shoppingListRepo: shoppingListRepo,
 	}
 }
 
@@ -165,7 +169,6 @@ func (h *NoteHandler) SearchNotes(w http.ResponseWriter, r *http.Request) {
 func (h *NoteHandler) PostNote(w http.ResponseWriter, r *http.Request) {
 	var req requests.Note
 	err := json.NewDecoder(r.Body).Decode(&req)
-
 	if err != nil {
 		log.Printf("could not decode request, %v", err)
 		errors.BadRequest(w)
@@ -227,7 +230,6 @@ func (h *NoteHandler) createNote(
 	}
 
 	result, err := h.repo.Upsert(ctx, note)
-
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +243,6 @@ func (h *NoteHandler) updateNote(
 	ctx context.Context,
 ) (*models.Note, error) {
 	original, err := h.repo.FetchUsersNote(ctx, req.ID, userID)
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to upsert note, invalid credentials, %v", err)
 	}
@@ -269,7 +270,6 @@ func (h *NoteHandler) updateNote(
 	update.Published = req.Published
 
 	result, err := h.repo.Upsert(ctx, update)
-
 	if err != nil {
 		return nil, err
 	}
@@ -506,4 +506,217 @@ func (h *NoteHandler) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// ConvertNoteToShoppingList converts a note's list items to a shopping list
+func (h *NoteHandler) ConvertNoteToShoppingList(w http.ResponseWriter, r *http.Request) {
+	userID, _, err := utils.UserContext(r)
+	if err != nil {
+		log.Printf("unable to convert note, user not logged in: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	noteIDStr := chi.URLParam(r, "id")
+	noteID, err := uuid.Parse(noteIDStr)
+	if err != nil {
+		log.Printf("invalid note ID: %s", noteIDStr)
+		errors.BadRequest(w)
+		return
+	}
+
+	// Verify user owns the note
+	note, err := h.repo.FetchUsersNote(r.Context(), noteID, userID)
+	if err != nil {
+		log.Printf("note not found or access denied: %v", err)
+		errors.NotFound(w, "Note not found")
+		return
+	}
+
+	// Parse request body
+	var req requests.ConvertNoteToShoppingList
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Printf("could not decode convert request: %v", err)
+		errors.BadRequest(w)
+		return
+	}
+
+	// Normalize note content to shopping list format
+	normalizedContent := utils.NormalizeToShoppingList(note.Content)
+
+	// Parse items from normalized content
+	items, err := utils.ParseShoppingList(normalizedContent)
+	if err != nil {
+		log.Printf("failed to parse shopping list from note: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	if len(items) == 0 {
+		log.Printf("no list items found in note")
+		errors.BadRequest(w)
+		return
+	}
+
+	var shoppingList *models.ShoppingList
+
+	if req.Mode == "merge" {
+		// Get last created shopping list
+		lastList, err := h.shoppingListRepo.GetLastCreatedByUser(r.Context(), userID)
+		if err != nil {
+			log.Printf("failed to get last shopping list: %v", err)
+			errors.InternalServerError(w)
+			return
+		}
+
+		if lastList == nil {
+			// No existing shopping list, create new one
+			req.Mode = "new"
+		} else {
+			// Merge items into existing shopping list
+			mergedContent := h.mergeItemsIntoShoppingList(lastList.Content, items, lastList.Items, note.Title)
+
+			// Re-parse merged content
+			mergedItems, err := utils.ParseShoppingList(mergedContent)
+			if err != nil {
+				log.Printf("failed to parse merged shopping list: %v", err)
+				errors.InternalServerError(w)
+				return
+			}
+
+			// Update shopping list
+			lastList.Content = mergedContent
+			lastList.ContentHash = h.shoppingListRepo.HashContent(mergedContent)
+			lastList.Items = mergedItems
+			lastList.UpdatedAt = time.Now()
+
+			// Set shopping list IDs
+			for i := range lastList.Items {
+				lastList.Items[i].ShoppingListID = lastList.ID
+			}
+
+			updated, err := h.shoppingListRepo.Update(r.Context(), *lastList)
+			if err != nil {
+				log.Printf("failed to update shopping list: %v", err)
+				errors.InternalServerError(w)
+				return
+			}
+
+			// Update vocabulary
+			for _, item := range mergedItems {
+				err := h.shoppingListRepo.AddToVocabulary(r.Context(), userID, item.ItemName)
+				if err != nil {
+					log.Printf("warning: failed to add item to vocabulary: %v", err)
+				}
+			}
+
+			shoppingList = updated
+		}
+	}
+
+	if req.Mode == "new" {
+		// Create new shopping list
+		title := utils.GenerateTitleFromContent(normalizedContent)
+		now := time.Now()
+
+		newList := models.ShoppingList{
+			ID:          uuid.New(),
+			UserID:      userID,
+			Title:       title,
+			Content:     normalizedContent,
+			ContentHash: h.shoppingListRepo.HashContent(normalizedContent),
+			Items:       items,
+			CreatedAt:   now,
+			UpdatedAt:   now,
+		}
+
+		// Set shopping list IDs
+		for i := range newList.Items {
+			newList.Items[i].ShoppingListID = newList.ID
+		}
+
+		created, err := h.shoppingListRepo.Create(r.Context(), newList)
+		if err != nil {
+			log.Printf("failed to create shopping list: %v", err)
+			errors.InternalServerError(w)
+			return
+		}
+
+		// Update vocabulary
+		for _, item := range items {
+			err := h.shoppingListRepo.AddToVocabulary(r.Context(), userID, item.ItemName)
+			if err != nil {
+				log.Printf("warning: failed to add item to vocabulary: %v", err)
+			}
+		}
+
+		shoppingList = created
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(shoppingList)
+}
+
+// mergeItemsIntoShoppingList merges new items into existing shopping list content
+func (h *NoteHandler) mergeItemsIntoShoppingList(
+	currentContent string,
+	newItems []models.ShoppingListEntry,
+	existingItems []models.ShoppingListEntry,
+	noteTitle string,
+) string {
+	// Build a map of existing items for quick lookup
+	existingMap := make(map[string]*models.ShoppingListEntry)
+	for i := range existingItems {
+		existingMap[existingItems[i].ItemName] = &existingItems[i]
+	}
+
+	// Generate markdown for new items that don't exist or have different quantities
+	var itemsToAdd []string
+	for _, newItem := range newItems {
+		// Check if item exists
+		if existing, found := existingMap[newItem.ItemName]; found && existing.Quantity != nil && newItem.Quantity != nil {
+			// Item exists with quantity - try to merge
+			if existing.Quantity.Unit == newItem.Quantity.Unit {
+				// Same unit - merge by adding quantities
+				newQty := *existing.Quantity.Min
+				if newItem.Quantity.Min != nil {
+					newQty += *newItem.Quantity.Min
+				}
+				// Update existing item quantity in place (will be reflected when content is regenerated)
+				newMin := newQty
+				existing.Quantity.Min = &newMin
+				existing.Quantity.Max = &newMin
+				continue
+			}
+		}
+
+		// Add as new item
+		itemMarkdown := "- [ ] "
+		if newItem.Checked {
+			itemMarkdown = "- [x] "
+		}
+		if newItem.Quantity != nil {
+			itemMarkdown += utils.FormatQuantity(*newItem.Quantity) + " "
+		}
+		itemMarkdown += newItem.DisplayName
+		if newItem.Notes != "" {
+			itemMarkdown += " (" + newItem.Notes + ")"
+		}
+		itemsToAdd = append(itemsToAdd, itemMarkdown)
+	}
+
+	// Append new items to the end of the content
+	if len(itemsToAdd) > 0 {
+		if currentContent != "" && !strings.HasSuffix(currentContent, "\n") {
+			currentContent += "\n"
+		}
+		currentContent += fmt.Sprintf("\n## %s\n", noteTitle)
+		for _, item := range itemsToAdd {
+			currentContent += item + "\n"
+		}
+	}
+
+	return currentContent
 }

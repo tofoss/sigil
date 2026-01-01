@@ -3,3 +3,11 @@ export type { Notebook } from "./notebook"
 export type { Note } from "./note"
 export type { Section } from "./section"
 export type { Tag } from "./tag"
+export type {
+  ShoppingList,
+  ShoppingListEntry,
+  VocabularyItem,
+  ToggleItemRequest,
+  MergeRecipeRequest,
+} from "./shopping-list"
+export type { Recipe, Ingredient, Quantity } from "./recipe"

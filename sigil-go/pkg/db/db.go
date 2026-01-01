@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,19 +25,4 @@ func buildPostgresDSN() string {
 	}
 
 	return config.ConnString()
-}
-
-func mustAtoi(s string) int {
-	v, err := strconv.Atoi(s)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid number: %s", s))
-	}
-	return v
-}
-
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return fallback
 }

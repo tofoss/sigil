@@ -15,6 +15,7 @@ import {
   LuPlus,
   LuFileText,
   LuChefHat,
+  LuShoppingCart,
   LuBookOpen,
   LuChevronDown,
 } from "react-icons/lu"
@@ -152,6 +153,12 @@ export function Layout() {
                       <Link to={pages.private.recipe.path}>
                         <LuChefHat />
                         New Recipe
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item value="new-shopping-list" asChild>
+                      <Link to={pages.private.shoppingList.path}>
+                        <LuShoppingCart />
+                        New Shopping List
                       </Link>
                     </Menu.Item>
                     <Menu.Item value="new-notebook" asChild>

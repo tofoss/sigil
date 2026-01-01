@@ -53,6 +53,14 @@ export const router = createBrowserRouter([
         lazy: () => import("./Recipe"),
       },
       {
+        path: pages.private.shoppingList.path,
+        lazy: () => import("./ShoppingList/New"),
+      },
+      {
+        path: "/shopping-lists/:id",
+        lazy: () => import("./ShoppingList"),
+      },
+      {
         path: pages.sub.note.path,
         lazy: () => import("./Note"),
       },

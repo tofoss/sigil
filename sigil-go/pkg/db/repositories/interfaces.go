@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-
 	"tofoss/sigil-go/pkg/models"
 
 	"github.com/google/uuid"
@@ -90,3 +89,29 @@ type InviteCodeRepositoryInterface interface {
 
 // Ensure InviteCodeRepository implements the interface
 var _ InviteCodeRepositoryInterface = (*InviteCodeRepository)(nil)
+
+// RecipeRepositoryInterface defines the contract for recipe data access
+type RecipeRepositoryInterface interface {
+	FetchByID(ctx context.Context, id uuid.UUID) (models.Recipe, error)
+	Delete(ctx context.Context, recipeID uuid.UUID) error
+}
+
+// Ensure RecipeRepository implements the interface
+var _ RecipeRepositoryInterface = (*RecipeRepository)(nil)
+
+// ShoppingListRepositoryInterface defines the contract for shopping list data access
+type ShoppingListRepositoryInterface interface {
+	HashContent(content string) string
+	GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]models.ShoppingList, error)
+	GetLastCreatedByUser(ctx context.Context, userID uuid.UUID) (*models.ShoppingList, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error)
+	Create(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)
+	Update(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)
+	Delete(ctx context.Context, noteID uuid.UUID) error
+	UpdateItemCheckStatus(ctx context.Context, itemID uuid.UUID, checked bool) error
+	GetUserVocabulary(ctx context.Context, userID uuid.UUID, prefix string, limit int) ([]models.VocabularyItem, error)
+	AddToVocabulary(ctx context.Context, userID uuid.UUID, itemName string) error
+}
+
+// Ensure ShoppingListRepository implements the interface
+var _ ShoppingListRepositoryInterface = (*ShoppingListRepository)(nil)

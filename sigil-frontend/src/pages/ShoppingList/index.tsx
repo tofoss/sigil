@@ -1,73 +1,55 @@
 import { Box, Button, DialogBackdrop, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogPositioner, DialogRoot, DialogTitle, IconButton, Portal, useDisclosure } from "@chakra-ui/react"
 import { LuX } from "react-icons/lu"
-import { noteClient, shoppingListClient } from "api"
+import { shoppingListClient } from "api"
 import { Skeleton } from "components/ui/skeleton"
 import { Editor } from "modules/editor"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useParams, useSearchParams, useNavigate } from "shared/Router"
 import { useFetch } from "utils/http"
 import { toaster } from "components/ui/toaster"
-import { useTreeStore } from "stores/treeStore"
 import { useShoppingListStore } from "stores/shoppingListStore"
-import { useTOC } from "shared/Layout"
 
-const notePage = () => {
+const shoppingListPage = () => {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const shouldEdit = searchParams.get("edit") === "true"
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isConverting, setIsConverting] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(shouldEdit === false)
-  const { open: deleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
-  const { deleteNote } = useTreeStore()
-  const { addShoppingList } = useShoppingListStore()
-  const { setContent } = useTOC()
+  const { open, onOpen, onClose } = useDisclosure()
+  const { deleteShoppingList } = useShoppingListStore()
 
   if (!id) {
     return <ErrorBoundary />
   }
 
   const {
-    data: note,
+    data: shoppingList,
     loading,
-  } = useFetch(() => noteClient.fetch(id), [id])
-
-  // Fetch shopping lists to check if there's a previous one
-  const { data: shoppingLists } = useFetch(
-    () => shoppingListClient.list(),
-    []
-  )
-  const lastShoppingList = shoppingLists && shoppingLists.length > 0 ? shoppingLists[0] : null
-
-  // Set TOC content when note loads or changes
-  useEffect(() => {
-    setContent(note?.content || null)
-    return () => setContent(null)  // Clean up when leaving page
-  }, [note?.content, setContent])
+  } = useFetch(() => shoppingListClient.get(id), [id])
 
   const handleDeleteClick = () => {
-    onDeleteOpen()
+    onOpen()
   }
 
   const handleDeleteConfirm = async () => {
     setIsDeleting(true)
-    onDeleteClose()
+    onClose()
     try {
-      await noteClient.delete(id)
+      await shoppingListClient.delete(id)
 
-      // Update notebook tree via store
-      deleteNote(id)
+      // Remove from sidebar tree via store
+      deleteShoppingList(id)
 
       toaster.create({
-        title: "Note deleted successfully",
+        title: "Shopping list deleted successfully",
         type: "success",
       })
       navigate("/")
     } catch (err) {
-      console.error("Failed to delete note:", err)
+      console.error("Failed to delete shopping list:", err)
       toaster.create({
-        title: "Failed to delete note",
+        title: "Failed to delete shopping list",
         description: "Please try again",
         type: "error",
       })
@@ -75,66 +57,32 @@ const notePage = () => {
     }
   }
 
-  const handleConvert = async (mode: "new" | "merge") => {
-    if (isConverting) return
-
-    setIsConverting(true)
-    try {
-      const shoppingList = await noteClient.convertToShoppingList(id, mode)
-
-      if (mode === "new") {
-        // Add to sidebar tree via store
-        addShoppingList({ id: shoppingList.id, title: shoppingList.title })
-      }
-
-      toaster.create({
-        title: mode === "new"
-          ? "Shopping list created successfully"
-          : "Items added to shopping list",
-        type: "success",
-      })
-      // Navigate to the shopping list in edit mode
-      navigate(`/shopping-lists/${shoppingList.id}?edit=true`)
-    } catch (err) {
-      console.error("Failed to convert note:", err)
-      toaster.create({
-        title: "Failed to convert note",
-        description: "Please try again",
-        type: "error",
-      })
-      setIsConverting(false)
-    }
-  }
-
   if (loading) {
     return <Skeleton />
   }
 
-  if (!note) {
+  if (!shoppingList) {
     return <ErrorBoundary />
   }
 
   return (
     <Box width="100%" maxWidth="100%" minWidth="0">
       <Editor
-        note={note}
+        shoppingList={shoppingList}
         mode={shouldEdit ? "Edit" : "Display"}
         onDelete={handleDeleteClick}
         onModeChange={setIsPreviewMode}
-        onConvert={handleConvert}
-        hasLastShoppingList={!!lastShoppingList}
-        isConverting={isConverting}
       />
 
       {/* Delete Confirmation Dialog - Only mount when open */}
-      {deleteOpen && (
-        <DialogRoot open={true} onOpenChange={onDeleteClose}>
+      {open && (
+        <DialogRoot open={true} onOpenChange={onClose}>
           <Portal>
             <DialogBackdrop />
             <DialogPositioner>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Delete Note</DialogTitle>
+                  <DialogTitle>Delete Shopping List</DialogTitle>
                 </DialogHeader>
                 <DialogCloseTrigger asChild>
                   <IconButton
@@ -149,7 +97,7 @@ const notePage = () => {
                   </IconButton>
                 </DialogCloseTrigger>
                 <DialogBody>
-                  Are you sure you want to delete this note? This action cannot be
+                  Are you sure you want to delete this shopping list? This action cannot be
                   undone.
                 </DialogBody>
                 <DialogFooter>
@@ -170,7 +118,7 @@ const notePage = () => {
   )
 }
 
-export const Component = notePage
+export const Component = shoppingListPage
 
 export const ErrorBoundary = () => {
   return <p>500</p>

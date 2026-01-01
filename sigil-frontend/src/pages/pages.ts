@@ -6,6 +6,7 @@ import {
   LuHome,
   LuLogIn,
   LuPlus,
+  LuShoppingCart,
   LuUserPlus,
 } from "react-icons/lu"
 
@@ -24,6 +25,7 @@ interface Pages {
     home: Page
     new: Page
     recipe: Page
+    shoppingList: Page
     notebooks: Page
     browse: Page
   }
@@ -61,6 +63,11 @@ export const pages: Pages = {
       path: "/recipes/new",
       display: "New Recipe",
       icon: LuChefHat,
+    },
+    shoppingList: {
+      path: "/shopping-lists/new",
+      display: "New Shopping List",
+      icon: LuShoppingCart,
     },
     notebooks: {
       path: "/notebooks",
