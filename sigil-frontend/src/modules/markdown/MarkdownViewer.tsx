@@ -26,7 +26,7 @@ import "prismjs/components/prism-lua"
 import "prismjs/components/prism-yaml"
 import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
-import React, { useEffect } from "react"
+import React, { ReactNode, useEffect } from "react"
 import { theme } from "theme"
 import { useLocation } from "shared/Router"
 
@@ -37,6 +37,8 @@ interface Props {
 
 export function MarkdownViewer({ text, isShoppingList = false }: Props) {
   const { hash: url } = useLocation()
+  const listItemCounter = React.useRef(0);
+  const listItemIds = React.useRef(new Map<ReactNode, number>());
 
   useEffect(() => {
     if (!url) return
@@ -80,6 +82,10 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
     const text = extractText(children);
     return normalizeHeadingID(text)
   }
+
+  // Reset counter at start of each render for consistent IDs
+  listItemCounter.current = 0;
+  listItemIds.current.clear();
 
   return (
     <Box maxWidth="100%" width="100%" minWidth="0">
@@ -125,13 +131,20 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
           ul: ({ node, ...props }) => <List.Root {...props} />,
           ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
           li: ({ node, ...props }) => {
+            // Get or assign ID for this list item (handles React double-rendering)
+            let itemId = listItemIds.current.get(node);
+            if (itemId === undefined) {
+              itemId = listItemCounter.current++;
+              listItemIds.current.set(node, itemId);
+            }
+
             // Check if this is a task list item (has a checkbox)
             const children = props.children
             if (Array.isArray(children) && children.length > 0) {
               const firstChild = children[0]
               // remarkGfm creates task lists with an input checkbox
               if (React.isValidElement(firstChild) && firstChild.type === 'input' &&
-                  (firstChild.props as { type?: string }).type === 'checkbox') {
+                (firstChild.props as { type?: string }).type === 'checkbox') {
                 const checked = (firstChild.props as { checked?: boolean }).checked || false
                 const restChildren = children.slice(1)
 
@@ -139,6 +152,7 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
                 if (isShoppingList) {
                   return (
                     <List.Item
+                      id={String(itemId)}
                       ml="0"
                       py={3}
                       display="flex"
@@ -163,8 +177,15 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
                 } else {
                   // Regular task list item
                   return (
-                    <List.Item ml="1rem" display="flex" alignItems="center" {...props}>
-                      <Checkbox.Root size="sm" mr={2} defaultChecked={checked}>
+                    <List.Item id={String(itemId)} ml="1rem" display="flex" alignItems="center" {...props}>
+                      <Checkbox.Root
+                        size="md"
+                        mt={1}
+                        defaultChecked={checked}
+                        colorPalette="teal"
+                        variant="outline"
+                      >
+
                         <Checkbox.HiddenInput />
                         <Checkbox.Control />
                         <Checkbox.Label>
@@ -177,7 +198,7 @@ export function MarkdownViewer({ text, isShoppingList = false }: Props) {
               }
             }
             // Regular list item
-            return <List.Item ml="1rem" {...props} />
+            return <List.Item id={String(itemId)} ml="1rem" {...props} />
           },
           strong: ({ node, ...props }) => (
             <Box as="strong" fontWeight="bold" {...props} />
@@ -267,10 +288,10 @@ function CodeViewer(props: CodeProps) {
 }
 
 export function normalizeHeadingID(text: string) {
-    return text
-      .toLowerCase()
-      .replaceAll(/[^\w\s-]/g, '') // remove special chars
-      .replaceAll(/\s+/g, '-')      // spaces to hyphens
-      .replaceAll(/-+/g, '-')       // collapse multiple hyphens
-      .replace(/^-|-$/g, '');       // trim hyphens from ends
+  return text
+    .toLowerCase()
+    .replaceAll(/[^\w\s-]/g, '') // remove special chars
+    .replaceAll(/\s+/g, '-')      // spaces to hyphens
+    .replaceAll(/-+/g, '-')       // collapse multiple hyphens
+    .replace(/^-|-$/g, '');       // trim hyphens from ends
 }
