@@ -82,8 +82,10 @@ const notePage = () => {
     try {
       const shoppingList = await noteClient.convertToShoppingList(id, mode)
 
-      // Add to sidebar tree via store
-      addShoppingList({ id: shoppingList.id, title: shoppingList.title })
+      if (mode === "new") {
+        // Add to sidebar tree via store
+        addShoppingList({ id: shoppingList.id, title: shoppingList.title })
+      }
 
       toaster.create({
         title: mode === "new"

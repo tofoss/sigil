@@ -169,7 +169,6 @@ func (h *NoteHandler) SearchNotes(w http.ResponseWriter, r *http.Request) {
 func (h *NoteHandler) PostNote(w http.ResponseWriter, r *http.Request) {
 	var req requests.Note
 	err := json.NewDecoder(r.Body).Decode(&req)
-
 	if err != nil {
 		log.Printf("could not decode request, %v", err)
 		errors.BadRequest(w)
@@ -231,7 +230,6 @@ func (h *NoteHandler) createNote(
 	}
 
 	result, err := h.repo.Upsert(ctx, note)
-
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +243,6 @@ func (h *NoteHandler) updateNote(
 	ctx context.Context,
 ) (*models.Note, error) {
 	original, err := h.repo.FetchUsersNote(ctx, req.ID, userID)
-
 	if err != nil {
 		return nil, fmt.Errorf("unable to upsert note, invalid credentials, %v", err)
 	}
@@ -273,7 +270,6 @@ func (h *NoteHandler) updateNote(
 	update.Published = req.Published
 
 	result, err := h.repo.Upsert(ctx, update)
-
 	if err != nil {
 		return nil, err
 	}
@@ -579,7 +575,7 @@ func (h *NoteHandler) ConvertNoteToShoppingList(w http.ResponseWriter, r *http.R
 			req.Mode = "new"
 		} else {
 			// Merge items into existing shopping list
-			mergedContent := h.mergeItemsIntoShoppingList(lastList.Content, items, lastList.Items)
+			mergedContent := h.mergeItemsIntoShoppingList(lastList.Content, items, lastList.Items, note.Title)
 
 			// Re-parse merged content
 			mergedItems, err := utils.ParseShoppingList(mergedContent)
@@ -668,6 +664,7 @@ func (h *NoteHandler) mergeItemsIntoShoppingList(
 	currentContent string,
 	newItems []models.ShoppingListEntry,
 	existingItems []models.ShoppingListEntry,
+	noteTitle string,
 ) string {
 	// Build a map of existing items for quick lookup
 	existingMap := make(map[string]*models.ShoppingListEntry)
@@ -715,7 +712,7 @@ func (h *NoteHandler) mergeItemsIntoShoppingList(
 		if currentContent != "" && !strings.HasSuffix(currentContent, "\n") {
 			currentContent += "\n"
 		}
-		currentContent += "\n## From Note\n"
+		currentContent += fmt.Sprintf("\n## %s\n", noteTitle)
 		for _, item := range itemsToAdd {
 			currentContent += item + "\n"
 		}

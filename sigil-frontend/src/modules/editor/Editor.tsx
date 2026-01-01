@@ -515,11 +515,17 @@ export function Editor(props: EditorProps) {
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    <Menu.Item value="new" onClick={() => props.onConvert?.("new")}>
+                    <Menu.Item value="new" onClick={async () => {
+                      await onSave()
+                      props.onConvert?.("new")
+                    }}>
                       Create new shopping list
                     </Menu.Item>
                     {props.hasLastShoppingList && (
-                      <Menu.Item value="merge" onClick={() => props.onConvert?.("merge")}>
+                      <Menu.Item value="merge" onClick={async () => {
+                        await onSave()
+                        props.onConvert?.("merge")
+                      }}>
                         Add to previous shopping list
                       </Menu.Item>
                     )}
