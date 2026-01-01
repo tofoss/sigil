@@ -21,22 +21,30 @@ import (
 
 // mockShoppingListRepository is a mock implementation for testing
 type mockShoppingListRepository struct {
-	getByNoteIDFunc         func(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error)
+	getByUserIDFunc         func(ctx context.Context, userID uuid.UUID, limit int) ([]models.ShoppingList, error)
+	getLastCreatedByUserFunc func(ctx context.Context, userID uuid.UUID) (*models.ShoppingList, error)
 	getByIDFunc             func(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error)
 	createFunc              func(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)
 	updateFunc              func(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error)
-	deleteFunc              func(ctx context.Context, noteID uuid.UUID) error
+	deleteFunc              func(ctx context.Context, id uuid.UUID) error
 	updateItemCheckFunc     func(ctx context.Context, itemID uuid.UUID, checked bool) error
 	getUserVocabularyFunc   func(ctx context.Context, userID uuid.UUID, prefix string, limit int) ([]models.VocabularyItem, error)
 	addToVocabularyFunc     func(ctx context.Context, userID uuid.UUID, itemName string) error
 	hashContentFunc         func(content string) string
 }
 
-func (m *mockShoppingListRepository) GetByNoteID(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error) {
-	if m.getByNoteIDFunc != nil {
-		return m.getByNoteIDFunc(ctx, noteID)
+func (m *mockShoppingListRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]models.ShoppingList, error) {
+	if m.getByUserIDFunc != nil {
+		return m.getByUserIDFunc(ctx, userID, limit)
 	}
-	return nil, errors.New("GetByNoteID not mocked")
+	return nil, errors.New("GetByUserID not mocked")
+}
+
+func (m *mockShoppingListRepository) GetLastCreatedByUser(ctx context.Context, userID uuid.UUID) (*models.ShoppingList, error) {
+	if m.getLastCreatedByUserFunc != nil {
+		return m.getLastCreatedByUserFunc(ctx, userID)
+	}
+	return nil, errors.New("GetLastCreatedByUser not mocked")
 }
 
 func (m *mockShoppingListRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error) {
@@ -60,9 +68,9 @@ func (m *mockShoppingListRepository) Update(ctx context.Context, list models.Sho
 	return nil, errors.New("Update not mocked")
 }
 
-func (m *mockShoppingListRepository) Delete(ctx context.Context, noteID uuid.UUID) error {
+func (m *mockShoppingListRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	if m.deleteFunc != nil {
-		return m.deleteFunc(ctx, noteID)
+		return m.deleteFunc(ctx, id)
 	}
 	return errors.New("Delete not mocked")
 }
@@ -93,14 +101,6 @@ func (m *mockShoppingListRepository) HashContent(content string) string {
 		return m.hashContentFunc(content)
 	}
 	return "mock-hash"
-}
-
-func (m *mockShoppingListRepository) ExistsByNoteID(ctx context.Context, noteID uuid.UUID) (bool, error) {
-	list, err := m.GetByNoteID(ctx, noteID)
-	if err != nil {
-		return false, nil
-	}
-	return list != nil, nil
 }
 
 // mockRecipeRepository is a mock implementation for testing
@@ -206,179 +206,6 @@ func (m *mockNoteRepositoryForShopping) FetchNoteWithRecipes(ctx context.Context
 }
 
 var _ repositories.NoteRepositoryInterface = (*mockNoteRepositoryForShopping)(nil)
-
-func TestEnableShoppingList(t *testing.T) {
-	testUserID := uuid.New()
-	testNoteID := uuid.New()
-	testContent := `# Groceries
-
-- [ ] 1kg Carrots
-- [ ] 2L Milk
-- [x] 500g Flour
-`
-
-	tests := []struct {
-		name              string
-		noteID            string
-		mockNote          *models.Note
-		mockNoteError     error
-		mockExisting      *models.ShoppingList
-		mockCreateResult  *models.ShoppingList
-		mockCreateError   error
-		expectedStatus    int
-		validateResponse  func(t *testing.T, list *models.ShoppingList)
-	}{
-		{
-			name:   "Successfully enable shopping list mode",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:      testNoteID,
-				UserID:  testUserID,
-				Title:   "Shopping List",
-				Content: testContent,
-			},
-			mockExisting: nil, // Doesn't exist yet
-			mockCreateResult: &models.ShoppingList{
-				ID:          uuid.New(),
-				NoteID:      testNoteID,
-				UserID:      testUserID,
-				ContentHash: "mock-hash",
-				Items: []models.ShoppingListEntry{
-					{ItemName: "carrots", DisplayName: "1kg Carrots", Checked: false},
-					{ItemName: "milk", DisplayName: "2L Milk", Checked: false},
-					{ItemName: "flour", DisplayName: "500g Flour", Checked: true},
-				},
-			},
-			expectedStatus: http.StatusCreated,
-			validateResponse: func(t *testing.T, list *models.ShoppingList) {
-				if len(list.Items) != 3 {
-					t.Errorf("Expected 3 items, got %d", len(list.Items))
-				}
-				// Check that one item is checked
-				checkedCount := 0
-				for _, item := range list.Items {
-					if item.Checked {
-						checkedCount++
-					}
-				}
-				if checkedCount != 1 {
-					t.Errorf("Expected 1 checked item, got %d", checkedCount)
-				}
-			},
-		},
-		{
-			name:   "Return existing shopping list if already enabled",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:      testNoteID,
-				UserID:  testUserID,
-				Title:   "Shopping List",
-				Content: testContent,
-			},
-			mockExisting: &models.ShoppingList{
-				ID:          uuid.New(),
-				NoteID:      testNoteID,
-				UserID:      testUserID,
-				ContentHash: "existing-hash",
-				Items: []models.ShoppingListEntry{
-					{ItemName: "carrots", DisplayName: "1kg Carrots", Checked: false},
-				},
-			},
-			expectedStatus: http.StatusOK,
-			validateResponse: func(t *testing.T, list *models.ShoppingList) {
-				if list.ContentHash != "existing-hash" {
-					t.Errorf("Expected existing hash, got %s", list.ContentHash)
-				}
-			},
-		},
-		{
-			name:           "Invalid note ID returns bad request",
-			noteID:         "invalid-uuid",
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name:          "Note not found returns 404",
-			noteID:        testNoteID.String(),
-			mockNoteError: errors.New("note not found"),
-			expectedStatus: http.StatusNotFound,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create mock repositories
-			mockShoppingListRepo := &mockShoppingListRepository{
-				getByNoteIDFunc: func(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error) {
-					if tt.mockExisting != nil {
-						return tt.mockExisting, nil
-					}
-					return nil, errors.New("not found")
-				},
-				createFunc: func(ctx context.Context, list models.ShoppingList) (*models.ShoppingList, error) {
-					if tt.mockCreateError != nil {
-						return nil, tt.mockCreateError
-					}
-					return tt.mockCreateResult, nil
-				},
-				addToVocabularyFunc: func(ctx context.Context, userID uuid.UUID, itemName string) error {
-					return nil
-				},
-			}
-
-			mockNoteRepo := &mockNoteRepositoryForShopping{
-				fetchUsersNoteFunc: func(ctx context.Context, noteID uuid.UUID, userID uuid.UUID) (models.Note, error) {
-					if tt.mockNoteError != nil {
-						return models.Note{}, tt.mockNoteError
-					}
-					if tt.mockNote != nil {
-						return *tt.mockNote, nil
-					}
-					return models.Note{}, errors.New("note not found")
-				},
-			}
-
-			mockRecipeRepo := &mockRecipeRepository{}
-
-			handler := NewShoppingListHandler(mockShoppingListRepo, mockNoteRepo, mockRecipeRepo)
-
-			// Create request
-			req := httptest.NewRequest(http.MethodPut, "/notes/"+tt.noteID+"/shopping-list", nil)
-
-			// Add user context
-			ctx := context.WithValue(req.Context(), utils.UserIDKey, testUserID)
-			ctx = context.WithValue(ctx, utils.UsernameKey, "testuser")
-			req = req.WithContext(ctx)
-
-			// Add chi URL params
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("id", tt.noteID)
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-
-			// Create response recorder
-			w := httptest.NewRecorder()
-
-			// Call handler
-			handler.EnableShoppingList(w, req)
-
-			// Check status code
-			if w.Code != tt.expectedStatus {
-				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
-			}
-
-			// For successful responses, validate the result
-			if tt.expectedStatus == http.StatusOK || tt.expectedStatus == http.StatusCreated {
-				var list models.ShoppingList
-				if err := json.NewDecoder(w.Body).Decode(&list); err != nil {
-					t.Fatalf("Failed to decode response: %v", err)
-				}
-
-				if tt.validateResponse != nil {
-					tt.validateResponse(t, &list)
-				}
-			}
-		})
-	}
-}
 
 func TestToggleItemCheck(t *testing.T) {
 	testUserID := uuid.New()
@@ -588,113 +415,16 @@ func TestGetVocabularySuggestions(t *testing.T) {
 	}
 }
 
-func TestDisableShoppingList(t *testing.T) {
-	testUserID := uuid.New()
-	testNoteID := uuid.New()
-
-	tests := []struct {
-		name            string
-		noteID          string
-		mockNote        *models.Note
-		mockNoteError   error
-		mockDeleteError error
-		expectedStatus  int
-	}{
-		{
-			name:   "Successfully disable shopping list mode",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:     testNoteID,
-				UserID: testUserID,
-			},
-			expectedStatus: http.StatusNoContent,
-		},
-		{
-			name:           "Invalid note ID returns bad request",
-			noteID:         "invalid-uuid",
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name:          "Note not found returns 404",
-			noteID:        testNoteID.String(),
-			mockNoteError: errors.New("note not found"),
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			name:   "Delete error returns 500",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:     testNoteID,
-				UserID: testUserID,
-			},
-			mockDeleteError: errors.New("database error"),
-			expectedStatus:  http.StatusInternalServerError,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockShoppingListRepo := &mockShoppingListRepository{
-				deleteFunc: func(ctx context.Context, noteID uuid.UUID) error {
-					return tt.mockDeleteError
-				},
-			}
-
-			mockNoteRepo := &mockNoteRepositoryForShopping{
-				fetchUsersNoteFunc: func(ctx context.Context, noteID uuid.UUID, userID uuid.UUID) (models.Note, error) {
-					if tt.mockNoteError != nil {
-						return models.Note{}, tt.mockNoteError
-					}
-					if tt.mockNote != nil {
-						return *tt.mockNote, nil
-					}
-					return models.Note{}, errors.New("note not found")
-				},
-			}
-
-			mockRecipeRepo := &mockRecipeRepository{}
-
-			handler := NewShoppingListHandler(mockShoppingListRepo, mockNoteRepo, mockRecipeRepo)
-
-			// Create request
-			req := httptest.NewRequest(http.MethodDelete, "/notes/"+tt.noteID+"/shopping-list", nil)
-
-			// Add user context
-			ctx := context.WithValue(req.Context(), utils.UserIDKey, testUserID)
-			ctx = context.WithValue(ctx, utils.UsernameKey, "testuser")
-			req = req.WithContext(ctx)
-
-			// Add chi URL params
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("id", tt.noteID)
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-
-			// Create response recorder
-			w := httptest.NewRecorder()
-
-			// Call handler
-			handler.DisableShoppingList(w, req)
-
-			// Check status code
-			if w.Code != tt.expectedStatus {
-				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
-			}
-		})
-	}
-}
-
 func TestMergeRecipeIngredients(t *testing.T) {
 	testUserID := uuid.New()
 	testShoppingListID := uuid.New()
 	testRecipeID := uuid.New()
-	testNoteID := uuid.New()
 
 	tests := []struct {
 		name               string
 		shoppingListID     string
 		requestBody        requests.MergeRecipe
 		mockShoppingList   *models.ShoppingList
-		mockNote           *models.Note
 		mockRecipe         models.Recipe
 		mockShoppingError  error
 		mockRecipeError    error
@@ -709,17 +439,13 @@ func TestMergeRecipeIngredients(t *testing.T) {
 			},
 			mockShoppingList: &models.ShoppingList{
 				ID:          testShoppingListID,
-				NoteID:      testNoteID,
 				UserID:      testUserID,
+				Title:       "Groceries",
+				Content:     "- [ ] Flour\n",
 				ContentHash: "hash",
 				Items: []models.ShoppingListEntry{
 					{ItemName: "flour", DisplayName: "Flour", Quantity: &models.Quantity{Min: floatPtr(500), Max: floatPtr(500), Unit: "g"}},
 				},
-			},
-			mockNote: &models.Note{
-				ID:      testNoteID,
-				UserID:  testUserID,
-				Content: "- [ ] Flour\n",
 			},
 			mockRecipe: models.Recipe{
 				ID:   testRecipeID,
@@ -768,17 +494,7 @@ func TestMergeRecipeIngredients(t *testing.T) {
 				},
 			}
 
-			mockNoteRepo := &mockNoteRepositoryForShopping{
-				fetchUsersNoteFunc: func(ctx context.Context, noteID uuid.UUID, userID uuid.UUID) (models.Note, error) {
-					if tt.mockNote != nil {
-						return *tt.mockNote, nil
-					}
-					return models.Note{}, errors.New("note not found")
-				},
-				upsertFunc: func(ctx context.Context, note models.Note) (models.Note, error) {
-					return note, nil
-				},
-			}
+			mockNoteRepo := &mockNoteRepositoryForShopping{}
 
 			mockRecipeRepo := &mockRecipeRepository{
 				fetchByIDFunc: func(ctx context.Context, id uuid.UUID) (models.Recipe, error) {
@@ -833,30 +549,24 @@ func TestMergeRecipeIngredients(t *testing.T) {
 
 func TestGetShoppingList(t *testing.T) {
 	testUserID := uuid.New()
-	testNoteID := uuid.New()
 	testShoppingListID := uuid.New()
 
 	tests := []struct {
 		name             string
-		noteID           string
-		mockNote         *models.Note
-		mockNoteError    error
+		shoppingListID   string
 		mockList         *models.ShoppingList
 		mockListError    error
 		expectedStatus   int
 		validateResponse func(t *testing.T, list *models.ShoppingList)
 	}{
 		{
-			name:   "Successfully retrieve shopping list",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:     testNoteID,
-				UserID: testUserID,
-			},
+			name:           "Successfully retrieve shopping list",
+			shoppingListID: testShoppingListID.String(),
 			mockList: &models.ShoppingList{
 				ID:          testShoppingListID,
-				NoteID:      testNoteID,
 				UserID:      testUserID,
+				Title:       "Groceries",
+				Content:     "- [ ] 2L Milk\n- [x] Whole Wheat Bread\n",
 				ContentHash: "hash",
 				Items: []models.ShoppingListEntry{
 					{ItemName: "milk", DisplayName: "2L Milk", Checked: false},
@@ -870,29 +580,19 @@ func TestGetShoppingList(t *testing.T) {
 				if len(list.Items) != 2 {
 					t.Errorf("Expected 2 items, got %d", len(list.Items))
 				}
-				if list.NoteID != testNoteID {
-					t.Errorf("Expected note ID %s, got %s", testNoteID, list.NoteID)
+				if list.ID != testShoppingListID {
+					t.Errorf("Expected shopping list ID %s, got %s", testShoppingListID, list.ID)
 				}
 			},
 		},
 		{
-			name:           "Invalid note ID returns bad request",
-			noteID:         "invalid-uuid",
+			name:           "Invalid shopping list ID returns bad request",
+			shoppingListID: "invalid-uuid",
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name:          "Note not found returns 404",
-			noteID:        testNoteID.String(),
-			mockNoteError: errors.New("note not found"),
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			name:   "Shopping list not found returns 404",
-			noteID: testNoteID.String(),
-			mockNote: &models.Note{
-				ID:     testNoteID,
-				UserID: testUserID,
-			},
+			name:           "Shopping list not found returns 404",
+			shoppingListID: testShoppingListID.String(),
 			mockListError:  errors.New("shopping list not found"),
 			expectedStatus: http.StatusNotFound,
 		},
@@ -901,7 +601,7 @@ func TestGetShoppingList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockShoppingListRepo := &mockShoppingListRepository{
-				getByNoteIDFunc: func(ctx context.Context, noteID uuid.UUID) (*models.ShoppingList, error) {
+				getByIDFunc: func(ctx context.Context, id uuid.UUID) (*models.ShoppingList, error) {
 					if tt.mockListError != nil {
 						return nil, tt.mockListError
 					}
@@ -909,24 +609,14 @@ func TestGetShoppingList(t *testing.T) {
 				},
 			}
 
-			mockNoteRepo := &mockNoteRepositoryForShopping{
-				fetchUsersNoteFunc: func(ctx context.Context, noteID uuid.UUID, userID uuid.UUID) (models.Note, error) {
-					if tt.mockNoteError != nil {
-						return models.Note{}, tt.mockNoteError
-					}
-					if tt.mockNote != nil {
-						return *tt.mockNote, nil
-					}
-					return models.Note{}, errors.New("note not found")
-				},
-			}
+			mockNoteRepo := &mockNoteRepositoryForShopping{}
 
 			mockRecipeRepo := &mockRecipeRepository{}
 
 			handler := NewShoppingListHandler(mockShoppingListRepo, mockNoteRepo, mockRecipeRepo)
 
 			// Create request
-			req := httptest.NewRequest(http.MethodGet, "/notes/"+tt.noteID+"/shopping-list", nil)
+			req := httptest.NewRequest(http.MethodGet, "/shopping-list/"+tt.shoppingListID, nil)
 
 			// Add user context
 			ctx := context.WithValue(req.Context(), utils.UserIDKey, testUserID)
@@ -935,7 +625,7 @@ func TestGetShoppingList(t *testing.T) {
 
 			// Add chi URL params
 			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("id", tt.noteID)
+			rctx.URLParams.Add("id", tt.shoppingListID)
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 			// Create response recorder

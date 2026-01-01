@@ -6,7 +6,50 @@ on:
       - main
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: sigil-go/go.sum
+
+      - name: Run Go tests
+        working-directory: ./sigil-go
+        run: go test -v ./...
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: sigil-frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./sigil-frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend tests
+        working-directory: ./sigil-frontend
+        run: pnpm test:ci
+
+      - name: Run lint
+        working-directory: ./sigil-frontend
+        run: pnpm lint
+
   deploy:
+    needs: test
     runs-on: self-hosted
     
     steps:
