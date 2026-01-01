@@ -20,6 +20,12 @@ jobs:
           go-version: '1.21'
           cache-dependency-path: sigil-go/go.sum
 
+      - name: Run staticcheck
+        working-directory: ./sigil-go
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
       - name: Run Go tests
         working-directory: ./sigil-go
         run: go test -v ./...
