@@ -547,14 +547,14 @@ export function Editor(props: EditorProps) {
           {error.message}
         </Text>
       )}
-      {togglePreview && (
-        <Box
-          maxWidth="100%"
-          width="100%"
-        >
-          <MarkdownViewer text={text} isShoppingList={isShoppingList} onCheckboxClick={onCheckboxClick} />
-        </Box>
-      )}
+      {/* Keep MarkdownViewer mounted but hidden to avoid re-initializing Shiki highlighter */}
+      <Box
+        maxWidth="100%"
+        width="100%"
+        display={togglePreview ? "block" : "none"}
+      >
+        <MarkdownViewer text={text} isShoppingList={isShoppingList} onCheckboxClick={onCheckboxClick} />
+      </Box>
       <CodeMirror
         style={{ display: togglePreview ? 'none' : 'block' }}
         value={text}

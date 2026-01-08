@@ -13,7 +13,6 @@ import {
   Table,
   Checkbox,
   CheckboxCheckedChangeDetails,
-  ClientOnly,
 } from "@chakra-ui/react"
 import ReactMarkdown from "react-markdown"
 import { LuExternalLink } from "react-icons/lu"
@@ -123,173 +122,173 @@ export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-          h1: ({ node, ...props }) => (
-            <a href={`#${id(props.children)}`}><Heading as="h1" size="2xl" my={4} id={id(props.children)} {...props} /></a>
-          ),
-          h2: ({ node, ...props }) => (
-            <a href={`#${id(props.children)}`}><Heading as="h2" size="xl" my={4} id={id(props.children)} {...props} /></a>
-          ),
-          h3: ({ node, ...props }) => (
-            <a href={`#${id(props.children)}`}><Heading as="h3" size="lg" my={3} id={id(props.children)} {...props} /></a>
-          ),
-          h4: ({ node, ...props }) => (
-            <a href={`#${id(props.children)}`}><Heading as="h4" size="md" my={3} id={id(props.children)} {...props} /></a>
-          ),
-          p: ({ node, ...props }) => (
-            <Box as="p" my={2} whiteSpace="pre-wrap" {...props} />
-          ),
-          a: ({ node, children, ...props }) => (
-            <Link
-              color="teal.500"
-              _hover={{ color: "teal.700" }}
-              target="_blank"
-              rel="noopener noreferrer"
-              {...props}
-            >
-              <Box as="span" display="inline-flex" alignItems="center">
-                {children} <LuExternalLink />
-              </Box>
-            </Link>
-          ),
-          blockquote: ({ node, ...props }) => (
-            <Blockquote.Root>
-              <Blockquote.Content>
-                {props.children}
-              </Blockquote.Content>
-            </Blockquote.Root>
-          ),
-          ul: ({ node, ...props }) => <List.Root {...props} />,
-          ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
-          li: ({ node, ...props }) => {
-            // Get or assign ID for this list item (handles React double-rendering)
-            let itemId = listItemIds.current.get(node);
-            if (itemId === undefined) {
-              itemId = listItemCounter.current++;
-              listItemIds.current.set(node, itemId);
-            }
+            h1: ({ node, ...props }) => (
+              <a href={`#${id(props.children)}`}><Heading as="h1" size="2xl" my={4} id={id(props.children)} {...props} /></a>
+            ),
+            h2: ({ node, ...props }) => (
+              <a href={`#${id(props.children)}`}><Heading as="h2" size="xl" my={4} id={id(props.children)} {...props} /></a>
+            ),
+            h3: ({ node, ...props }) => (
+              <a href={`#${id(props.children)}`}><Heading as="h3" size="lg" my={3} id={id(props.children)} {...props} /></a>
+            ),
+            h4: ({ node, ...props }) => (
+              <a href={`#${id(props.children)}`}><Heading as="h4" size="md" my={3} id={id(props.children)} {...props} /></a>
+            ),
+            p: ({ node, ...props }) => (
+              <Box as="p" my={2} whiteSpace="pre-wrap" {...props} />
+            ),
+            a: ({ node, children, ...props }) => (
+              <Link
+                color="teal.500"
+                _hover={{ color: "teal.700" }}
+                target="_blank"
+                rel="noopener noreferrer"
+                {...props}
+              >
+                <Box as="span" display="inline-flex" alignItems="center">
+                  {children} <LuExternalLink />
+                </Box>
+              </Link>
+            ),
+            blockquote: ({ node, ...props }) => (
+              <Blockquote.Root>
+                <Blockquote.Content>
+                  {props.children}
+                </Blockquote.Content>
+              </Blockquote.Root>
+            ),
+            ul: ({ node, ...props }) => <List.Root {...props} />,
+            ol: ({ node, ...props }) => <List.Root as="ol" {...props} />,
+            li: ({ node, ...props }) => {
+              // Get or assign ID for this list item (handles React double-rendering)
+              let itemId = listItemIds.current.get(node);
+              if (itemId === undefined) {
+                itemId = listItemCounter.current++;
+                listItemIds.current.set(node, itemId);
+              }
 
-            // Check if this is a task list item (has a checkbox)
-            const children = props.children
-            if (Array.isArray(children) && children.length > 0) {
-              const firstChild = children[0]
-              // remarkGfm creates task lists with an input checkbox
-              if (React.isValidElement(firstChild) && firstChild.type === 'input' &&
-                (firstChild.props as { type?: string }).type === 'checkbox') {
-                const checked = (firstChild.props as { checked?: boolean }).checked || false
-                const restChildren = children.slice(1)
+              // Check if this is a task list item (has a checkbox)
+              const children = props.children
+              if (Array.isArray(children) && children.length > 0) {
+                const firstChild = children[0]
+                // remarkGfm creates task lists with an input checkbox
+                if (React.isValidElement(firstChild) && firstChild.type === 'input' &&
+                  (firstChild.props as { type?: string }).type === 'checkbox') {
+                  const checked = (firstChild.props as { checked?: boolean }).checked || false
+                  const restChildren = children.slice(1)
 
-                // For shopping lists, use larger, more touch-friendly checkboxes
-                if (isShoppingList) {
-                  return (
-                    <List.Item
-                      id={String(itemId)}
-                      ml="0"
-                      py={3}
-                      display="flex"
-                      alignItems="center"
-                      fontSize="lg"
-                      {...props}
-                    >
-                      <Checkbox.Root
-                        size="lg"
-                        defaultChecked={checked}
-                        colorPalette="teal"
-                        variant="outline"
-                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
-                          if (d.checked === "indeterminate" || !onCheckboxClick) {
-                            return
-                          }
-                          onCheckboxClick(itemId!, d.checked)
-                        }}
+                  // For shopping lists, use larger, more touch-friendly checkboxes
+                  if (isShoppingList) {
+                    return (
+                      <List.Item
+                        id={String(itemId)}
+                        ml="0"
+                        py={3}
+                        display="flex"
+                        alignItems="center"
+                        fontSize="lg"
+                        {...props}
                       >
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                        <Checkbox.Label fontWeight="600" fontSize="1.125rem" ml={1}>
-                          {restChildren}
-                        </Checkbox.Label>
-                      </Checkbox.Root>
-                    </List.Item>
-                  )
-                } else {
-                  // Regular task list item
-                  return (
-                    <List.Item id={String(itemId)} ml="1rem" display="flex" alignItems="center" {...props}>
-                      <Checkbox.Root
-                        size="md"
-                        mt={1}
-                        defaultChecked={checked}
-                        colorPalette="teal"
-                        variant="outline"
-                        onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
-                          if (d.checked === "indeterminate" || !onCheckboxClick) {
-                            return
-                          }
-                          onCheckboxClick(itemId!, d.checked)
-                        }}
-                      >
+                        <Checkbox.Root
+                          size="lg"
+                          defaultChecked={checked}
+                          colorPalette="teal"
+                          variant="outline"
+                          onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                            if (d.checked === "indeterminate" || !onCheckboxClick) {
+                              return
+                            }
+                            onCheckboxClick(itemId!, d.checked)
+                          }}
+                        >
+                          <Checkbox.HiddenInput />
+                          <Checkbox.Control />
+                          <Checkbox.Label fontWeight="600" fontSize="1.125rem" ml={1}>
+                            {restChildren}
+                          </Checkbox.Label>
+                        </Checkbox.Root>
+                      </List.Item>
+                    )
+                  } else {
+                    // Regular task list item
+                    return (
+                      <List.Item id={String(itemId)} ml="1rem" display="flex" alignItems="center" {...props}>
+                        <Checkbox.Root
+                          size="md"
+                          mt={1}
+                          defaultChecked={checked}
+                          colorPalette="teal"
+                          variant="outline"
+                          onCheckedChange={(d: CheckboxCheckedChangeDetails) => {
+                            if (d.checked === "indeterminate" || !onCheckboxClick) {
+                              return
+                            }
+                            onCheckboxClick(itemId!, d.checked)
+                          }}
+                        >
 
-                        <Checkbox.HiddenInput />
-                        <Checkbox.Control />
-                        <Checkbox.Label>
-                          {restChildren}
-                        </Checkbox.Label>
-                      </Checkbox.Root>
-                    </List.Item>
-                  )
+                          <Checkbox.HiddenInput />
+                          <Checkbox.Control />
+                          <Checkbox.Label>
+                            {restChildren}
+                          </Checkbox.Label>
+                        </Checkbox.Root>
+                      </List.Item>
+                    )
+                  }
                 }
               }
-            }
-            // Regular list item
-            return <List.Item id={String(itemId)} ml="1rem" {...props} />
-          },
-          strong: ({ node, ...props }) => (
-            <Box as="strong" fontWeight="bold" {...props} />
-          ),
-          em: ({ node, ...props }) => (
-            <Box as="em" fontStyle="italic" {...props} />
-          ),
-          pre: ({ node, ...props }) => <CodeViewer {...props} />,
-          code: ({ node, ...props }) => (
-            <Code
-              as="code"
-              size={"md"}
-              borderRadius="sm"
-              overflow="auto"
-              {...props}
-            />
-          ),
-          table: ({ node, ...props }) => (
-            <Table.Root
-              bg="bg.subtle"
-              variant="line"
-              interactive
-              my={4}
-              {...props}
-            />
-          ),
-          thead: ({ node, ...props }) => <Table.Header {...props} />,
-          tbody: ({ node, ...props }) => <Table.Body {...props} />,
-          tr: ({ node, ...props }) => <Table.Row {...props} />,
-          th: ({ node, ...props }) => (
-            <Table.ColumnHeader bg="bg.panel" fontWeight="bold" {...props} />
-          ),
-          td: ({ node, ...props }) => <Table.Cell bg="bg.panel" {...props} />,
-          img: ({ node, src, alt, ...props }) => {
-            const useCredentials = src?.startsWith("/files/")
-            return (
-              <Image
-                src={src}
-                alt={alt}
-                maxW="100%"
-                height="auto"
-                my={4}
-                borderRadius="md"
-                crossOrigin={useCredentials ? "use-credentials" : undefined}
+              // Regular list item
+              return <List.Item id={String(itemId)} ml="1rem" {...props} />
+            },
+            strong: ({ node, ...props }) => (
+              <Box as="strong" fontWeight="bold" {...props} />
+            ),
+            em: ({ node, ...props }) => (
+              <Box as="em" fontStyle="italic" {...props} />
+            ),
+            pre: ({ node, ...props }) => <CodeViewer {...props} />,
+            code: ({ node, ...props }) => (
+              <Code
+                as="code"
+                size={"md"}
+                borderRadius="sm"
+                overflow="auto"
                 {...props}
               />
-            )
-          },
-        }}
+            ),
+            table: ({ node, ...props }) => (
+              <Table.Root
+                bg="bg.subtle"
+                variant="line"
+                interactive
+                my={4}
+                {...props}
+              />
+            ),
+            thead: ({ node, ...props }) => <Table.Header {...props} />,
+            tbody: ({ node, ...props }) => <Table.Body {...props} />,
+            tr: ({ node, ...props }) => <Table.Row {...props} />,
+            th: ({ node, ...props }) => (
+              <Table.ColumnHeader bg="bg.panel" fontWeight="bold" {...props} />
+            ),
+            td: ({ node, ...props }) => <Table.Cell bg="bg.panel" {...props} />,
+            img: ({ node, src, alt, ...props }) => {
+              const useCredentials = src?.startsWith("/files/")
+              return (
+                <Image
+                  src={src}
+                  alt={alt}
+                  maxW="100%"
+                  height="auto"
+                  my={4}
+                  borderRadius="md"
+                  crossOrigin={useCredentials ? "use-credentials" : undefined}
+                  {...props}
+                />
+              )
+            },
+          }}
         >
           {text}
         </ReactMarkdown>
@@ -317,42 +316,38 @@ function CodeViewer(props: { children?: React.ReactNode }) {
   const language = match ? match[1] : undefined
 
   // Extract the actual code text
-  const code = typeof codeElement.props.children === "string" 
-    ? codeElement.props.children 
+  const code = typeof codeElement.props.children === "string"
+    ? codeElement.props.children
     : ""
 
   // Get the background color from the Shiki theme
-  const themeBg = colorMode === "dark" 
-    ? SHIKI_THEME_BACKGROUNDS["poimandres"] 
+  const themeBg = colorMode === "dark"
+    ? SHIKI_THEME_BACKGROUNDS["poimandres"]
     : SHIKI_THEME_BACKGROUNDS["github-light"]
 
   return (
-    <ClientOnly fallback={<Code as="pre" p={4}>{code}</Code>}>
-      {() => (
-        <CodeBlock.Root 
-          code={code} 
-          language={language ?? "sql"} 
-          my={4}
-          meta={{ colorScheme: colorMode }}
-          colorPalette="teal"
-          bg={themeBg}
-        >
-          <CodeBlock.Header>
-            <CodeBlock.Title>{language}</CodeBlock.Title>
-            <CodeBlock.CopyTrigger asChild>
-              <IconButton variant="ghost" size="2xs">
-                <CodeBlock.CopyIndicator />
-              </IconButton>
-            </CodeBlock.CopyTrigger>
-          </CodeBlock.Header>
-          <CodeBlock.Content>
-            <CodeBlock.Code>
-              <CodeBlock.CodeText />
-            </CodeBlock.Code>
-          </CodeBlock.Content>
-        </CodeBlock.Root>
-      )}
-    </ClientOnly>
+    <CodeBlock.Root
+      code={code}
+      language={language ?? "sql"}
+      my={4}
+      meta={{ colorScheme: colorMode }}
+      colorPalette="teal"
+      bg={themeBg}
+    >
+      <CodeBlock.Header>
+        <CodeBlock.Title>{language}</CodeBlock.Title>
+        <CodeBlock.CopyTrigger asChild>
+          <IconButton variant="ghost" size="2xs">
+            <CodeBlock.CopyIndicator />
+          </IconButton>
+        </CodeBlock.CopyTrigger>
+      </CodeBlock.Header>
+      <CodeBlock.Content>
+        <CodeBlock.Code>
+          <CodeBlock.CodeText />
+        </CodeBlock.Code>
+      </CodeBlock.Content>
+    </CodeBlock.Root>
   )
 }
 
