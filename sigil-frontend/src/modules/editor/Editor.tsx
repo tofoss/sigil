@@ -80,7 +80,9 @@ export function Editor(props: EditorProps) {
   const isAutosavingRef = useRef(false)
   const textRef = useRef(text)
   const documentIdRef = useRef(documentId)
+  const debounceTimerRef = useRef<number | null>(null)
   const AUTOSAVE_INTERVAL = 10000 // 10 seconds
+  const DEBOUNCE_DELAY = 1000 // 1 second after user stops typing
 
 
   // Keep refs updated
@@ -267,7 +269,30 @@ export function Editor(props: EditorProps) {
     }
   }, [isShoppingList, updateNoteTitle, updateShoppingListTitle, fetchTree, addNoteToTree, treeData.length, unassignedNotes.length, setTOCContent])
 
-  // Autosave interval
+  // Debounced autosave - triggers 1 second after user stops typing
+  const debouncedAutosave = useCallback(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // Set new timer
+    debounceTimerRef.current = window.setTimeout(() => {
+      performAutosave()
+      debounceTimerRef.current = null
+    }, DEBOUNCE_DELAY)
+  }, [performAutosave])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Autosave interval (fallback for reliability)
   useEffect(() => {
     // Only autosave when in edit mode
     if (togglePreview) return
@@ -598,6 +623,10 @@ export function Editor(props: EditorProps) {
           if (documentId) {
             const state = viewUpdate.state.toJSON(stateFields);
             localStorage.setItem(documentId, JSON.stringify(state));
+          }
+          // Trigger debounced autosave on content change
+          if (!togglePreview) {
+            debouncedAutosave()
           }
         }}
         basicSetup={{
