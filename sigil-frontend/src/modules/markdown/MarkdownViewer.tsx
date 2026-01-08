@@ -3,40 +3,67 @@ import {
   Blockquote,
   Box,
   Code,
-  CodeProps,
+  CodeBlock,
+  createShikiAdapter,
   Heading,
+  IconButton,
   Image,
   Link,
   List,
   Table,
   Checkbox,
   CheckboxCheckedChangeDetails,
+  ClientOnly,
 } from "@chakra-ui/react"
 import ReactMarkdown from "react-markdown"
 import { LuExternalLink } from "react-icons/lu"
-import rehypePrism from "rehype-prism"
-import "prismjs/themes/prism-okaidia.css"
-import "prismjs/components/prism-python"
-import "prismjs/components/prism-java"
-import "prismjs/components/prism-typescript"
-import "prismjs/components/prism-csharp"
-import "prismjs/components/prism-rust"
-import "prismjs/components/prism-go"
-import "prismjs/components/prism-kotlin"
-import "prismjs/components/prism-sql"
-import "prismjs/components/prism-lua"
-import "prismjs/components/prism-yaml"
-import "prismjs/components/prism-json"
 import remarkGfm from "remark-gfm"
 import React, { ReactNode, useEffect } from "react"
-import { theme } from "theme"
 import { useLocation } from "shared/Router"
+import { useColorMode } from "components/ui/color-mode"
+import type { HighlighterGeneric } from "shiki"
 
 interface Props {
   text: string
   isShoppingList?: boolean
   onCheckboxClick?: (idx: number, checked: boolean) => void
 }
+
+// Create Shiki adapter for syntax highlighting with light/dark theme support
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const shikiAdapter = createShikiAdapter<HighlighterGeneric<any, any>>({
+  async load() {
+    const { createHighlighter } = await import("shiki")
+    return createHighlighter({
+      langs: [
+        "typescript",
+        "javascript",
+        "tsx",
+        "jsx",
+        "python",
+        "java",
+        "csharp",
+        "rust",
+        "go",
+        "kotlin",
+        "sql",
+        "lua",
+        "yaml",
+        "json",
+        "html",
+        "css",
+        "bash",
+        "shell",
+        "markdown",
+      ],
+      themes: ["poimandres", "github-light"],
+    })
+  },
+  theme: {
+    light: "github-light",
+    dark: "poimandres",
+  },
+})
 
 export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }: Props) {
   const { hash: url } = useLocation()
@@ -92,10 +119,10 @@ export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }
 
   return (
     <Box maxWidth="100%" width="100%" minWidth="0">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypePrism]}
-        components={{
+      <CodeBlock.AdapterProvider value={shikiAdapter}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
           h1: ({ node, ...props }) => (
             <a href={`#${id(props.children)}`}><Heading as="h1" size="2xl" my={4} id={id(props.children)} {...props} /></a>
           ),
@@ -263,42 +290,69 @@ export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }
             )
           },
         }}
-      >
-        {text}
-      </ReactMarkdown>
+        >
+          {text}
+        </ReactMarkdown>
+      </CodeBlock.AdapterProvider>
     </Box>
   )
 }
 
-function CodeViewer(props: CodeProps) {
-  const codeElement = React.Children.only(props.children) as React.ReactElement<React.HTMLAttributes<HTMLPreElement>>
+// Shiki theme background colors (extracted from theme definitions)
+const SHIKI_THEME_BACKGROUNDS = {
+  "poimandres": "#1b1e28",
+  "github-light": "#fff",
+} as const
 
-  // Override display to block for proper rendering
-  const updatedCodeElement = React.cloneElement(codeElement, {
-    style: { ...codeElement.props.style, display: "block" },
-  })
+function CodeViewer(props: { children?: React.ReactNode }) {
+  const { colorMode } = useColorMode()
+  const codeElement = React.Children.only(props.children) as React.ReactElement<{
+    className?: string
+    children?: React.ReactNode
+  }>
+
+  // Extract language from className (format: "language-xxx")
+  const className = codeElement.props.className || ""
+  const match = /language-(\w+)/.exec(className)
+  const language = match ? match[1] : undefined
+
+  // Extract the actual code text
+  const code = typeof codeElement.props.children === "string" 
+    ? codeElement.props.children 
+    : ""
+
+  // Get the background color from the Shiki theme
+  const themeBg = colorMode === "dark" 
+    ? SHIKI_THEME_BACKGROUNDS["poimandres"] 
+    : SHIKI_THEME_BACKGROUNDS["github-light"]
 
   return (
-    <Code
-      as="pre"
-      size="lg"
-      fontSize="0.875rem"
-      fontFamily="'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-      color="white"
-      p={4}
-      borderRadius="sm"
-      width="100%"
-      maxWidth="100%"
-      overflow="auto"
-      overflowX="auto"
-      display="block"
-      style={{
-        background: theme.token("colors.gray.900"),
-        boxSizing: "border-box",
-      }}
-    >
-      {updatedCodeElement}
-    </Code>
+    <ClientOnly fallback={<Code as="pre" p={4}>{code}</Code>}>
+      {() => (
+        <CodeBlock.Root 
+          code={code} 
+          language={language ?? "sql"} 
+          my={4}
+          meta={{ colorScheme: colorMode }}
+          colorPalette="teal"
+          bg={themeBg}
+        >
+          <CodeBlock.Header>
+            <CodeBlock.Title>{language}</CodeBlock.Title>
+            <CodeBlock.CopyTrigger asChild>
+              <IconButton variant="ghost" size="2xs">
+                <CodeBlock.CopyIndicator />
+              </IconButton>
+            </CodeBlock.CopyTrigger>
+          </CodeBlock.Header>
+          <CodeBlock.Content>
+            <CodeBlock.Code>
+              <CodeBlock.CodeText />
+            </CodeBlock.Code>
+          </CodeBlock.Content>
+        </CodeBlock.Root>
+      )}
+    </ClientOnly>
   )
 }
 
