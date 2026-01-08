@@ -32,8 +32,6 @@ import { useColorModeValue } from 'components/ui/color-mode';
 import { vim } from "@replit/codemirror-vim"
 import { historyField } from '@codemirror/commands';
 import { Prec } from '@codemirror/state';
-import { keymap } from '@codemirror/view';
-import { completionStatus } from '@codemirror/autocomplete';
 import { useTOC } from 'shared/Layout';
 import { useShouldEnableVimMode } from "./useShouldEnableVimMode"
 import { shoppingListExtension, toggleShoppingListModeEffect } from './shoppingListExtensions';
@@ -414,54 +412,16 @@ export function Editor(props: EditorProps) {
     }, 500)
   }
 
-  // Custom keymap to fix Enter key in vim INSERT mode on empty lines
-  // This fixes the issue where pressing Enter on an empty last line doesn't create a new line
-  const enterKeyFix = useMemo(() => {
-    return keymap.of([
-      {
-        key: "Enter",
-        run: (view) => {
-          // Don't intercept if autocomplete menu is active
-          const status = completionStatus(view.state);
-          if (status === "active") {
-            return false; // Let autocomplete handle it
-          }
 
-          // Don't intercept if we're in shopping list mode on a checkbox line
-          // Let the shopping list keymap handle it instead
-          if (isShoppingList) {
-            const { from } = view.state.selection.main;
-            const line = view.state.doc.lineAt(from);
-            if (/^\s*-\s*\[([ xX])\]/.test(line.text)) {
-              return false; // Let shopping list extension handle it
-            }
-          }
-
-          const { state } = view;
-          const { from, to } = state.selection.main;
-
-          // Insert newline at cursor position
-          view.dispatch({
-            changes: { from, to, insert: "\n" },
-            selection: { anchor: from + 1 },
-          });
-
-          return true;
-        },
-      },
-    ]);
-  }, [isShoppingList]);
 
   const extensions = useMemo(() => {
     const exts = [];
 
     if (vimMode) {
-      // Add Enter key fix with higher precedence than vim mode
       exts.push(Prec.highest(vim()));
     }
 
     exts.push(
-      Prec.high(enterKeyFix),
       markdown(),
       markdownPasteHandler,
       fullHeightEditor,
@@ -471,11 +431,11 @@ export function Editor(props: EditorProps) {
 
     // Only add shopping list extension when editing a shopping list
     if (isShoppingList) {
-      exts.push(shoppingListExtension());
+      exts.push(Prec.high(shoppingListExtension()));
     }
 
     return exts;
-  }, [vimMode, enterKeyFix, markdownPasteHandler, fullHeightEditor, clickToFocus, isShoppingList]);
+  }, [vimMode, markdownPasteHandler, fullHeightEditor, clickToFocus, isShoppingList]);
 
   return (
     <Box
@@ -638,7 +598,7 @@ export function Editor(props: EditorProps) {
           indentOnInput: true,
           bracketMatching: true,
           closeBrackets: false,
-          defaultKeymap: false,
+          defaultKeymap: true,
           autocompletion: true,
           rectangularSelection: false,
           crosshairCursor: false,
