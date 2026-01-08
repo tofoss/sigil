@@ -524,7 +524,7 @@ export function NotebookTree() {
           <Box mt={4}>
             <HStack
               mb={isUnassignedExpanded ? 3 : 0}
-              px={2}
+              pr={2}
               cursor="pointer"
               onClick={toggleUnassigned}
               _hover={{ bg: "gray.subtle" }}
@@ -548,7 +548,7 @@ export function NotebookTree() {
             {isUnassignedExpanded && (
               <Stack gap={0.5}>
                 {unassignedNotes.map((note) => (
-                  <NoteTreeItem key={note.id} note={note} paddingLeft={8} />
+                  <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
                 ))}
               </Stack>
             )}
@@ -560,7 +560,7 @@ export function NotebookTree() {
           <Box mt={4}>
             <HStack
               mb={isShoppingListsExpanded ? 3 : 0}
-              px={2}
+              pr={2}
               cursor="pointer"
               onClick={toggleShoppingLists}
               _hover={{ bg: "gray.subtle" }}
@@ -593,7 +593,7 @@ export function NotebookTree() {
                   <ShoppingListTreeItem
                     key={list.id}
                     shoppingList={list}
-                    paddingLeft={8}
+                    paddingLeft={12}
                   />
                 ))}
               </Stack>
