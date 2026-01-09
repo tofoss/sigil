@@ -2,67 +2,28 @@
 import {
   Blockquote,
   Box,
+  Checkbox,
+  CheckboxCheckedChangeDetails,
   Code,
   CodeBlock,
-  createShikiAdapter,
   Heading,
-  IconButton,
   Image,
   Link,
   List,
   Table,
-  Checkbox,
-  CheckboxCheckedChangeDetails,
 } from "@chakra-ui/react"
-import ReactMarkdown from "react-markdown"
-import { LuExternalLink } from "react-icons/lu"
-import remarkGfm from "remark-gfm"
 import React, { ReactNode, useEffect } from "react"
+import { LuExternalLink } from "react-icons/lu"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { useLocation } from "shared/Router"
-import { useColorMode } from "components/ui/color-mode"
-import type { HighlighterGeneric } from "shiki"
+import { CodeViewer, shikiAdapter } from "./CodeViewer"
 
 interface Props {
   text: string
   isShoppingList?: boolean
   onCheckboxClick?: (idx: number, checked: boolean) => void
 }
-
-// Create Shiki adapter for syntax highlighting with light/dark theme support
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const shikiAdapter = createShikiAdapter<HighlighterGeneric<any, any>>({
-  async load() {
-    const { createHighlighter } = await import("shiki")
-    return createHighlighter({
-      langs: [
-        "typescript",
-        "javascript",
-        "tsx",
-        "jsx",
-        "python",
-        "java",
-        "csharp",
-        "rust",
-        "go",
-        "kotlin",
-        "sql",
-        "lua",
-        "yaml",
-        "json",
-        "html",
-        "css",
-        "bash",
-        "shell",
-        "markdown",
-      ],
-      themes: ["poimandres", "github-light"],
-    })
-  },
-  theme: {
-    light: "github-light",
-    dark: "poimandres",
-  },
-})
 
 export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }: Props) {
   const { hash: url } = useLocation()
@@ -117,8 +78,8 @@ export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }
   listItemIds.current.clear();
 
   return (
+    <CodeBlock.AdapterProvider value={shikiAdapter}>
     <Box maxWidth="100%" width="100%" minWidth="0">
-      <CodeBlock.AdapterProvider value={shikiAdapter}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -292,62 +253,8 @@ export function MarkdownViewer({ text, isShoppingList = false, onCheckboxClick }
         >
           {text}
         </ReactMarkdown>
-      </CodeBlock.AdapterProvider>
     </Box>
-  )
-}
-
-// Shiki theme background colors (extracted from theme definitions)
-const SHIKI_THEME_BACKGROUNDS = {
-  "poimandres": "#1b1e28",
-  "github-light": "#fff",
-} as const
-
-function CodeViewer(props: { children?: React.ReactNode }) {
-  const { colorMode } = useColorMode()
-  const codeElement = React.Children.only(props.children) as React.ReactElement<{
-    className?: string
-    children?: React.ReactNode
-  }>
-
-  // Extract language from className (format: "language-xxx")
-  const className = codeElement.props.className || ""
-  const match = /language-(\w+)/.exec(className)
-  const language = match ? match[1] : undefined
-
-  // Extract the actual code text
-  const code = typeof codeElement.props.children === "string"
-    ? codeElement.props.children
-    : ""
-
-  // Get the background color from the Shiki theme
-  const themeBg = colorMode === "dark"
-    ? SHIKI_THEME_BACKGROUNDS["poimandres"]
-    : SHIKI_THEME_BACKGROUNDS["github-light"]
-
-  return (
-    <CodeBlock.Root
-      code={code}
-      language={language ?? "sql"}
-      my={4}
-      meta={{ colorScheme: colorMode }}
-      colorPalette="teal"
-      bg={themeBg}
-    >
-      <CodeBlock.Header>
-        <CodeBlock.Title>{language}</CodeBlock.Title>
-        <CodeBlock.CopyTrigger asChild>
-          <IconButton variant="ghost" size="2xs">
-            <CodeBlock.CopyIndicator />
-          </IconButton>
-        </CodeBlock.CopyTrigger>
-      </CodeBlock.Header>
-      <CodeBlock.Content>
-        <CodeBlock.Code>
-          <CodeBlock.CodeText />
-        </CodeBlock.Code>
-      </CodeBlock.Content>
-    </CodeBlock.Root>
+    </CodeBlock.AdapterProvider>
   )
 }
 
