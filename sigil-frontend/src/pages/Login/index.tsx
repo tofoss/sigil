@@ -55,6 +55,8 @@ const LoginPage = () => {
           <Field label="Username">
             <Input
               type="text"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -62,6 +64,8 @@ const LoginPage = () => {
           <Field label="Password">
             <Input
               type="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
