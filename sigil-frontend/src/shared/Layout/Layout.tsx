@@ -94,7 +94,7 @@ export function Layout() {
           borderBottomWidth="1px"
           borderColor="border.subtle"
         >
-          <DrawerRoot placement="start">
+          <DrawerRoot placement="start" initialFocusEl={() => null}>
             <DrawerBackdrop />
             <DrawerTrigger asChild>
               <IconButton
