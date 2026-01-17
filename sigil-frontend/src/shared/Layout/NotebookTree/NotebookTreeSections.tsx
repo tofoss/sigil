@@ -1,12 +1,12 @@
 import { Box, Heading, HStack, Icon, Stack, Text } from "@chakra-ui/react"
-import type { Note } from "api/model"
 import { LuChevronRight, LuShoppingCart } from "react-icons/lu"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { ShoppingListTreeItem } from "./ShoppingListTreeItem"
 import type { ShoppingListItem } from "stores/shoppingListStore"
+import type { NotebookTreeViewNote } from "./notebook-tree-data"
 
 interface RecentNotesSectionProps {
-  recentNotes: Note[]
+  recentNotes: NotebookTreeViewNote[]
   isExpanded: boolean
   onToggle: () => void
   onRemove: (noteId: string) => void
@@ -67,7 +67,7 @@ export const RecentNotesSection = ({
 }
 
 interface UnassignedNotesSectionProps {
-  unassignedNotes: Note[]
+  unassignedNotes: NotebookTreeViewNote[]
   isExpanded: boolean
   onToggle: () => void
 }
