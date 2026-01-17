@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 	"tofoss/sigil-go/pkg/models"
 
 	"github.com/google/uuid"
@@ -28,6 +29,17 @@ type NoteRepositoryInterface interface {
 	FetchNoteWithRecipes(ctx context.Context, noteID uuid.UUID) (models.Note, error)
 	DeleteNote(ctx context.Context, noteID uuid.UUID) error
 }
+
+// RecentNoteRepositoryInterface defines the contract for recent note data access
+// Notes are returned without tag hydration for lightweight responses.
+type RecentNoteRepositoryInterface interface {
+	UpsertView(ctx context.Context, userID uuid.UUID, noteID uuid.UUID, viewedAt time.Time) error
+	UpsertEdit(ctx context.Context, userID uuid.UUID, noteID uuid.UUID, editedAt time.Time) error
+	ListRecent(ctx context.Context, userID uuid.UUID, limit int) ([]models.Note, error)
+}
+
+// Ensure RecentNoteRepository implements the interface
+var _ RecentNoteRepositoryInterface = (*RecentNoteRepository)(nil)
 
 // Ensure NoteRepository implements the interface
 var _ NoteRepositoryInterface = (*NoteRepository)(nil)

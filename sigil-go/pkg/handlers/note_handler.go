@@ -27,17 +27,20 @@ type FileServiceInterface interface {
 
 type NoteHandler struct {
 	repo             repositories.NoteRepositoryInterface
+	recentRepo       repositories.RecentNoteRepositoryInterface
 	fileService      FileServiceInterface
 	shoppingListRepo repositories.ShoppingListRepositoryInterface
 }
 
 func NewNoteHandler(
 	repo repositories.NoteRepositoryInterface,
+	recentRepo repositories.RecentNoteRepositoryInterface,
 	fileService FileServiceInterface,
 	shoppingListRepo repositories.ShoppingListRepositoryInterface,
 ) NoteHandler {
 	return NoteHandler{
 		repo:             repo,
+		recentRepo:       recentRepo,
 		fileService:      fileService,
 		shoppingListRepo: shoppingListRepo,
 	}
@@ -62,6 +65,9 @@ func (h *NoteHandler) FetchNote(w http.ResponseWriter, r *http.Request) {
 	note, err := h.repo.FetchUsersNoteWithTags(r.Context(), noteID, userID)
 	if err == nil {
 		// User owns this note
+		if err := h.recentRepo.UpsertView(r.Context(), userID, note.ID, time.Now()); err != nil {
+			log.Printf("failed to record recent view for note %s: %v", note.ID, err)
+		}
 		response := responses.FetchNoteResponse{
 			Note:       note,
 			IsEditable: true,
@@ -117,6 +123,34 @@ func (h *NoteHandler) FetchUsersNotes(w http.ResponseWriter, r *http.Request) {
 	notes, err := h.repo.FetchUsersNotes(r.Context(), userID)
 	if err != nil {
 		log.Printf("unable to fetch users notes: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(notes)
+}
+
+// SearchNotes searches notes using full-text search
+func (h *NoteHandler) FetchRecentNotes(w http.ResponseWriter, r *http.Request) {
+	userID, _, err := utils.UserContext(r)
+	if err != nil {
+		log.Printf("unable to fetch recent notes, user not logged in: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	limit := 10
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	notes, err := h.recentRepo.ListRecent(r.Context(), userID, limit)
+	if err != nil {
+		log.Printf("unable to fetch recent notes: %v", err)
 		errors.InternalServerError(w)
 		return
 	}
@@ -234,6 +268,10 @@ func (h *NoteHandler) createNote(
 		return nil, err
 	}
 
+	if err := h.recentRepo.UpsertEdit(ctx, userID, result.ID, now); err != nil {
+		log.Printf("failed to record recent edit for note %s: %v", result.ID, err)
+	}
+
 	return &result, nil
 }
 
@@ -272,6 +310,10 @@ func (h *NoteHandler) updateNote(
 	result, err := h.repo.Upsert(ctx, update)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := h.recentRepo.UpsertEdit(ctx, userID, result.ID, now); err != nil {
+		log.Printf("failed to record recent edit for note %s: %v", result.ID, err)
 	}
 
 	return &result, nil

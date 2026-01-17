@@ -13,7 +13,9 @@ import { notebooks, sections } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { Skeleton } from "components/ui/skeleton"
 import { useEffect, useRef, useState } from "react"
+import { useRecentNotesStore } from "stores/recentNotesStore"
 import { LuChevronDown, LuChevronRight, LuPlus, LuX, LuShoppingCart } from "react-icons/lu"
+import type { ChangeEvent, KeyboardEvent } from "react"
 import { Link, useLocation, useParams } from "shared/Router"
 import { NotebookTreeItem } from "./NotebookTreeItem"
 import { NoteTreeItem } from "./NoteTreeItem"
@@ -58,6 +60,11 @@ export function NotebookTree() {
     fetchShoppingLists,
   } = useShoppingListStore()
 
+  const recentNotes = useRecentNotesStore((state: { recentNotes: Note[] }) => state.recentNotes)
+  const recentNotesLoading = useRecentNotesStore((state: { isLoading: boolean }) => state.isLoading)
+  const fetchRecentNotes = useRecentNotesStore((state: { fetchRecentNotes: (limit?: number) => Promise<void> }) => state.fetchRecentNotes)
+  const addRecentNote = useRecentNotesStore((state: { addRecentNote: (note: Note, limit?: number) => void }) => state.addRecentNote)
+
   const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
   const [newNotebookName, setNewNotebookName] = useState("")
 
@@ -77,6 +84,8 @@ export function NotebookTree() {
     expandUnassigned,
     isShoppingListsExpanded,
     toggleShoppingLists,
+    isRecentExpanded,
+    toggleRecent,
   } = useTreeExpansion()
 
   const location = useLocation()
@@ -84,6 +93,7 @@ export function NotebookTree() {
 
   // Track the last auto-expanded ID to prevent continuous re-expansion
   const lastAutoExpandedId = useRef<string | null>(null)
+  const lastRecentId = useRef<string | null>(null)
 
   // Configure sensors with activation constraint to allow clicks
   const sensors = useSensors(
@@ -95,7 +105,7 @@ export function NotebookTree() {
   )
 
   // Convert store data to legacy format for NotebookTreeItem compatibility
-  const treeData: TreeData[] = storeTreeData.map((notebook) => ({
+  const treeData: TreeData[] = storeTreeData.map((notebook: (typeof storeTreeData)[number]) => ({
     notebook: {
       id: notebook.id,
       name: notebook.title,
@@ -104,7 +114,7 @@ export function NotebookTree() {
       created_at: dayjs(),
       updated_at: dayjs(),
     } as Notebook,
-    sections: notebook.sections.map((section) => ({
+    sections: notebook.sections.map((section: (typeof notebook.sections)[number]) => ({
       section: {
         id: section.id,
         name: section.title,
@@ -113,7 +123,7 @@ export function NotebookTree() {
         created_at: dayjs(),
         updated_at: dayjs(),
       } as Section,
-      notes: section.notes.map((note) => ({
+      notes: section.notes.map((note: (typeof section.notes)[number]) => ({
         id: note.id,
         title: note.title,
         userId: "",
@@ -125,7 +135,7 @@ export function NotebookTree() {
         tags: [],
       })) as Note[],
     })),
-    unsectionedNotes: notebook.unsectioned.map((note) => ({
+    unsectionedNotes: notebook.unsectioned.map((note: (typeof notebook.unsectioned)[number]) => ({
       id: note.id,
       title: note.title,
       userId: "",
@@ -139,17 +149,19 @@ export function NotebookTree() {
   }))
 
   // Convert unassigned notes to legacy format
-  const unassignedNotes: Note[] = storeUnassignedNotes.map((note) => ({
-    id: note.id,
-    title: note.title,
-    userId: "",
-    content: "",
-    createdAt: dayjs(),
-    updatedAt: dayjs(),
-    publishedAt: undefined,
-    published: false,
-    tags: [],
-  }))
+  const unassignedNotes: Note[] = storeUnassignedNotes.map(
+    (note: (typeof storeUnassignedNotes)[number]) => ({
+      id: note.id,
+      title: note.title,
+      userId: "",
+      content: "",
+      createdAt: dayjs(),
+      updatedAt: dayjs(),
+      publishedAt: undefined,
+      published: false,
+      tags: [],
+    })
+  )
 
   // Handle creating a new notebook
   const handleCreateNotebook = async () => {
@@ -168,7 +180,26 @@ export function NotebookTree() {
   useEffect(() => {
     fetchTree()
     fetchShoppingLists()
-  }, [fetchTree, fetchShoppingLists])
+    fetchRecentNotes()
+  }, [fetchTree, fetchShoppingLists, fetchRecentNotes])
+
+  useEffect(() => {
+    if (!currentId || !location.pathname.startsWith("/notes/")) return
+    if (lastRecentId.current === currentId) return
+
+    const match = [
+      ...unassignedNotes,
+      ...treeData.flatMap(({ unsectionedNotes, sections: sectionsList }) => [
+        ...unsectionedNotes,
+        ...sectionsList.flatMap(({ notes }) => notes),
+      ]),
+    ].find((note) => note.id === currentId)
+
+    if (match) {
+      lastRecentId.current = currentId
+      addRecentNote(match)
+    }
+  }, [currentId, location.pathname, addRecentNote])
 
   // Track previous unassigned count to auto-expand when notes are added
   const prevUnassignedCount = useRef(storeUnassignedNotes.length)
@@ -436,6 +467,45 @@ export function NotebookTree() {
       sensors={sensors}
     >
       <Box px={2}>
+        {/* Recent Notes Section */}
+        {!recentNotesLoading && recentNotes.length > 0 && (
+          <Box mb={4}>
+            <HStack
+              mb={isRecentExpanded ? 3 : 0}
+              pr={2}
+              cursor="pointer"
+              onClick={toggleRecent}
+              _hover={{ bg: "gray.subtle" }}
+              borderRadius="md"
+              py={1.5}
+            >
+              <Icon
+                fontSize="sm"
+                color="fg.muted"
+                flexShrink={0}
+                transform={isRecentExpanded ? "rotate(90deg)" : undefined}
+                transition="transform 0.15s"
+              >
+                <LuChevronRight />
+              </Icon>
+              <Heading size="xs" color="fg.muted" flex={1}>
+                Recent
+              </Heading>
+              <Text fontSize="xs" color="fg.muted">
+                ({recentNotes.length})
+              </Text>
+            </HStack>
+
+            {isRecentExpanded && (
+              <Stack gap={0.5}>
+                {recentNotes.map((note: Note) => (
+                  <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
+
         <HStack mb={3} px={2} justifyContent="space-between">
           <Heading size="xs" color="fg.muted">
             <ChakraLink asChild>
@@ -471,8 +541,10 @@ export function NotebookTree() {
                 size="sm"
                 placeholder="Notebook name"
                 value={newNotebookName}
-                onChange={(e) => setNewNotebookName(e.target.value)}
-                onKeyDown={(e) => {
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setNewNotebookName(e.target.value)
+                }
+                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter") {
                     handleCreateNotebook()
                   } else if (e.key === "Escape") {
@@ -589,7 +661,7 @@ export function NotebookTree() {
 
             {isShoppingListsExpanded && (
               <Stack gap={0.5}>
-                {shoppingLists.map((list) => (
+                {shoppingLists.map((list: (typeof shoppingLists)[number]) => (
                   <ShoppingListTreeItem
                     key={list.id}
                     shoppingList={list}

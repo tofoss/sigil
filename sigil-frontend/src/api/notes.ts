@@ -26,7 +26,7 @@ export const noteClient = {
         credentials: "include",
       })
       .json<Note[]>()
-      .then((a) => a.map(fromJson)),
+      .then((notes: Note[]) => notes.map(fromJson)),
 
   fetch: (id: string) =>
     client
@@ -35,7 +35,19 @@ export const noteClient = {
         credentials: "include",
       })
       .json<Note>()
-      .then((a) => fromJson(a)),
+      .then(fromJson),
+
+  fetchRecent: (limit: number = 10) =>
+    client
+      .get("notes/recent", {
+        searchParams: {
+          limit: limit.toString(),
+        },
+        headers: commonHeaders(),
+        credentials: "include",
+      })
+      .json<Note[]>()
+      .then((notes: Note[]) => notes.map(fromJson)),
 
   // Tag-related methods
   getNoteTags: (noteId: string) =>
@@ -75,7 +87,8 @@ export const noteClient = {
         credentials: "include",
       })
       .json<Note[]>()
-      .then((a) => a.map(fromJson)),
+      .then((notes: Note[]) => notes.map(fromJson)),
+
 
   delete: (noteId: string) =>
     client.delete(`notes/${noteId}`, {

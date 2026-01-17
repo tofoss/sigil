@@ -31,6 +31,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 	userRepository := repositories.NewUserRepository(pool)
 	refreshTokenRepository := repositories.NewRefreshTokenRepository(pool)
 	noteRepository := repositories.NewNoteRepository(pool)
+	recentNoteRepository := repositories.NewRecentNoteRepository(pool)
 	notebookRepository := repositories.NewNotebookRepository(pool)
 	sectionRepository := repositories.NewSectionRepository(pool)
 	tagRepository := repositories.NewTagRepository(pool)
@@ -87,7 +88,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		CookieSecure:         cfg.CookieSecure,
 	}
 	userHandler := handlers.NewUserHandler(userRepository, refreshTokenRepository, inviteCodeRepository, jwtKey, xsrfKey, authConfig)
-	noteHandler := handlers.NewNoteHandler(noteRepository, fileService, shoppingListRepository)
+	noteHandler := handlers.NewNoteHandler(noteRepository, recentNoteRepository, fileService, shoppingListRepository)
 	notebookHandler := handlers.NewNotebookHandler(notebookRepository, noteRepository)
 	sectionHandler := handlers.NewSectionHandler(sectionRepository, notebookRepository)
 	tagHandler := handlers.NewTagHandler(tagRepository)
@@ -120,6 +121,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 	router.Route("/notes", func(r chi.Router) {
 		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
 		r.Get("/", noteHandler.FetchUsersNotes)
+		r.Get("/recent", noteHandler.FetchRecentNotes)
 		r.Get("/search", noteHandler.SearchNotes)
 		r.Get("/{id}", noteHandler.FetchNote)
 		r.Post("/", noteHandler.PostNote)

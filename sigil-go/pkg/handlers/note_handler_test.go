@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"tofoss/sigil-go/pkg/db/repositories"
 	"tofoss/sigil-go/pkg/models"
@@ -25,6 +26,35 @@ type mockFileService struct{}
 
 func (m *mockFileService) DeleteFilesForNote(ctx context.Context, noteID uuid.UUID) error {
 	return nil
+}
+
+// mockRecentNoteRepository is a mock implementation of RecentNoteRepositoryInterface for testing
+type mockRecentNoteRepository struct{}
+
+func (m *mockRecentNoteRepository) UpsertView(
+	ctx context.Context,
+	userID uuid.UUID,
+	noteID uuid.UUID,
+	viewedAt time.Time,
+) error {
+	return nil
+}
+
+func (m *mockRecentNoteRepository) UpsertEdit(
+	ctx context.Context,
+	userID uuid.UUID,
+	noteID uuid.UUID,
+	editedAt time.Time,
+) error {
+	return nil
+}
+
+func (m *mockRecentNoteRepository) ListRecent(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit int,
+) ([]models.Note, error) {
+	return nil, nil
 }
 
 // DeleteNote implements repositories.NoteRepositoryInterface.
@@ -267,7 +297,7 @@ func TestSearchNotes(t *testing.T) {
 			}
 
 			// Create handler with mock
-			handler := NewNoteHandler(mockRepo, &mockFileService{}, nil)
+			handler := NewNoteHandler(mockRepo, &mockRecentNoteRepository{}, &mockFileService{}, nil)
 
 			// Create request
 			req := httptest.NewRequest(http.MethodGet, "/notes/search"+tt.queryParams, nil)
@@ -315,7 +345,7 @@ func TestSearchNotes(t *testing.T) {
 
 func TestSearchNotesWithoutAuth(t *testing.T) {
 	mockRepo := &mockNoteRepository{}
-	handler := NewNoteHandler(mockRepo, &mockFileService{}, nil)
+	handler := NewNoteHandler(mockRepo, &mockRecentNoteRepository{}, &mockFileService{}, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/notes/search?q=test", nil)
 	// No user context added - simulating missing auth

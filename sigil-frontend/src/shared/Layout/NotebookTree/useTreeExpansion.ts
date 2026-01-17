@@ -41,6 +41,15 @@ export function useTreeExpansion() {
     }
   )
 
+  const [isRecentExpanded, setIsRecentExpanded] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem("expanded-recent")
+      return stored ? JSON.parse(stored) : false
+    } catch {
+      return false
+    }
+  })
+
   const toggleNotebook = useCallback((id: string) => {
     setExpandedNotebooks((prev) => {
       const updated = prev.includes(id)
@@ -130,6 +139,14 @@ export function useTreeExpansion() {
     })
   }, [])
 
+  const toggleRecent = useCallback(() => {
+    setIsRecentExpanded((prev) => {
+      const updated = !prev
+      localStorage.setItem("expanded-recent", JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
   return {
     expandedNotebooks,
     expandedSections,
@@ -146,5 +163,7 @@ export function useTreeExpansion() {
     expandUnassigned,
     isShoppingListsExpanded,
     toggleShoppingLists,
+    isRecentExpanded,
+    toggleRecent,
   }
 }
