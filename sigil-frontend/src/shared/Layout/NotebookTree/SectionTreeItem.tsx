@@ -4,13 +4,6 @@ import { Note, Section } from "api/model"
 import { LuChevronRight, LuFolder, LuPlus } from "react-icons/lu"
 import { useNavigate } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
-import {
-  useSortable,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { useDroppable } from "@dnd-kit/core"
-import { CSS } from "@dnd-kit/utilities"
 import { useTreeStore } from "stores/treeStore"
 
 interface SectionTreeItemProps {
@@ -35,43 +28,6 @@ export function SectionTreeItem({
   const navigate = useNavigate()
   const { moveNoteToNotebook } = useTreeStore()
 
-  // Drag and drop hooks
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setSortableRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: section.id,
-    data: {
-      type: "section",
-      sectionId: section.id,
-      notebookId,
-    },
-  })
-
-  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
-    id: section.id,
-    data: {
-      type: "section",
-      sectionId: section.id,
-      notebookId,
-    },
-  })
-
-  // Combine refs
-  const setRefs = (node: HTMLDivElement | null) => {
-    setSortableRef(node)
-    setDroppableRef(node)
-  }
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
 
   // Handle creating a new note in this section
   const handleCreateNote = async () => {
@@ -93,15 +49,12 @@ export function SectionTreeItem({
     <Box>
       {/* Section Header */}
       <HStack
-        ref={setRefs}
-        {...attributes}
-        {...listeners}
         pl={`${paddingLeft}px`}
         pr={2}
         py={1.5}
         gap={2}
         minWidth="0"
-        cursor={isDragging ? "grabbing" : "grab"}
+        cursor="pointer"
         borderRadius="md"
         data-testid={`section-${section.id}`}
         onClick={onToggle}
@@ -111,9 +64,6 @@ export function SectionTreeItem({
           bg: containsActiveNote ? "teal.subtle" : "gray.subtle",
         }}
         transition="background 0.15s"
-        style={style}
-        borderWidth={isOver ? "2px" : "0"}
-        borderColor={isOver ? "teal.500" : "transparent"}
       >
         <Icon
           fontSize="sm"
@@ -146,7 +96,7 @@ export function SectionTreeItem({
             size="2xs"
             variant="ghost"
             aria-label="Create note"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.preventDefault()
               e.stopPropagation()
               handleCreateNote()
@@ -160,20 +110,15 @@ export function SectionTreeItem({
       {/* Notes List */}
       {isExpanded && (
         <Box>
-          <SortableContext
-            items={notes.map((note) => note.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {notes.map((note) => (
-              <NoteTreeItem
-                key={note.id}
-                note={note}
-                paddingLeft={paddingLeft + 12}
-                notebookId={notebookId}
-                sectionId={section.id}
-              />
-            ))}
-          </SortableContext>
+          {notes.map((note) => (
+            <NoteTreeItem
+              key={note.id}
+              note={note}
+              paddingLeft={paddingLeft + 12}
+              notebookId={notebookId}
+              sectionId={section.id}
+            />
+          ))}
         </Box>
       )}
     </Box>
