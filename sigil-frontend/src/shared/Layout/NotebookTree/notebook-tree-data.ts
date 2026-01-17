@@ -1,5 +1,4 @@
 import { type TreeNote, type TreeNotebook } from "api"
-import type { Note } from "api/model"
 import { useMemo } from "react"
 import { useRecentNotesStore } from "stores/recentNotesStore"
 import { useShoppingListStore } from "stores/shoppingListStore"
@@ -19,8 +18,6 @@ export interface NotebookTreeViewSection {
 export interface NotebookTreeViewNotebook {
   id: string
   title: string
-  sections: NotebookTreeViewSection[]
-  unsectioned: NotebookTreeViewNote[]
 }
 
 export interface NotebookTreeViewData {
@@ -44,14 +41,6 @@ const buildViewTreeData = (tree: TreeNotebook[]): NotebookTreeViewData[] => {
     notebook: {
       id: notebook.id,
       title: notebook.title,
-      sections: notebook.sections.map(
-        (section: TreeNotebook["sections"][number]) => ({
-          id: section.id,
-          title: section.title,
-          notes: buildViewNotes(section.notes),
-        })
-      ),
-      unsectioned: buildViewNotes(notebook.unsectioned),
     },
     sections: notebook.sections.map(
       (section: TreeNotebook["sections"][number]) => ({
@@ -83,7 +72,8 @@ export const useNotebookTreeData = () => {
   } = useShoppingListStore()
 
   const recentNotes = useRecentNotesStore(
-    (state: { recentNotes: Note[] }) => state.recentNotes
+    (state: { recentNotes: Array<{ id: string; title: string }> }) =>
+      state.recentNotes
   )
   const recentNotesLoading = useRecentNotesStore(
     (state: { isLoading: boolean }) => state.isLoading
@@ -93,8 +83,9 @@ export const useNotebookTreeData = () => {
       state.fetchRecentNotes
   )
   const addRecentNote = useRecentNotesStore(
-    (state: { addRecentNote: (note: Note, limit?: number) => void }) =>
-      state.addRecentNote
+    (state: {
+      addRecentNote: (note: NotebookTreeViewNote, limit?: number) => void
+    }) => state.addRecentNote
   )
   const removeRecentNote = useRecentNotesStore(
     (state: { removeRecentNote: (noteId: string) => Promise<void> }) =>
@@ -105,20 +96,6 @@ export const useNotebookTreeData = () => {
     () => buildViewNotes(recentNotes),
     [recentNotes]
   )
-
-  const addViewRecentNote = (note: NotebookTreeViewNote, limit?: number) => {
-    addRecentNote({
-      id: note.id,
-      title: note.title,
-      userId: "",
-      content: "",
-      createdAt: null as unknown as Note["createdAt"],
-      updatedAt: null as unknown as Note["updatedAt"],
-      publishedAt: undefined,
-      published: false,
-      tags: [],
-    }, limit)
-  }
 
   const treeData = useMemo(() => buildViewTreeData(storeTreeData), [
     storeTreeData,
@@ -140,7 +117,7 @@ export const useNotebookTreeData = () => {
     recentNotes: viewRecentNotes,
     recentNotesLoading,
     fetchRecentNotes,
-    addRecentNote: addViewRecentNote,
+    addRecentNote,
     removeRecentNote,
     treeData,
     unassignedNotes,
