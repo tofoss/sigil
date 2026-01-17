@@ -103,6 +103,7 @@ export function SectionTreeItem({
         minWidth="0"
         cursor={isDragging ? "grabbing" : "grab"}
         borderRadius="md"
+        data-testid={`section-${section.id}`}
         onClick={onToggle}
         bg={containsActiveNote ? "teal.subtle" : undefined}
         fontWeight={containsActiveNote ? "semibold" : "normal"}

@@ -25,6 +25,7 @@ export const ShoppingListTreeItem = memo(function ShoppingListTreeItem({
         gap={2}
         cursor="pointer"
         borderRadius="md"
+        data-testid={`shopping-list-${shoppingList.id}`}
         bg={isActive ? "bg.muted" : undefined}
         fontWeight={isActive ? "semibold" : "normal"}
         _hover={{

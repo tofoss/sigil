@@ -109,6 +109,7 @@ export function NotebookTreeItem({
         gap={2}
         minWidth="0"
         borderRadius="md"
+        data-testid={`notebook-${notebook.id}`}
         bg={
           isActive ? "bg.muted" : containsActiveNote ? "teal.subtle" : undefined
         }
@@ -128,6 +129,7 @@ export function NotebookTreeItem({
           color="fg.muted"
           flexShrink={0}
           cursor="pointer"
+          data-testid={`notebook-toggle-${notebook.id}`}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()

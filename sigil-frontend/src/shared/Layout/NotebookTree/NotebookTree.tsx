@@ -476,6 +476,7 @@ export function NotebookTree() {
               pr={2}
               cursor="pointer"
               onClick={toggleRecent}
+              data-testid="toggle-recent"
               _hover={{ bg: "gray.subtle" }}
               borderRadius="md"
               py={1.5}
@@ -498,7 +499,7 @@ export function NotebookTree() {
             </HStack>
 
             {isRecentExpanded && (
-              <Stack gap={0.5}>
+              <Stack gap={0.5} data-testid="recent-notes-list">
                 {recentNotes.map((note: Note) => (
                   <NoteTreeItem
                     key={note.id}
@@ -513,7 +514,7 @@ export function NotebookTree() {
           </Box>
         )}
 
-        <HStack mb={3} px={2} justifyContent="space-between">
+        <HStack mb={3} px={2} justifyContent="space-between" data-testid="notebook-header">
           <Heading size="xs" color="fg.muted">
             <ChakraLink asChild>
               <Link to={pages.private.notebooks.path}>
@@ -530,12 +531,13 @@ export function NotebookTree() {
             >
               {allExpanded ? <LuChevronRight /> : <LuChevronDown />}
             </IconButton>
-            <IconButton
-              size="xs"
-              variant="ghost"
-              aria-label="Create notebook"
-              onClick={() => setIsCreatingNotebook(true)}
-            >
+              <IconButton
+                size="xs"
+                variant="ghost"
+                aria-label="Create notebook"
+                data-testid="create-notebook-button"
+                onClick={() => setIsCreatingNotebook(true)}
+              >
               <LuPlus />
             </IconButton>
           </HStack>
@@ -543,7 +545,7 @@ export function NotebookTree() {
 
         <Stack gap={0.5}>
           {isCreatingNotebook && (
-            <HStack px={2} py={1.5} gap={2}>
+            <HStack px={2} py={1.5} gap={2} data-testid="create-notebook-form">
               <Input
                 size="sm"
                 placeholder="Notebook name"
@@ -606,6 +608,7 @@ export function NotebookTree() {
               pr={2}
               cursor="pointer"
               onClick={toggleUnassigned}
+              data-testid="toggle-unassigned"
               _hover={{ bg: "gray.subtle" }}
               borderRadius="md"
               py={1.5}
@@ -625,7 +628,7 @@ export function NotebookTree() {
             </HStack>
 
             {isUnassignedExpanded && (
-              <Stack gap={0.5}>
+              <Stack gap={0.5} data-testid="unassigned-notes-list">
                 {unassignedNotes.map((note) => (
                   <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
                 ))}
@@ -642,6 +645,7 @@ export function NotebookTree() {
               pr={2}
               cursor="pointer"
               onClick={toggleShoppingLists}
+              data-testid="toggle-shopping-lists"
               _hover={{ bg: "gray.subtle" }}
               borderRadius="md"
               py={1.5}
@@ -667,7 +671,7 @@ export function NotebookTree() {
             </HStack>
 
             {isShoppingListsExpanded && (
-              <Stack gap={0.5}>
+              <Stack gap={0.5} data-testid="shopping-lists-list">
                 {shoppingLists.map((list: (typeof shoppingLists)[number]) => (
                   <ShoppingListTreeItem
                     key={list.id}
