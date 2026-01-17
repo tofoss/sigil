@@ -2,11 +2,11 @@ import { Box, HStack, Icon, IconButton, Input, Text } from "@chakra-ui/react"
 import { noteClient, notebooks, sections as sectionsApi } from "api"
 import { Note, Notebook, Section } from "api/model"
 import { useState } from "react"
+import type { ChangeEvent, KeyboardEvent, MouseEvent } from "react"
 import { LuBookOpen, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
 import { Link, useNavigate, useParams } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { SectionTreeItem } from "./SectionTreeItem"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useTreeStore } from "stores/treeStore"
 
 interface NotebookTreeItemProps {
@@ -124,19 +124,19 @@ export function NotebookTreeItem({
         transition="background 0.15s"
       >
         {/* Chevron for expand/collapse */}
-        <Icon
-          fontSize="sm"
-          color="fg.muted"
-          flexShrink={0}
-          cursor="pointer"
-          data-testid={`notebook-toggle-${notebook.id}`}
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            onToggle()
-          }}
-          transform={isExpanded ? "rotate(90deg)" : undefined}
-        >
+          <Icon
+            fontSize="sm"
+            color="fg.muted"
+            flexShrink={0}
+            cursor="pointer"
+            data-testid={`notebook-toggle-${notebook.id}`}
+            onClick={(e: MouseEvent<SVGElement>) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onToggle()
+            }}
+            transform={isExpanded ? "rotate(90deg)" : undefined}
+          >
           <LuChevronRight />
         </Icon>
 
@@ -174,7 +174,7 @@ export function NotebookTreeItem({
             size="2xs"
             variant="ghost"
             aria-label="Create section"
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault()
               e.stopPropagation()
               setIsCreatingSection(true)
@@ -195,8 +195,10 @@ export function NotebookTreeItem({
                 size="xs"
                 placeholder="Section name"
                 value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                onKeyDown={(e) => {
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setNewSectionName(e.target.value)
+                }
+                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter") {
                     handleCreateSection()
                   } else if (e.key === "Escape") {
@@ -242,41 +244,31 @@ export function NotebookTreeItem({
                   <LuPlus />
                 </IconButton>
               </HStack>
-              <SortableContext
-                items={unsectionedNotes.map((note) => note.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {unsectionedNotes.map((note) => (
-                  <NoteTreeItem
-                    key={note.id}
-                    note={note}
-                    paddingLeft={12}
-                    notebookId={notebook.id}
-                    sectionId={null}
-                  />
-                ))}
-              </SortableContext>
+              {unsectionedNotes.map((note) => (
+                <NoteTreeItem
+                  key={note.id}
+                  note={note}
+                  paddingLeft={12}
+                  notebookId={notebook.id}
+                  sectionId={null}
+                />
+              ))}
             </Box>
           )}
 
           {/* Sections */}
-          <SortableContext
-            items={sections.map(({ section }) => section.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {sections.map(({ section, notes }) => (
-              <SectionTreeItem
-                key={section.id}
-                section={section}
-                notes={notes}
-                isExpanded={expandedSections.includes(section.id)}
-                onToggle={() => onToggleSection(section.id)}
-                paddingLeft={12}
-                containsActiveNote={activeSectionId === section.id}
-                notebookId={notebook.id}
-              />
-            ))}
-          </SortableContext>
+          {sections.map(({ section, notes }) => (
+            <SectionTreeItem
+              key={section.id}
+              section={section}
+              notes={notes}
+              isExpanded={expandedSections.includes(section.id)}
+              onToggle={() => onToggleSection(section.id)}
+              paddingLeft={12}
+              containsActiveNote={activeSectionId === section.id}
+              notebookId={notebook.id}
+            />
+          ))}
 
           {/* Empty State */}
           {sections.length === 0 && unsectionedNotes.length === 0 && (
