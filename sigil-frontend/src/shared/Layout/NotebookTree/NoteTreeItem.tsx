@@ -78,6 +78,7 @@ export const NoteTreeItem = memo(function NoteTreeItem({
       gap={2}
       cursor={isDragging ? "grabbing" : "grab"}
       borderRadius="md"
+      data-testid={`note-${note.id}`}
       bg={isActive ? "bg.muted" : undefined}
       fontWeight={isActive ? "semibold" : "normal"}
       _hover={{
