@@ -9,7 +9,7 @@ import { useRecentNotesStore } from "stores/recentNotesStore"
 import { useShoppingListStore } from "stores/shoppingListStore"
 import { notebooks } from "api"
 import type { TreeNotebook, TreeNote } from "api"
-import type { Note } from "api/model"
+import type { NotebookTreeViewNote } from "./notebook-tree-data"
 import type { ShoppingListItem } from "stores/shoppingListStore"
 import { useTreeExpansion } from "./useTreeExpansion"
 
@@ -70,16 +70,11 @@ const makeTreeNotebook = (overrides: Partial<TreeNotebook> = {}): TreeNotebook =
   unsectioned: overrides.unsectioned ?? [{ id: "note-2", title: "Note 2" }],
 })
 
-const makeNote = (overrides: Partial<Note> = {}): Note => ({
+const makeNote = (
+  overrides: Partial<NotebookTreeViewNote> = {}
+): NotebookTreeViewNote => ({
   id: overrides.id ?? "note-1",
-  userId: "user-1",
   title: overrides.title ?? "Note 1",
-  content: "",
-  createdAt: null as unknown as Note["createdAt"],
-  updatedAt: null as unknown as Note["updatedAt"],
-  publishedAt: undefined,
-  published: false,
-  tags: [],
 })
 
 const makeShoppingList = (
@@ -108,7 +103,7 @@ const setupStoreMocks = ({
   unassignedNotes?: TreeNote[]
   isLoading?: boolean
   error?: string | null
-  recentNotes?: Note[]
+  recentNotes?: NotebookTreeViewNote[]
   recentLoading?: boolean
   shoppingLists?: ShoppingListItem[]
   shoppingLoading?: boolean
@@ -161,7 +156,7 @@ const setupStoreMocks = ({
   })
 
   ;(useRecentNotesStore as unknown as Mock).mockImplementation(
-    (selector: (state: { recentNotes: Note[]; isLoading: boolean; fetchRecentNotes: () => Promise<void>; addRecentNote: () => void; removeRecentNote: () => void }) => unknown) =>
+    (selector: (state: { recentNotes: NotebookTreeViewNote[]; isLoading: boolean; fetchRecentNotes: () => Promise<void>; addRecentNote: () => void; removeRecentNote: () => void }) => unknown) =>
       selector({
         recentNotes,
         isLoading: recentLoading,

@@ -1,14 +1,14 @@
 import { Box, HStack, Icon, IconButton, Text } from "@chakra-ui/react"
 import { noteClient, notebooks, sections as sectionsApi } from "api"
-import { Note, Section } from "api/model"
+import type { NotebookTreeViewNote, NotebookTreeViewSection } from "./notebook-tree-data"
 import { LuChevronRight, LuFolder, LuPlus } from "react-icons/lu"
 import { useNavigate } from "shared/Router"
 import { NoteTreeItem } from "./NoteTreeItem"
 import { useTreeStore } from "stores/treeStore"
 
 interface SectionTreeItemProps {
-  section: Section
-  notes: Note[]
+  section: NotebookTreeViewSection
+  notes: NotebookTreeViewNote[]
   isExpanded: boolean
   onToggle: () => void
   paddingLeft?: number
@@ -83,9 +83,9 @@ export function SectionTreeItem({
           overflow="hidden"
           textOverflow="ellipsis"
           whiteSpace="nowrap"
-          title={section.name}
+          title={section.title}
         >
-          {section.name}
+          {section.title}
         </Text>
         {/* Note count with add note button */}
         <HStack gap={0.5} flexShrink={0}>

@@ -30,7 +30,9 @@ export const useRecentNotesStore = create<RecentNotesState>(
 
     addRecentNote: (note: Note, limit = 5) => {
       set((state: RecentNotesState) => {
-        const deduped = state.recentNotes.filter((item: Note) => item.id !== note.id)
+        const deduped = state.recentNotes.filter(
+          (item: Note) => item.id !== note.id
+        )
         const next = [note, ...deduped].slice(0, limit)
         return { recentNotes: next }
       })
@@ -40,7 +42,9 @@ export const useRecentNotesStore = create<RecentNotesState>(
       try {
         await noteClient.deleteRecent(noteId)
         set((state: RecentNotesState) => ({
-          recentNotes: state.recentNotes.filter((note: Note) => note.id !== noteId),
+          recentNotes: state.recentNotes.filter(
+            (note: Note) => note.id !== noteId
+          ),
         }))
       } catch (err) {
         console.error("Error deleting recent note:", err)

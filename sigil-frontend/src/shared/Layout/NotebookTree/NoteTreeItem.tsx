@@ -1,12 +1,12 @@
 import { HStack, Icon, IconButton, Text } from "@chakra-ui/react"
-import { Note } from "api/model"
+import type { NotebookTreeViewNote } from "./notebook-tree-data"
 import { memo } from "react"
 import type { MouseEvent as ReactMouseEvent } from "react"
 import { LuFileText, LuX } from "react-icons/lu"
 import { useParams, useNavigate } from "shared/Router"
 
 interface NoteTreeItemProps {
-  note: Note
+  note: NotebookTreeViewNote
   paddingLeft?: number
   notebookId?: string
   sectionId?: string | null

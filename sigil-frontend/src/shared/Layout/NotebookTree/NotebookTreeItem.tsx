@@ -1,6 +1,10 @@
 import { Box, HStack, Icon, IconButton, Input, Text } from "@chakra-ui/react"
 import { noteClient, notebooks, sections as sectionsApi } from "api"
-import { Note, Notebook, Section } from "api/model"
+import type {
+  NotebookTreeViewNote,
+  NotebookTreeViewNotebook,
+  NotebookTreeViewSection,
+} from "./notebook-tree-data"
 import { useState } from "react"
 import type { ChangeEvent, KeyboardEvent, MouseEvent } from "react"
 import { LuBookOpen, LuChevronRight, LuPlus, LuX } from "react-icons/lu"
@@ -10,12 +14,12 @@ import { SectionTreeItem } from "./SectionTreeItem"
 import { useTreeStore } from "stores/treeStore"
 
 interface NotebookTreeItemProps {
-  notebook: Notebook
+  notebook: NotebookTreeViewNotebook
   sections: Array<{
-    section: Section
-    notes: Note[]
+    section: NotebookTreeViewSection
+    notes: NotebookTreeViewNote[]
   }>
-  unsectionedNotes: Note[]
+  unsectionedNotes: NotebookTreeViewNote[]
   isExpanded: boolean
   onToggle: () => void
   expandedSections: string[]
@@ -157,9 +161,9 @@ export function NotebookTreeItem({
                 overflow="hidden"
                 textOverflow="ellipsis"
                 whiteSpace="nowrap"
-                title={notebook.name}
+                title={notebook.title}
               >
-                {notebook.name}
+                {notebook.title}
               </Text>
             </HStack>
           </Link>

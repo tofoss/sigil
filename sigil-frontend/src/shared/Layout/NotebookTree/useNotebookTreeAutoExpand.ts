@@ -1,15 +1,14 @@
 import { useEffect, useRef } from "react"
-import type { Note } from "api/model"
-import type { TreeData } from "./notebook-tree-data"
+import type { NotebookTreeViewData, NotebookTreeViewNote } from "./notebook-tree-data"
 
 interface NotebookTreeAutoExpandOptions {
   currentId?: string
   currentPath: string
   loading: boolean
-  treeData: TreeData[]
-  unassignedNotes: Note[]
+  treeData: NotebookTreeViewData[]
+  unassignedNotes: NotebookTreeViewNote[]
   storeUnassignedCount: number
-  addRecentNote: (note: Note) => void
+  addRecentNote: (note: NotebookTreeViewNote, limit?: number) => void
   expandNotebook: (id: string) => void
   expandSection: (id: string) => void
   expandUnassigned: () => void
@@ -36,11 +35,21 @@ export const useNotebookTreeAutoExpand = ({
 
     const match = [
       ...unassignedNotes,
-      ...treeData.flatMap(({ unsectionedNotes, sections: sectionsList }) => [
-        ...unsectionedNotes,
-        ...sectionsList.flatMap(({ notes }) => notes),
-      ]),
-    ].find((note) => note.id === currentId)
+      ...treeData.flatMap(
+        ({
+          unsectionedNotes,
+          sections: sectionsList,
+        }: {
+          unsectionedNotes: NotebookTreeViewNote[]
+          sections: Array<{ notes: NotebookTreeViewNote[] }>
+        }) => [
+          ...unsectionedNotes,
+          ...sectionsList.flatMap(
+            ({ notes }: { notes: NotebookTreeViewNote[] }) => notes
+          ),
+        ]
+      ),
+    ].find((note: NotebookTreeViewNote) => note.id === currentId)
 
     if (match) {
       lastRecentId.current = currentId
@@ -69,13 +78,21 @@ export const useNotebookTreeAutoExpand = ({
         sections: sectionsList,
         unsectionedNotes,
       } of treeData) {
-        if (unsectionedNotes.some((note) => note.id === currentId)) {
+        if (
+          unsectionedNotes.some(
+            (note: NotebookTreeViewNote) => note.id === currentId
+          )
+        ) {
           expandNotebook(notebook.id)
           return
         }
 
         for (const { section, notes: sectionNotes } of sectionsList) {
-          if (sectionNotes.some((note) => note.id === currentId)) {
+          if (
+            sectionNotes.some(
+              (note: NotebookTreeViewNote) => note.id === currentId
+            )
+          ) {
             expandNotebook(notebook.id)
             expandSection(section.id)
             return
@@ -99,3 +116,4 @@ export const useNotebookTreeAutoExpand = ({
     expandSection,
   ])
 }
+

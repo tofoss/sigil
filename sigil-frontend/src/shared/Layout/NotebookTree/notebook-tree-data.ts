@@ -1,58 +1,69 @@
 import { type TreeNote, type TreeNotebook } from "api"
-import { Note, Notebook, Section } from "api/model"
+import type { Note } from "api/model"
 import { useMemo } from "react"
 import { useRecentNotesStore } from "stores/recentNotesStore"
 import { useShoppingListStore } from "stores/shoppingListStore"
 import { useTreeStore } from "stores/treeStore"
-// eslint-disable-next-line no-restricted-imports
-import dayjs from "dayjs"
 
-// Legacy interface for NotebookTreeItem compatibility
-export interface TreeData {
-  notebook: Notebook
-  sections: Array<{
-    section: Section
-    notes: Note[]
-  }>
-  unsectionedNotes: Note[]
+export interface NotebookTreeViewNote {
+  id: string
+  title: string
 }
 
-const buildLegacyNotes = (notes: TreeNote[]): Note[] => {
+export interface NotebookTreeViewSection {
+  id: string
+  title: string
+  notes: NotebookTreeViewNote[]
+}
+
+export interface NotebookTreeViewNotebook {
+  id: string
+  title: string
+  sections: NotebookTreeViewSection[]
+  unsectioned: NotebookTreeViewNote[]
+}
+
+export interface NotebookTreeViewData {
+  notebook: NotebookTreeViewNotebook
+  sections: Array<{
+    section: NotebookTreeViewSection
+    notes: NotebookTreeViewNote[]
+  }>
+  unsectionedNotes: NotebookTreeViewNote[]
+}
+
+const buildViewNotes = (notes: TreeNote[]): NotebookTreeViewNote[] => {
   return notes.map((note) => ({
     id: note.id,
     title: note.title,
-    userId: "",
-    content: "",
-    createdAt: dayjs(),
-    updatedAt: dayjs(),
-    publishedAt: undefined,
-    published: false,
-    tags: [],
   }))
 }
 
-const buildLegacyTreeData = (tree: TreeNotebook[]): TreeData[] => {
+const buildViewTreeData = (tree: TreeNotebook[]): NotebookTreeViewData[] => {
   return tree.map((notebook) => ({
     notebook: {
       id: notebook.id,
-      name: notebook.title,
-      user_id: "",
-      description: "",
-      created_at: dayjs(),
-      updated_at: dayjs(),
-    } as Notebook,
-    sections: notebook.sections.map((section: TreeNotebook["sections"][number]) => ({
-      section: {
-        id: section.id,
-        name: section.title,
-        notebook_id: notebook.id,
-        position: 0,
-        created_at: dayjs(),
-        updated_at: dayjs(),
-      } as Section,
-      notes: buildLegacyNotes(section.notes),
-    })),
-    unsectionedNotes: buildLegacyNotes(notebook.unsectioned),
+      title: notebook.title,
+      sections: notebook.sections.map(
+        (section: TreeNotebook["sections"][number]) => ({
+          id: section.id,
+          title: section.title,
+          notes: buildViewNotes(section.notes),
+        })
+      ),
+      unsectioned: buildViewNotes(notebook.unsectioned),
+    },
+    sections: notebook.sections.map(
+      (section: TreeNotebook["sections"][number]) => ({
+        section: {
+          id: section.id,
+          title: section.title,
+          notes: buildViewNotes(section.notes),
+        },
+        notes: buildViewNotes(section.notes),
+      })
+    ),
+    unsectionedNotes: buildViewNotes(notebook.unsectioned),
   }))
 }
 
@@ -90,11 +101,30 @@ export const useNotebookTreeData = () => {
       state.removeRecentNote
   )
 
-  const treeData = useMemo(() => buildLegacyTreeData(storeTreeData), [
+  const viewRecentNotes = useMemo(
+    () => buildViewNotes(recentNotes),
+    [recentNotes]
+  )
+
+  const addViewRecentNote = (note: NotebookTreeViewNote, limit?: number) => {
+    addRecentNote({
+      id: note.id,
+      title: note.title,
+      userId: "",
+      content: "",
+      createdAt: null as unknown as Note["createdAt"],
+      updatedAt: null as unknown as Note["updatedAt"],
+      publishedAt: undefined,
+      published: false,
+      tags: [],
+    }, limit)
+  }
+
+  const treeData = useMemo(() => buildViewTreeData(storeTreeData), [
     storeTreeData,
   ])
   const unassignedNotes = useMemo(
-    () => buildLegacyNotes(storeUnassignedNotes),
+    () => buildViewNotes(storeUnassignedNotes),
     [storeUnassignedNotes]
   )
 
@@ -107,10 +137,10 @@ export const useNotebookTreeData = () => {
     shoppingLists,
     shoppingListsLoading,
     fetchShoppingLists,
-    recentNotes,
+    recentNotes: viewRecentNotes,
     recentNotesLoading,
     fetchRecentNotes,
-    addRecentNote,
+    addRecentNote: addViewRecentNote,
     removeRecentNote,
     treeData,
     unassignedNotes,
