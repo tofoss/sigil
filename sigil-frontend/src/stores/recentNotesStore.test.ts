@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest"
 import { noteClient } from "api"
 import { useRecentNotesStore } from "./recentNotesStore"
-import type { Note } from "api/model"
 
 vi.mock("api", () => ({
   noteClient: {
@@ -9,16 +8,9 @@ vi.mock("api", () => ({
   },
 }))
 
-const makeNote = (id: string, title: string): Note => ({
+const makeNote = (id: string, title: string) => ({
   id,
-  userId: "user-1",
   title,
-  content: "",
-  createdAt: null as unknown as Note["createdAt"],
-  updatedAt: null as unknown as Note["updatedAt"],
-  publishedAt: undefined,
-  published: false,
-  tags: [],
 })
 
 describe("recentNotesStore", () => {

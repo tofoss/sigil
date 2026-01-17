@@ -2,12 +2,17 @@ import { create } from "zustand"
 import { noteClient } from "api"
 import type { Note } from "api/model"
 
+interface RecentNote {
+  id: string
+  title: string
+}
+
 interface RecentNotesState {
-  recentNotes: Note[]
+  recentNotes: RecentNote[]
   isLoading: boolean
   error: string | null
   fetchRecentNotes: (limit?: number) => Promise<void>
-  addRecentNote: (note: Note, limit?: number) => void
+  addRecentNote: (note: RecentNote, limit?: number) => void
   removeRecentNote: (noteId: string) => Promise<void>
 }
 
@@ -21,17 +26,23 @@ export const useRecentNotesStore = create<RecentNotesState>(
       set({ isLoading: true, error: null })
       try {
         const notes = await noteClient.fetchRecent(limit)
-        set({ recentNotes: notes, isLoading: false })
+        set({
+          recentNotes: notes.map((note: Note) => ({
+            id: note.id,
+            title: note.title,
+          })),
+          isLoading: false,
+        })
       } catch (err) {
         console.error("Error fetching recent notes:", err)
         set({ error: "Failed to load recent notes", isLoading: false })
       }
     },
 
-    addRecentNote: (note: Note, limit = 5) => {
+    addRecentNote: (note: RecentNote, limit = 5) => {
       set((state: RecentNotesState) => {
         const deduped = state.recentNotes.filter(
-          (item: Note) => item.id !== note.id
+          (item: RecentNote) => item.id !== note.id
         )
         const next = [note, ...deduped].slice(0, limit)
         return { recentNotes: next }
@@ -43,7 +54,7 @@ export const useRecentNotesStore = create<RecentNotesState>(
         await noteClient.deleteRecent(noteId)
         set((state: RecentNotesState) => ({
           recentNotes: state.recentNotes.filter(
-            (note: Note) => note.id !== noteId
+            (note: RecentNote) => note.id !== noteId
           ),
         }))
       } catch (err) {
