@@ -57,6 +57,14 @@ func (m *mockRecentNoteRepository) ListRecent(
 	return nil, nil
 }
 
+func (m *mockRecentNoteRepository) DeleteRecent(
+	ctx context.Context,
+	userID uuid.UUID,
+	noteID uuid.UUID,
+) error {
+	return nil
+}
+
 // DeleteNote implements repositories.NoteRepositoryInterface.
 func (m *mockNoteRepository) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
 	panic("unimplemented")

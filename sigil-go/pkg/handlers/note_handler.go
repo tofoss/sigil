@@ -141,7 +141,7 @@ func (h *NoteHandler) FetchRecentNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := 10
+	limit := 5
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
 			limit = parsedLimit
@@ -161,6 +161,31 @@ func (h *NoteHandler) FetchRecentNotes(w http.ResponseWriter, r *http.Request) {
 }
 
 // SearchNotes searches notes using full-text search
+func (h *NoteHandler) DeleteRecentNote(w http.ResponseWriter, r *http.Request) {
+	userID, _, err := utils.UserContext(r)
+	if err != nil {
+		log.Printf("unable to delete recent note, user not logged in: %v", err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	noteID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		log.Printf("unable to parse note id: %v", err)
+		errors.BadRequest(w)
+		return
+	}
+
+	err = h.recentRepo.DeleteRecent(r.Context(), userID, noteID)
+	if err != nil {
+		log.Printf("unable to delete recent note %s: %v", noteID, err)
+		errors.InternalServerError(w)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *NoteHandler) SearchNotes(w http.ResponseWriter, r *http.Request) {
 	userID, _, err := utils.UserContext(r)
 	if err != nil {

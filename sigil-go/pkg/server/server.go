@@ -122,6 +122,7 @@ func NewServer(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config) (*Se
 		r.Use(middleware.JWTMiddleware(jwtKey), middleware.XSRFProtection(xsrfKey), chiMiddleware.Logger)
 		r.Get("/", noteHandler.FetchUsersNotes)
 		r.Get("/recent", noteHandler.FetchRecentNotes)
+		r.Delete("/recent/{id}", noteHandler.DeleteRecentNote)
 		r.Get("/search", noteHandler.SearchNotes)
 		r.Get("/{id}", noteHandler.FetchNote)
 		r.Post("/", noteHandler.PostNote)

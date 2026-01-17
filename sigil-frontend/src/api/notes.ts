@@ -37,7 +37,7 @@ export const noteClient = {
       .json<Note>()
       .then(fromJson),
 
-  fetchRecent: (limit: number = 10) =>
+  fetchRecent: (limit: number = 5) =>
     client
       .get("notes/recent", {
         searchParams: {
@@ -48,6 +48,12 @@ export const noteClient = {
       })
       .json<Note[]>()
       .then((notes: Note[]) => notes.map(fromJson)),
+
+  deleteRecent: (noteId: string) =>
+    client.delete(`notes/recent/${noteId}`, {
+      headers: commonHeaders(),
+      credentials: "include",
+    }),
 
   // Tag-related methods
   getNoteTags: (noteId: string) =>

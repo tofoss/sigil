@@ -36,6 +36,7 @@ type RecentNoteRepositoryInterface interface {
 	UpsertView(ctx context.Context, userID uuid.UUID, noteID uuid.UUID, viewedAt time.Time) error
 	UpsertEdit(ctx context.Context, userID uuid.UUID, noteID uuid.UUID, editedAt time.Time) error
 	ListRecent(ctx context.Context, userID uuid.UUID, limit int) ([]models.Note, error)
+	DeleteRecent(ctx context.Context, userID uuid.UUID, noteID uuid.UUID) error
 }
 
 // Ensure RecentNoteRepository implements the interface

@@ -1,7 +1,8 @@
-import { HStack, Icon, Text } from "@chakra-ui/react"
+import { HStack, Icon, IconButton, Text } from "@chakra-ui/react"
 import { Note } from "api/model"
 import { memo, useState } from "react"
-import { LuFileText } from "react-icons/lu"
+import type { MouseEvent as ReactMouseEvent } from "react"
+import { LuFileText, LuX } from "react-icons/lu"
 import { useParams, useNavigate } from "shared/Router"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -11,6 +12,8 @@ interface NoteTreeItemProps {
   paddingLeft?: number
   notebookId?: string
   sectionId?: string | null
+  showRemove?: boolean
+  onRemove?: () => void
 }
 
 export const NoteTreeItem = memo(function NoteTreeItem({
@@ -18,6 +21,8 @@ export const NoteTreeItem = memo(function NoteTreeItem({
   paddingLeft = 24,
   notebookId,
   sectionId,
+  showRemove = false,
+  onRemove,
 }: NoteTreeItemProps) {
   const { id: currentNoteId } = useParams()
   const navigate = useNavigate()
@@ -53,7 +58,7 @@ export const NoteTreeItem = memo(function NoteTreeItem({
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: ReactMouseEvent) => {
     // Prevent navigation if we just finished dragging
     if (isDraggingState) {
       e.preventDefault()
@@ -95,6 +100,22 @@ export const NoteTreeItem = memo(function NoteTreeItem({
       >
         {note.title || "Untitled"}
       </Text>
+      {showRemove && onRemove && (
+        <IconButton
+          size="2xs"
+          variant="ghost"
+          aria-label="Remove from recent"
+          minW="auto"
+          h="12px"
+          w="12px"
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            event.stopPropagation()
+            onRemove()
+          }}
+        >
+          <LuX />
+        </IconButton>
+      )}
     </HStack>
   )
 })

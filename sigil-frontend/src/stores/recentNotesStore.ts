@@ -8,6 +8,7 @@ interface RecentNotesState {
   error: string | null
   fetchRecentNotes: (limit?: number) => Promise<void>
   addRecentNote: (note: Note, limit?: number) => void
+  removeRecentNote: (noteId: string) => Promise<void>
 }
 
 export const useRecentNotesStore = create<RecentNotesState>(
@@ -16,7 +17,7 @@ export const useRecentNotesStore = create<RecentNotesState>(
     isLoading: false,
     error: null,
 
-    fetchRecentNotes: async (limit = 10) => {
+    fetchRecentNotes: async (limit = 5) => {
       set({ isLoading: true, error: null })
       try {
         const notes = await noteClient.fetchRecent(limit)
@@ -27,12 +28,24 @@ export const useRecentNotesStore = create<RecentNotesState>(
       }
     },
 
-    addRecentNote: (note: Note, limit = 10) => {
+    addRecentNote: (note: Note, limit = 5) => {
       set((state: RecentNotesState) => {
         const deduped = state.recentNotes.filter((item: Note) => item.id !== note.id)
         const next = [note, ...deduped].slice(0, limit)
         return { recentNotes: next }
       })
+    },
+
+    removeRecentNote: async (noteId: string) => {
+      try {
+        await noteClient.deleteRecent(noteId)
+        set((state: RecentNotesState) => ({
+          recentNotes: state.recentNotes.filter((note: Note) => note.id !== noteId),
+        }))
+      } catch (err) {
+        console.error("Error deleting recent note:", err)
+        set({ error: "Failed to remove recent note" })
+      }
     },
   })
 )

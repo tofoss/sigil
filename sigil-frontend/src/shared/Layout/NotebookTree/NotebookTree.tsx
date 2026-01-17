@@ -64,6 +64,7 @@ export function NotebookTree() {
   const recentNotesLoading = useRecentNotesStore((state: { isLoading: boolean }) => state.isLoading)
   const fetchRecentNotes = useRecentNotesStore((state: { fetchRecentNotes: (limit?: number) => Promise<void> }) => state.fetchRecentNotes)
   const addRecentNote = useRecentNotesStore((state: { addRecentNote: (note: Note, limit?: number) => void }) => state.addRecentNote)
+  const removeRecentNote = useRecentNotesStore((state: { removeRecentNote: (noteId: string) => Promise<void> }) => state.removeRecentNote)
 
   const [isCreatingNotebook, setIsCreatingNotebook] = useState(false)
   const [newNotebookName, setNewNotebookName] = useState("")
@@ -499,7 +500,13 @@ export function NotebookTree() {
             {isRecentExpanded && (
               <Stack gap={0.5}>
                 {recentNotes.map((note: Note) => (
-                  <NoteTreeItem key={note.id} note={note} paddingLeft={12} />
+                  <NoteTreeItem
+                    key={note.id}
+                    note={note}
+                    paddingLeft={12}
+                    showRemove
+                    onRemove={() => removeRecentNote(note.id)}
+                  />
                 ))}
               </Stack>
             )}

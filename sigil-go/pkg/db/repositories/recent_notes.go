@@ -25,15 +25,7 @@ func (r *RecentNoteRepository) UpsertView(
 	noteID uuid.UUID,
 	viewedAt time.Time,
 ) error {
-	query := `
-        INSERT INTO recent_notes (user_id, note_id, last_viewed_at)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (user_id, note_id)
-        DO UPDATE SET last_viewed_at = EXCLUDED.last_viewed_at
-    `
-
-	_, err := r.pool.Exec(ctx, query, userID, noteID, viewedAt)
-	return err
+	return r.upsertAndTrim(ctx, userID, noteID, "last_viewed_at", viewedAt)
 }
 
 func (r *RecentNoteRepository) UpsertEdit(
@@ -42,14 +34,39 @@ func (r *RecentNoteRepository) UpsertEdit(
 	noteID uuid.UUID,
 	editedAt time.Time,
 ) error {
+	return r.upsertAndTrim(ctx, userID, noteID, "last_edited_at", editedAt)
+}
+
+func (r *RecentNoteRepository) upsertAndTrim(
+	ctx context.Context,
+	userID uuid.UUID,
+	noteID uuid.UUID,
+	column string,
+	value time.Time,
+) error {
 	query := `
-        INSERT INTO recent_notes (user_id, note_id, last_edited_at)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (user_id, note_id)
-        DO UPDATE SET last_edited_at = EXCLUDED.last_edited_at
+        WITH updated AS (
+            INSERT INTO recent_notes (user_id, note_id, ` + column + `)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id, note_id)
+            DO UPDATE SET ` + column + ` = EXCLUDED.` + column + `
+            RETURNING user_id
+        )
+        DELETE FROM recent_notes
+        WHERE user_id = (SELECT user_id FROM updated)
+          AND note_id IN (
+            SELECT note_id
+            FROM recent_notes
+            WHERE user_id = $1
+            ORDER BY GREATEST(
+              COALESCE(last_viewed_at, 'epoch'::timestamptz),
+              COALESCE(last_edited_at, 'epoch'::timestamptz)
+            ) DESC
+            OFFSET 5
+          )
     `
 
-	_, err := r.pool.Exec(ctx, query, userID, noteID, editedAt)
+	_, err := r.pool.Exec(ctx, query, userID, noteID, value)
 	return err
 }
 
@@ -59,7 +76,7 @@ func (r *RecentNoteRepository) ListRecent(
 	limit int,
 ) ([]models.Note, error) {
 	if limit <= 0 || limit > 50 {
-		limit = 10
+		limit = 5
 	}
 
 	query := `
@@ -87,4 +104,14 @@ func (r *RecentNoteRepository) ListRecent(
 	}
 
 	return notes, nil
+}
+
+func (r *RecentNoteRepository) DeleteRecent(
+	ctx context.Context,
+	userID uuid.UUID,
+	noteID uuid.UUID,
+) error {
+	query := `DELETE FROM recent_notes WHERE user_id = $1 AND note_id = $2`
+	_, err := r.pool.Exec(ctx, query, userID, noteID)
+	return err
 }
