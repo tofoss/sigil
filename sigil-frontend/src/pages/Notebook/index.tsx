@@ -22,39 +22,28 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@chakra-ui/react"
-import {
-  DndContext,
-  closestCenter,
-  DragEndEvent,
-  pointerWithin,
-  rectIntersection,
-} from "@dnd-kit/core"
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { notebooks, sections } from "api"
-import { SectionCard } from "components/ui/section-card"
-import { SectionDialog } from "components/ui/section-dialog"
-import { SortableSectionCard } from "components/ui/sortable-section-card"
-import { Toaster, toaster } from "components/ui/toaster"
+import { useEffect, useState } from "react"
+import type { ChangeEvent, KeyboardEvent } from "react"
 import {
   LuArrowLeft,
   LuBook,
-  LuFolderPlus,
-  LuTrash2,
-  LuPencil,
   LuCheck,
   LuChevronRight,
+  LuFolderPlus,
+  LuPencil,
+  LuTrash2,
   LuX,
 } from "react-icons/lu"
-import { useFetch } from "utils/http"
-import { Link, useParams, useNavigate } from "shared/Router"
-import { pages } from "pages/pages"
-import { useState, useEffect } from "react"
+
+import { notebooks, sections } from "api"
 import { Note, Section } from "api/model"
+import { NoteMoveMenu } from "components/ui/note-move-menu"
+import { SectionDialog } from "components/ui/section-dialog"
+import { Toaster, toaster } from "components/ui/toaster"
+import { pages } from "pages/pages"
+import { Link, useNavigate, useParams } from "shared/Router"
 import { useTreeStore } from "stores/treeStore"
+import { useFetch } from "utils/http"
 
 interface SimpleSectionProps {
   section: Section
@@ -94,19 +83,27 @@ function SimpleSection({ section, notes, notebookId }: SimpleSectionProps) {
       </HStack>
       {isExpanded && notes.length > 0 && (
         <Stack gap={1} mt={2} ml={6}>
-          {notes.map((note) => (
-            <ChakraLink asChild key={note.id}>
-              <Link to={`/notes/${note.id}`}>
-                <Box
-                  px={3}
-                  py={1.5}
-                  borderRadius="md"
-                  _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
-                >
-                  <Text fontSize="sm">{note.title || "Untitled"}</Text>
-                </Box>
-              </Link>
-            </ChakraLink>
+          {notes.map((note: Note) => (
+            <NoteMoveMenu
+              key={note.id}
+              noteId={note.id}
+              sourceNotebookId={notebookId}
+              sourceSectionId={section.id}
+              trigger="context"
+            >
+              <ChakraLink asChild>
+                <Link to={`/notes/${note.id}`}>
+                  <Box
+                    px={3}
+                    py={1.5}
+                    borderRadius="md"
+                    _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
+                  >
+                    <Text fontSize="sm">{note.title || "Untitled"}</Text>
+                  </Box>
+                </Link>
+              </ChakraLink>
+            </NoteMoveMenu>
           ))}
         </Stack>
       )}
@@ -153,19 +150,27 @@ function SimpleUnsectioned({ notes, notebookId }: SimpleUnsectionedProps) {
       </HStack>
       {isExpanded && (
         <Stack gap={1} mt={2} ml={6}>
-          {notes.map((note) => (
-            <ChakraLink asChild key={note.id}>
-              <Link to={`/notes/${note.id}`}>
-                <Box
-                  px={3}
-                  py={1.5}
-                  borderRadius="md"
-                  _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
-                >
-                  <Text fontSize="sm">{note.title || "Untitled"}</Text>
-                </Box>
-              </Link>
-            </ChakraLink>
+          {notes.map((note: Note) => (
+            <NoteMoveMenu
+              key={note.id}
+              noteId={note.id}
+              sourceNotebookId={notebookId}
+              sourceSectionId={null}
+              trigger="context"
+            >
+              <ChakraLink asChild>
+                <Link to={`/notes/${note.id}`}>
+                  <Box
+                    px={3}
+                    py={1.5}
+                    borderRadius="md"
+                    _hover={{ bg: "gray.100", _dark: { bg: "gray.800" } }}
+                  >
+                    <Text fontSize="sm">{note.title || "Untitled"}</Text>
+                  </Box>
+                </Link>
+              </ChakraLink>
+            </NoteMoveMenu>
           ))}
         </Stack>
       )}
@@ -184,7 +189,6 @@ export function Component() {
   } = useDisclosure()
   const [deleting, setDeleting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [isEditMode, setIsEditMode] = useState(false)
   const [isRenamingNotebook, setIsRenamingNotebook] = useState(false)
   const [notebookName, setNotebookName] = useState("")
   const { deleteNotebook, renameNotebook } = useTreeStore()
@@ -219,7 +223,7 @@ export function Component() {
 
     const fetchAllNotes = async () => {
       const results = await Promise.all(
-        sectionsList.map(async (section) => ({
+        sectionsList.map(async (section: Section) => ({
           section,
           notes: await sections.getNotes(section.id),
         }))
@@ -234,113 +238,9 @@ export function Component() {
     setRefreshKey((prev) => prev + 1)
   }
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-
-    if (!over) {
-      return
-    }
-
-    const dragData = active.data.current
-    const dropData = over.data.current
-
-    // Handle section reordering
-    if (dragData?.type === "section-sort") {
-      // This is a section drag
-      if (active.id === over.id) {
-        return
-      }
-
-      const oldIndex = optimisticSections.findIndex((s) => s.id === active.id)
-      const newIndex = optimisticSections.findIndex((s) => s.id === over.id)
-
-      if (oldIndex === -1 || newIndex === -1) {
-        return
-      }
-
-      // Optimistically reorder
-      const reordered = arrayMove(optimisticSections, oldIndex, newIndex)
-      setOptimisticSections(reordered)
-
-      try {
-        // Call API with new position (0-based index)
-        await sections.updatePosition(active.id as string, newIndex)
-
-        toaster.create({
-          title: "Section reordered",
-          type: "success",
-          duration: 2000,
-        })
-
-        // Refresh to ensure consistency with server
-        handleRefresh()
-      } catch (error) {
-        console.error("Error reordering section:", error)
-
-        // Rollback optimistic update
-        setOptimisticSections(sectionsArray)
-
-        toaster.create({
-          title: "Failed to reorder section",
-          description: "Please try again",
-          type: "error",
-          duration: 3000,
-        })
-      }
-      return
-    }
-
-    // Handle note dragging to sections
-    if (dragData?.type === "note" && dropData?.type === "section") {
-      const noteId = active.id as string
-      const currentSectionId = dragData.currentSectionId
-      const targetSectionId = dropData.sectionId
-
-      // No change if dropping in same section
-      if (currentSectionId === targetSectionId) {
-        return
-      }
-
-      try {
-        // Call API to reassign note to new section
-        await sections.assignNote(noteId, id!, targetSectionId)
-
-        toaster.create({
-          title: "Note moved",
-          type: "success",
-          duration: 2000,
-        })
-
-        // Refresh to get updated note lists
-        handleRefresh()
-      } catch (error) {
-        console.error("Error moving note:", error)
-
-        toaster.create({
-          title: "Failed to move note",
-          description: "Please try again",
-          type: "error",
-          duration: 3000,
-        })
-      }
-    }
-  }
-
   const sectionsArray = sectionsList || []
   const unsectionedArray = unsectionedNotes || []
 
-  // Optimistic state for drag-and-drop
-  const [optimisticSections, setOptimisticSections] = useState(sectionsArray)
-
-  // Sync optimistic state when real data changes
-  useEffect(() => {
-    setOptimisticSections(sectionsArray)
-  }, [sectionsList])
-
-  const maxPosition =
-    sectionsArray.length > 0
-      ? Math.max(...sectionsArray.map((s) => s.position))
-      : -1
 
   const handleDelete = async () => {
     if (!deleting) {
@@ -426,12 +326,14 @@ export function Component() {
               <Icon fontSize="2xl">
                 <LuBook />
               </Icon>
-              {isEditMode && isRenamingNotebook ? (
+              {isRenamingNotebook ? (
                 <>
                   <Input
                     value={notebookName}
-                    onChange={(e) => setNotebookName(e.target.value)}
-                    onKeyDown={(e) => {
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setNotebookName(e.target.value)
+                    }
+                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") {
                         handleRenameNotebook()
                       } else if (e.key === "Escape") {
@@ -459,16 +361,14 @@ export function Component() {
               ) : (
                 <>
                   <Heading size="xl">{notebook.name}</Heading>
-                  {isEditMode && (
-                    <IconButton
-                      variant="ghost"
-                      aria-label="Rename notebook"
-                      onClick={() => setIsRenamingNotebook(true)}
-                      size="sm"
-                    >
-                      <LuPencil />
-                    </IconButton>
-                  )}
+                  <IconButton
+                    variant="ghost"
+                    aria-label="Rename notebook"
+                    onClick={() => setIsRenamingNotebook(true)}
+                    size="sm"
+                  >
+                    <LuPencil />
+                  </IconButton>
                 </>
               )}
             </HStack>
@@ -484,30 +384,12 @@ export function Component() {
           </Stack>
 
           <HStack>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditMode(!isEditMode)}
-            >
-              {isEditMode ? (
-                <>
-                  <LuCheck /> Done
-                </>
-              ) : (
-                <>
-                  <LuPencil /> Edit
-                </>
-              )}
+            <Button variant="outline" onClick={onSectionOpen}>
+              <LuFolderPlus /> New Section
             </Button>
-            {isEditMode && (
-              <>
-                <Button variant="outline" onClick={onSectionOpen}>
-                  <LuFolderPlus /> New Section
-                </Button>
-                <Button colorScheme="red" variant="outline" onClick={onOpen}>
-                  <LuTrash2 /> Delete
-                </Button>
-              </>
-            )}
+            <Button colorScheme="red" variant="outline" onClick={onOpen}>
+              <LuTrash2 /> Delete
+            </Button>
           </HStack>
         </HStack>
 
@@ -527,44 +409,7 @@ export function Component() {
                 This notebook is empty. Add some notes to get started!
               </Text>
             </Box>
-          ) : isEditMode ? (
-            // Edit Mode: Drag-and-drop interface
-            <DndContext
-              collisionDetection={pointerWithin}
-              onDragEnd={handleDragEnd}
-            >
-              <Stack gap={4}>
-                {/* Unsectioned Notes */}
-                {unsectionedArray.length > 0 && (
-                  <SectionCard
-                    notebookId={id!}
-                    notes={unsectionedArray}
-                    isUnsectioned
-                    onSuccess={handleRefresh}
-                    refreshKey={refreshKey}
-                  />
-                )}
-
-                {/* Sections with Drag-and-Drop */}
-                <SortableContext
-                  items={optimisticSections.map((s) => s.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {optimisticSections.map((section) => (
-                    <SortableSectionCard
-                      key={section.id}
-                      section={section}
-                      notebookId={id!}
-                      maxPosition={maxPosition}
-                      onSuccess={handleRefresh}
-                      refreshKey={refreshKey}
-                    />
-                  ))}
-                </SortableContext>
-              </Stack>
-            </DndContext>
           ) : (
-            // Read-only Mode: Simple TOC view
             <Stack gap={3}>
               {/* Unsectioned Notes */}
               <SimpleUnsectioned notes={unsectionedArray} notebookId={id!} />
@@ -588,7 +433,7 @@ export function Component() {
         open={sectionOpen}
         onClose={onSectionClose}
         notebookId={id!}
-        maxPosition={maxPosition}
+        maxPosition={sectionsArray.length}
         onSuccess={handleRefresh}
       />
 

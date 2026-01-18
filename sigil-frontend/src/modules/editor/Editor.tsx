@@ -1,41 +1,38 @@
 /* eslint-disable no-console */
-import {
-  Box,
-  Text,
-  Button,
-  Menu,
-  Portal,
-} from "@chakra-ui/react"
-import { fileClient, noteClient, shoppingListClient } from "api"
-import { MarkdownViewer } from "modules/markdown"
+import { Box, Button, Menu, Portal, Text } from "@chakra-ui/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+  LuArrowLeftRight,
   LuFileEdit,
   LuPresentation,
   LuSave,
-  LuTrash2,
   LuShoppingCart,
+  LuTrash2,
 } from "react-icons/lu"
+
+import { fileClient, noteClient, shoppingListClient } from "api"
+import { Note } from "api/model/note"
+import { ShoppingList } from "api/model/shopping-list"
+import { Tag } from "api/model/tag"
+import { NoteMoveMenu } from "components/ui/note-move-menu"
+import { useColorModeValue } from "components/ui/color-mode"
+import { MarkdownViewer } from "modules/markdown"
+import { useTOC } from "shared/Layout"
+import { useShoppingListStore } from "stores/shoppingListStore"
+import { useTreeStore } from "stores/treeStore"
 import { colorPalette } from "theme"
 import { apiRequest } from "utils/http"
-import { Note } from "api/model/note"
-import { Tag } from "api/model/tag"
-import { ShoppingList } from "api/model/shopping-list"
-import { useTreeStore } from "stores/treeStore"
-import { useShoppingListStore } from "stores/shoppingListStore"
-import CodeMirror from '@uiw/react-codemirror';
-import { markdown } from '@codemirror/lang-markdown';
-import { RegExpCursor } from '@codemirror/search';
-import { EditorView } from '@codemirror/view';
-import { sigilDarkTheme, sigilLightTheme } from './editorThemes';
-import { useColorModeValue } from 'components/ui/color-mode';
+import CodeMirror from "@uiw/react-codemirror"
+import { markdown } from "@codemirror/lang-markdown"
+import { RegExpCursor } from "@codemirror/search"
+import { EditorView } from "@codemirror/view"
+import { sigilDarkTheme, sigilLightTheme } from "./editorThemes"
 import { vim } from "@replit/codemirror-vim"
-import { historyField } from '@codemirror/commands';
-import { Prec } from '@codemirror/state';
-import { useTOC } from 'shared/Layout';
+import { historyField } from "@codemirror/commands"
+import { Prec } from "@codemirror/state"
 import { useShouldEnableVimMode } from "./useShouldEnableVimMode"
-import { shoppingListExtension, toggleShoppingListModeEffect } from './shoppingListExtensions';
-import { hasChecklistItems } from './utils';
+import { shoppingListExtension, toggleShoppingListModeEffect } from "./shoppingListExtensions"
+import { hasChecklistItems } from "./utils"
 
 interface EditorProps {
   note?: Note
@@ -62,7 +59,13 @@ export function Editor(props: EditorProps) {
   const [togglePreview, setTogglePreview] = useState(props.mode === "Display")
   const { call, loading, error } = apiRequest<Note>()
   const { call: assignTags, loading: assigningTags } = apiRequest<Tag[]>()
-  const { updateNoteTitle, addNoteToTree, fetchTree, treeData, unassignedNotes } = useTreeStore()
+  const {
+    updateNoteTitle,
+    addNoteToTree,
+    fetchTree,
+    treeData,
+    unassignedNotes,
+  } = useTreeStore()
   const { updateShoppingListTitle } = useShoppingListStore()
   const { setContent: setTOCContent } = useTOC()
   const documentId = note?.id ?? shoppingList?.id
@@ -78,6 +81,30 @@ export function Editor(props: EditorProps) {
   const isAutosavingRef = useRef(false)
   const textRef = useRef(text)
   const documentIdRef = useRef(documentId)
+
+  const noteLocation = useMemo(() => {
+    if (!note) {
+      return { notebookId: null, sectionId: null }
+    }
+
+    if (unassignedNotes.some((item: { id: string }) => item.id === note.id)) {
+      return { notebookId: null, sectionId: null }
+    }
+
+    for (const notebook of treeData) {
+      if (notebook.unsectioned.some((item: { id: string }) => item.id === note.id)) {
+        return { notebookId: notebook.id, sectionId: null }
+      }
+
+      for (const section of notebook.sections) {
+        if (section.notes.some((item: { id: string }) => item.id === note.id)) {
+          return { notebookId: notebook.id, sectionId: section.id }
+        }
+      }
+    }
+
+    return { notebookId: null, sectionId: null }
+  }, [note, treeData, unassignedNotes])
   const debounceTimerRef = useRef<number | null>(null)
   const AUTOSAVE_INTERVAL = 10000 // 10 seconds
   const DEBOUNCE_DELAY = 1000 // 1 second after user stops typing
@@ -94,7 +121,7 @@ export function Editor(props: EditorProps) {
 
 
   const markdownPasteHandler = EditorView.domEventHandlers({
-    paste(event, view) {
+    paste(event: ClipboardEvent, view: EditorView) {
       const items = event.clipboardData?.items
       if (!items) return false
 
@@ -153,7 +180,7 @@ export function Editor(props: EditorProps) {
 
   // Click handler to focus editor when clicking in empty space
   const clickToFocus = EditorView.domEventHandlers({
-    mousedown(event, view) {
+    mousedown(event: MouseEvent, view: EditorView) {
       const target = event.target as HTMLElement
       // If clicking on the scroller but not on content, focus at end
       if (target.classList.contains('cm-scroller') || target.classList.contains('cm-content')) {
@@ -521,6 +548,18 @@ export function Editor(props: EditorProps) {
           </>
         )}
         <Box borderLeftWidth="1px" height="auto" />
+        {note && (
+          <NoteMoveMenu
+            noteId={note.id}
+            sourceNotebookId={noteLocation.notebookId}
+            sourceSectionId={noteLocation.sectionId}
+            trigger="button"
+          >
+            <Button size="sm" variant="ghost" aria-label="Move note">
+              <LuArrowLeftRight />
+            </Button>
+          </NoteMoveMenu>
+        )}
         <Button
           size="sm"
           variant="ghost"
@@ -561,7 +600,7 @@ export function Editor(props: EditorProps) {
         minHeight="80vh"
         theme={editorTheme}
         extensions={extensions}
-        onCreateEditor={(view) => {
+        onCreateEditor={(view: EditorView) => {
           editorViewRef.current = view
           // Auto-enable shopping list mode if this is a shopping list
           if (isShoppingList) {
@@ -578,11 +617,11 @@ export function Editor(props: EditorProps) {
             }
             : undefined
         }
-        onChange={(val, viewUpdate) => {
+        onChange={(val: string, viewUpdate: { state: EditorView["state"] }) => {
           setText(val)
           if (documentId) {
-            const state = viewUpdate.state.toJSON(stateFields);
-            localStorage.setItem(documentId, JSON.stringify(state));
+            const state = viewUpdate.state.toJSON(stateFields)
+            localStorage.setItem(documentId, JSON.stringify(state))
           }
           // Trigger debounced autosave on content change
           if (!togglePreview) {

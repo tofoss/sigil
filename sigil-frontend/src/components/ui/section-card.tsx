@@ -14,6 +14,7 @@ import {
   Heading,
   HStack,
   Icon,
+  Link as ChakraLink,
   MenuContent,
   MenuItem,
   MenuRoot,
@@ -23,23 +24,23 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react"
-import { useDroppable } from "@dnd-kit/core"
-import { sections } from "api"
-import { Note, Section } from "api/model"
 import { useState } from "react"
 import {
   LuChevronDown,
   LuChevronRight,
-  LuGripVertical,
   LuMoreVertical,
   LuPencil,
   LuTrash2,
 } from "react-icons/lu"
+
+import { sections } from "api"
+import { Note, Section } from "api/model"
+import { Link } from "shared/Router"
+import { useTreeStore } from "stores/treeStore"
 import { useFetch } from "utils/http"
 import { useCollapsedSections } from "utils/use-collapsed-sections"
-import { DraggableNote } from "./draggable-note"
+
 import { SectionDialog } from "./section-dialog"
-import { useTreeStore } from "stores/treeStore"
 
 interface SectionCardProps {
   section?: Section
@@ -48,10 +49,6 @@ interface SectionCardProps {
   isUnsectioned?: boolean
   maxPosition?: number
   onSuccess?: () => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dragHandleProps?: Record<string, any>
-  isDragging?: boolean
-  isOver?: boolean
   refreshKey?: number
 }
 
@@ -62,8 +59,6 @@ export function SectionCard({
   isUnsectioned = false,
   maxPosition = 0,
   onSuccess,
-  dragHandleProps,
-  isOver: isOverProp,
   refreshKey = 0,
 }: SectionCardProps) {
   const sectionId = section?.id || "unsectioned"
@@ -81,19 +76,6 @@ export function SectionCard({
     onClose: onEditClose,
   } = useDisclosure()
 
-  // Make this section a drop zone for notes (only for unsectioned, otherwise handled by SortableSectionCard)
-  const droppableHook = useDroppable({
-    id: sectionId,
-    data: {
-      type: "section",
-      sectionId: section?.id || null,
-      notebookId,
-    },
-  })
-
-  // Use external isOver if provided, otherwise use our own
-  const setNodeRef = isUnsectioned ? droppableHook.setNodeRef : undefined
-  const isOver = isOverProp !== undefined ? isOverProp : droppableHook.isOver
 
   // Fetch notes for this section if not provided (used for regular sections)
   const { data: fetchedNotes = [] } = useFetch(
@@ -126,32 +108,12 @@ export function SectionCard({
 
   return (
     <>
-      <Card.Root
-        ref={setNodeRef}
-        style={{
-          backgroundColor: isOver ? "var(--chakra-colors-bg-muted)" : undefined,
-          borderColor: isOver
-            ? "var(--chakra-colors-border-accent)"
-            : undefined,
-          borderWidth: isOver ? "2px" : undefined,
-          transition: "all 0.2s",
-        }}
-      >
+      <Card.Root>
         <Card.Body>
           <Stack gap={3}>
+
             <HStack justify="space-between">
               <HStack gap={2} flex={1}>
-                {!isUnsectioned && dragHandleProps && (
-                  <Icon
-                    fontSize="xl"
-                    color="fg.muted"
-                    cursor="grab"
-                    _active={{ cursor: "grabbing" }}
-                    {...dragHandleProps}
-                  >
-                    <LuGripVertical />
-                  </Icon>
-                )}
                 <HStack
                   gap={2}
                   flex={1}
@@ -219,14 +181,25 @@ export function SectionCard({
                   </Box>
                 ) : (
                   <Stack gap={1}>
-                    {notes?.map((note, index) => (
-                      <DraggableNote
-                        key={note.id}
-                        note={note}
-                        index={index}
-                        sectionId={section?.id || null}
-                      />
-                    ))}
+                   {notes?.map((note: Note, index: number) => (
+                     <HStack
+                       key={note.id}
+                       p={2}
+                       borderRadius="md"
+                       _hover={{ bg: "bg.muted" }}
+                       gap={2}
+                     >
+                       <Text fontSize="sm" color="fg.muted" minW="6">
+                         {index + 1}.
+                       </Text>
+                       <ChakraLink asChild flex={1}>
+                         <Link to={`/notes/${note.id}`}>
+                           <Text flex={1}>{note.title || "Untitled"}</Text>
+                         </Link>
+                       </ChakraLink>
+                     </HStack>
+                   ))}
+
                   </Stack>
                 )}
               </Box>

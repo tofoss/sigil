@@ -1,9 +1,12 @@
 import { HStack, Icon, IconButton, Text } from "@chakra-ui/react"
-import type { NotebookTreeViewNote } from "./notebook-tree-data"
 import { memo } from "react"
 import type { MouseEvent as ReactMouseEvent } from "react"
 import { LuFileText, LuX } from "react-icons/lu"
+
+import { NoteMoveMenu } from "components/ui/note-move-menu"
 import { useParams, useNavigate } from "shared/Router"
+
+import type { NotebookTreeViewNote } from "./notebook-tree-data"
 
 interface NoteTreeItemProps {
   note: NotebookTreeViewNote
@@ -31,51 +34,58 @@ export const NoteTreeItem = memo(function NoteTreeItem({
   }
 
   return (
-    <HStack
-      pl={`${paddingLeft}px`}
-      pr={2}
-      py={1.5}
-      gap={2}
-      cursor="pointer"
-      borderRadius="md"
-      data-testid={`note-${note.id}`}
-      bg={isActive ? "bg.muted" : undefined}
-      fontWeight={isActive ? "semibold" : "normal"}
-      _hover={{
-        bg: isActive ? "bg.muted" : "gray.subtle",
-      }}
-      transition="background 0.15s"
-      onClick={handleClick}
+    <NoteMoveMenu
+      noteId={note.id}
+      sourceNotebookId={notebookId}
+      sourceSectionId={sectionId ?? null}
+      trigger="context"
     >
-      <Icon fontSize="sm" color="fg.muted" flexShrink={0}>
-        <LuFileText />
-      </Icon>
-      <Text
-        fontSize="sm"
-        flex={1}
-        overflow="hidden"
-        textOverflow="ellipsis"
-        whiteSpace="nowrap"
-        title={note.title || "Untitled"}
+      <HStack
+        pl={`${paddingLeft}px`}
+        pr={2}
+        py={1.5}
+        gap={2}
+        cursor="pointer"
+        borderRadius="md"
+        data-testid={`note-${note.id}`}
+        bg={isActive ? "bg.muted" : undefined}
+        fontWeight={isActive ? "semibold" : "normal"}
+        _hover={{
+          bg: isActive ? "bg.muted" : "gray.subtle",
+        }}
+        transition="background 0.15s"
+        onClick={handleClick}
       >
-        {note.title || "Untitled"}
-      </Text>
-      {showRemove && onRemove && (
-        <IconButton
-          size="2xs"
-          variant="ghost"
-          aria-label="Remove from recent"
-          minW="auto"
-          h="12px"
-          w="12px"
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            event.stopPropagation()
-            onRemove()
-          }}
+        <Icon fontSize="sm" color="fg.muted" flexShrink={0}>
+          <LuFileText />
+        </Icon>
+        <Text
+          fontSize="sm"
+          flex={1}
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+          title={note.title || "Untitled"}
         >
-          <LuX />
-        </IconButton>
-      )}
-    </HStack>
+          {note.title || "Untitled"}
+        </Text>
+        {showRemove && onRemove && (
+          <IconButton
+            size="2xs"
+            variant="ghost"
+            aria-label="Remove from recent"
+            minW="auto"
+            h="12px"
+            w="12px"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.stopPropagation()
+              onRemove()
+            }}
+          >
+            <LuX />
+          </IconButton>
+        )}
+      </HStack>
+    </NoteMoveMenu>
   )
 })
